@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WashTime AI – MM:SS в последнюю минуту</title>
+    <title>WashTime AI – 3 машины + уведомления</title>
     <style>
         *{margin:0;padding:0;box-sizing:border-box}
         body{
@@ -13,92 +13,72 @@
         }
         .container{
             background:white;border-radius:20px;box-shadow:0 20px 40px rgba(0,0,0,.1);
-            padding:20px 0;max-width:380px;width:100%;
+            padding:20px 0;max-width:420px;width:100%;
         }
-        h1{color:#333;margin-bottom:20px;font-size:24px;font-weight:600;text-align:center}
+        h1{color:#333;margin-bottom:15px;font-size:24px;font-weight:600;text-align:center}
 
-        .row{display:flex;justify-content:space-between;align-items:center;padding:12px 20px;border-bottom:1px solid #f0f0f0}
+        /* вкладки */
+        .tabs{display:flex;border-bottom:1px solid #e0e0e0}
+        .tab{
+            flex:1;text-align:center;padding:10px;font-size:15px;cursor:pointer;
+            color:#777;border:none;background:transparent;transition:color .2s
+        }
+        .tab.active{color:#667efa;font-weight:600}
+        .panels{padding:10px 20px}
+
+        /* единый стиль строк */
+        .row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f5f5f5}
         .row:last-child{border-bottom:none}
-        .label{font-size:16px;color:#444;font-weight:500}
-        .value{font-size:22px;font-weight:600;color:#222;text-align:right}
-        .end-row .value{color:#667eea;font-size:22px;font-weight:600;padding-right:24px}
-        .left-row .value{color:#ff6b00;font-size:22px;font-weight:600;padding-right:22px}
+        .label{font-size:15px;color:#444;font-weight:500}
+        .value{font-size:20px;font-weight:600;color:#222;width:auto;text-align:right}
+        .end-row .value{color:#667eea;font-size:20px;padding-right:24px}
+        .left-row .value{color:#ff6b00;font-size:20px;padding-right:24px}
 
-        .check-row{padding:10px 20px;justify-content:space-between}
-        .check-label{font-size:16px;color:#444;font-weight:500}
-        .check-box{
-            width:22px;height:22px;border:2px solid #667eea;border-radius:4px;
-            background:white;cursor:pointer;position:relative;transition:background .2s
-        }
-        .check-box.checked{background:#667eea}
-        .check-box::after{
-            content:'';position:absolute;left:6px;top:2px;width:6px;height:12px;
-            border:solid white;border-width:0 2px 2px 0;transform:rotate(45deg);display:none
-        }
+        /* программа посудомойки */
+        .prog-row{align-items:center}
+        .prog-select{width:60px;font-size:18px;text-align:center}
+
+        /* чекбокс */
+        .check-row{padding:8px 0;justify-content:space-between}
+        .check-label{font-size:14px;color:#444}
+        .check-box{width:18px;height:18px;border:2px solid #667aea;border-radius:3px;background:white;cursor:pointer;position:relative}
+        .check-box.checked{background:#667aea}
+        .check-box::after{content:'';position:absolute;left:4px;top:1px;width:5px;height:9px;border:solid white;border-width:0 2px 2px 0;transform:rotate(45deg);display:none}
         .check-box.checked::after{display:block}
 
-        input[type=time]{
-            border:none;background:transparent;font-size:22px;font-weight:600;color:#222;
-            width:auto;cursor:pointer;text-align:right
-        }
-        input[type=time]:focus{outline:none}
-        .dur-picker{display:flex;align-items:center;gap:2px;font-size:22px;font-weight:600;color:#222;cursor:pointer}
-        .dur-picker span{padding:2px 4px;border-radius:4px;transition:background .2s}
-        .dur-picker span:hover{background:#f0f2ff}
-
-        body.alarm{background:#ff6b00!important;transition:background .3s}
-
+        /* скролл-окно (универсальное) */
         .scroll-box{
             position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.45);
             display:none;align-items:center;justify-content:center;z-index:999
         }
         .scroll-box.show{display:flex}
         .scroll-panel{background:white;border-radius:16px;padding:15px 8px;display:flex;gap:15px}
-        .scroll-col{
-            height:180px;overflow-y:scroll;width:70px;scroll-snap-type:y mandatory;
-            -ms-overflow-style:none;scrollbar-width:none
-        }
+        .scroll-col{height:180px;overflow-y:scroll;width:70px;scroll-snap-type:y mandatory;-ms-overflow-style:none;scrollbar-width:none}
         .scroll-col::-webkit-scrollbar{display:none}
         .scroll-col ul{list-style:none}
-        .scroll-col li{
-            height:30px;display:flex;align-items:center;justify-content:center;font-size:20px;
-            color:#555;scroll-snap-align:center;
-        }
+        .scroll-col li{height:30px;display:flex;align-items:center;justify-content:center;font-size:20px;color:#555;scroll-snap-align:center;cursor:pointer}
         .scroll-col li.sel{color:#667efa;font-weight:700}
-        .ok-btn{margin-top:10px;width:100%;background:#667eea;color:white;border:none;padding:8px;border-radius:6px;font-size:14px;cursor:pointer}
+        .ok-btn{margin-top:10px;width:100%;background:#667efa;color:white;border:none;padding:8px;border-radius:6px;font-size:14px;cursor:pointer}
+
+        body.alarm{background:#ff6b00!important;transition:background .3s}
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🧺 WashTime AI</h1>
+        <h1>WashTime AI</h1>
 
-        <div class="row">
-            <span class="label">Время старта стирки</span>
-            <input type="time" id="startTime" class="value">
+        <!-- ВКЛАДКИ -->
+        <div class="tabs">
+            <button class="tab active" data-machine="wash">Стиральная</button>
+            <button class="tab" data-machine="dry">Сушильная</button>
+            <button class="tab" data-machine="dish">Посудомойка</button>
         </div>
 
-        <div class="row">
-            <span class="label">Длительность стирки</span>
-            <input type="time" id="durTime" class="value" value="01:42">
-        </div>
-
-        <div class="row end-row">
-            <span class="label">Конец стирки:</span>
-            <span class="value" id="endShow">--:--</span>
-        </div>
-
-        <div class="row left-row">
-            <span class="label">Осталось:</span>
-            <span class="value" id="leftShow">--:--</span>
-        </div>
-
-        <div class="row check-row">
-            <span class="check-label">Сигнал по окончанию</span>
-            <div class="check-box checked" id="signalToggle"></div>
-        </div>
+        <!-- ПАНЕЛИ -->
+        <div class="panels" id="panels"></div>
     </div>
 
-    <!-- скролл-окно -->
+    <!-- УНИВЕРСАЛЬНОЕ СКРОЛЛ-ОКНО -->
     <div class="scroll-box" id="scrollBox">
         <div>
             <div class="scroll-panel">
@@ -110,55 +90,139 @@
     </div>
 
     <script>
-        const startTimeInput=document.getElementById('startTime');
-        const durTime=document.getElementById('durTime');
-        const endShow=document.getElementById('endShow');
-        const leftShow=document.getElementById('leftShow');
-        const signalToggle=document.getElementById('signalToggle');
-        const scrollBox=document.getElementById('scrollBox');
-        const hList=document.getElementById('hList');
-        const mList=document.getElementById('mList');
-        const okBtn=document.getElementById('okBtn');
+        /* ---------- ДАННЫЕ ---------- */
+        const machines={
+            wash:{h:1,m:42},
+            dry:{h:1,m:15},
+            dish:{prog:2,progTimes:{1:'02:45',2:'02:00',3:'02:30',4:'00:55',5:'01:40',6:'00:10',7:'00:50'}}
+        };
 
-        let hSel=1, mSel=42;
-        let signalEnabled=true;
-        let alarmFired=false;
-
-        // чекбокс
-        signalToggle.classList.toggle('checked',signalEnabled);
-        signalToggle.addEventListener('click',()=>{
-            signalEnabled=!signalEnabled;
-            signalToggle.classList.toggle('checked',signalEnabled);
-            if(!signalEnabled)alarmFired=false;
-        });
-
-        // Web-Audio пищалка
+        /* ---------- Web-Audio BEEP ---------- */
         const audioCtx=new (window.AudioContext||window.webkitAudioContext)();
         function beep(){
             const osc=audioCtx.createOscillator();
             const gain=audioCtx.createGain();
-            osc.type='sine';
-            osc.frequency.setValueAtTime(900,audioCtx.currentTime);
+            osc.type='sine'; osc.frequency.setValueAtTime(900,audioCtx.currentTime);
             gain.gain.setValueAtTime(0.3,audioCtx.currentTime);
             osc.connect(gain).connect(audioCtx.destination);
-            osc.start();
-            osc.stop(audioCtx.currentTime+0.2);
+            osc.start(); osc.stop(audioCtx.currentTime+0.2);
         }
 
-        // текущее время старта
-        const now=new Date();
-        startTimeInput.value=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+        /* ---------- ЭЛЕМЕНТЫ ---------- */
+        const panels=document.getElementById('panels');
+        const scrollBox=document.getElementById('scrollBox');
+        const hList=document.getElementById('hList');
+        const mList=document.getElementById('mList');
+        const okBtn=document.getElementById('okBtn');
+        let activeMachine='wash';
+        let hSel=1, mSel=42;
+        let signalEnabled=true;
+        let alarmFired=false;
 
+        /* ---------- РЕНДЕР ПАНЕЛЕЙ ---------- */
+        function renderPanel(key){
+            const m=machines[key];
+            const isDish=key==='dish';
+            const durValue=isDish?m.progTimes[m.prog]:`${String(m.h).padStart(2,'0')}:${String(m.m).padStart(2,'0')}`;
+
+            return `
+            <div class="panel" id="panel-${key}" style="display:${key===activeMachine?'block':'none'}">
+                <div class="row">
+                    <span class="label">Время старта</span>
+                    <input type="time" class="value startTime" data-key="${key}" value="${timeNow()}">
+                </div>
+
+                ${isDish?`
+                <div class="row prog-row">
+                    <span class="label">Программа</span>
+                    <select class="prog-select" data-key="${key}">
+                        ${[1,2,3,4,5,6,7].map(p=>`<option value="${p}" ${p===m.prog?'selected':''}>${p}</option>`).join('')}
+                    </select>
+                </div>`:''}
+
+                <div class="row">
+                    <span class="label">Длительность</span>
+                    <input type="time" class="value durTime" data-key="${key}" value="${durValue}" readonly>
+                </div>
+
+                <div class="row end-row">
+                    <span class="label">Конец:</span>
+                    <span class="value endShow" data-key="${key}">--:--</span>
+                </div>
+
+                <div class="row left-row">
+                    <span class="label">Осталось:</span>
+                    <span class="value leftShow" data-key="${key}">--:--</span>
+                </div>
+
+                <div class="row check-row">
+                    <span class="check-label">Сигнал по окончанию</span>
+                    <div class="check-box ${signalEnabled?'checked':''}" data-key="${key}"></div>
+                </div>
+            </div>`;
+        }
+
+        function initPanels(){
+            Object.keys(machines).forEach(k=>panels.insertAdjacentHTML('beforeend',renderPanel(k)));
+
+            /* делегирование: клик на любое поле «Длительность» → открыть скролл */
+            panels.addEventListener('focusin',e=>{
+                if(e.target.classList.contains('durTime')){
+                    const k=e.target.dataset.key;
+                    const m=machines[k];
+                    hSel=m.h; mSel=m.m;
+                    document.querySelectorAll('.scroll-col li').forEach(li=>li.classList.remove('sel'));
+                    hList.children[hSel].classList.add('sel');
+                    mList.children[mSel].classList.add('sel');
+                    centerItem(hCol,hSel); centerItem(mCol,mSel);
+                    scrollBox.classList.add('show');
+                }
+            });
+
+            /* остальные обработчики */
+            document.querySelectorAll('.startTime').forEach(inp=>inp.addEventListener('change',e=>updateMachine(e.target.dataset.key)));
+            document.querySelectorAll('.prog-select').forEach(sel=>sel.addEventListener('change',e=>{
+                const k=e.target.dataset.key;
+                machines[k].prog=+e.target.value;
+                const [hh,mm]=machines[k].progTimes[machines[k].prog].split(':').map(Number);
+                machines[k].h=hh; machines[k].m=mm;
+                document.querySelector(`.durTime[data-key="${k}"]`).value=machines[k].progTimes[machines[k].prog];
+                updateMachine(k);
+            }));
+            document.querySelectorAll('.check-box').forEach(box=>box.addEventListener('click',()=>{
+                signalEnabled=!signalEnabled;
+                document.querySelectorAll('.check-box').forEach(b=>b.classList.toggle('checked',signalEnabled));
+                if(!signalEnabled)alarmFired=false;
+            }));
+        }
+
+        /* ---------- ПЕРЕКЛЮЧЕНИЕ ВКЛАДОК ---------- */
+        document.querySelectorAll('.tab').forEach(tab=>tab.addEventListener('click',e=>{
+            document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+            e.target.classList.add('active');
+            activeMachine=e.target.dataset.machine;
+            document.querySelectorAll('.panel').forEach(p=>p.style.display='none');
+            document.getElementById(`panel-${activeMachine}`).style.display='block';
+            updateMachine(activeMachine);
+        }));
+
+        /* ---------- СКРОЛЛ-ЛИСТ (выбор цифр) ---------- */
         function fillLists(){
             hList.innerHTML=''; mList.innerHTML='';
             for(let i=0;i<10;i++){
-                const lh=document.createElement('li'); lh.textContent=String(i).padStart(2,'0'); lh.dataset.val=i;
-                if(i===hSel)lh.classList.add('sel');
+                const lh=document.createElement('li');
+                lh.textContent=String(i).padStart(2,'0');
+                lh.dataset.val=i;
+                lh.style.cursor='pointer';
+                lh.setAttribute('role','button');
                 hList.appendChild(lh);
             }
             for(let i=0;i<60;i++){
-                const lm=document.createElement('li'); lm.textContent=String(i).padStart(2,'0'); lm.dataset.val=i;
-                if(i===mSel)lm.classList.add('sel');
+                const lm=document.createElement('li');
+                lm.textContent=String(i).padStart(2,'0');
+                lm.dataset.val=i;
+                lm.style.cursor='pointer';
+                lm.setAttribute('role','button');
                 mList.appendChild(lm);
             }
         }
@@ -168,24 +232,20 @@
             const liH=30;
             col.scrollTop=idx*liH-2*liH;
         }
-        centerItem(hCol,hSel); centerItem(mCol,mSel);
 
-        durTime.addEventListener('focus',()=>{
-            scrollBox.classList.add('show');
-            centerItem(hCol,hSel);
-        });
+/* ---------- клик по цифре ---------- */
+[hList,mList].forEach(list=>{
+    list.addEventListener('click',e=>{
+        if(e.target.tagName!=='LI')return;
+        list.querySelectorAll('li').forEach(li=>li.classList.remove('sel'));
+        e.target.classList.add('sel');
+        const val=Number(e.target.dataset.val);
+        if(list===hList)hSel=val; else mSel=val;
+        centerItem(list.parentElement,val);
+        // НЕ закрываем окно здесь – только по «Готово»
+    });
+});
 
-        [hList,mList].forEach(list=>{
-            list.addEventListener('click',e=>{
-                if(e.target.tagName!=='LI')return;
-                list.querySelectorAll('li').forEach(x=>x.classList.remove('sel'));
-                e.target.classList.add('sel');
-                const val=Number(e.target.dataset.val);
-                if(list===hList)hSel=val; else mSel=val;
-                centerItem(list.parentElement,val);
-                updateTimes();
-            });
-        });
 
         function wheelScroll(col,list,max,storage){
             col.addEventListener('wheel',e=>{
@@ -193,72 +253,110 @@
                 let next=storage+(e.deltaY>0?1:-1);
                 if(next<0)next=max; if(next>max)next=0;
                 storage=next;
-                list.querySelectorAll('li').forEach(x=>x.classList.remove('sel'));
+                list.querySelectorAll('li').forEach(li=>li.classList.remove('sel'));
                 list.children[next].classList.add('sel');
                 centerItem(col,next);
                 if(list===hList)hSel=next; else mSel=next;
-                updateTimes();
             });
         }
         wheelScroll(hCol,hList,9,hSel);
         wheelScroll(mCol,mList,59,mSel);
 
         okBtn.addEventListener('click',()=>{
-            durTime.value=`${String(hSel).padStart(2,'0')}:${String(mSel).padStart(2,'0')}`;
+            const m=machines[activeMachine];
+            m.h=hSel; m.m=mSel;
+            const durVal=`${String(hSel).padStart(2,'0')}:${String(mSel).padStart(2,'0')}`;
+            document.querySelector(`.durTime[data-key="${activeMachine}"]`).value=durVal;
             scrollBox.classList.remove('show');
-            updateTimes();
+            updateMachine(activeMachine);
         });
 
-        function updateTimes(){
-            const startVal=startTimeInput.value;
-            const totalMin=hSel*60+mSel;
-            if(!startVal){endShow.textContent='--:--';leftShow.textContent='--:--';return;}
+        /* ---------- ЛОГИКА ВРЕМЕНИ ---------- */
+        function timeNow(){const n=new Date();return`${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')}`;}
 
-            const[startH,startM]=startVal.split(':').map(Number);
-            const startDate=new Date();startDate.setHours(startH,startM,0,0);
+        function updateMachine(key){
+            const m=machines[key];
+            const startInput=document.querySelector(`.startTime[data-key="${key}"]`);
+            const durVal=isDish(key)?m.progTimes[m.prog]:`${String(m.h).padStart(2,'0')}:${String(m.m).padStart(2,'0')}`;
+            const startVal=startInput.value;
+            const [dh,dm]=durVal.split(':').map(Number);
+            const totalMin=dh*60+dm;
+
+            if(!startVal){document.querySelector(`.endShow[data-key="${key}"]`).textContent='--:--';
+                          document.querySelector(`.leftShow[data-key="${key}"]`).textContent='--:--';return;}
+
+            const [sh,sm]=startVal.split(':').map(Number);
+            const startDate=new Date();startDate.setHours(sh,sm,0,0);
             const endDate=new Date(startDate.getTime()+totalMin*60000);
-
             const endStr=`${String(endDate.getHours()).padStart(2,'0')}:${String(endDate.getMinutes()).padStart(2,'0')}`;
-            endShow.textContent=endStr;
+            document.querySelector(`.endShow[data-key="${key}"]`).textContent=endStr;
 
-            const nowMs=Date.now();
-            let leftMs=endDate.getTime()-nowMs;
-
-            // ≤ 0 – стирка закончилась
+            let leftMs=endDate.getTime()-Date.now();
             if(leftMs<=0){
-                leftShow.textContent='00:00';
-                if(!alarmFired&&signalEnabled){fireAlarm();}
+                document.querySelector(`.leftShow[data-key="${key}"]`).textContent='00:00';
+                if(!alarmFired&&signalEnabled){fireAlarm(key);}
                 return;
             }
-
             alarmFired=false;
 
-            // ≤ 60 сек – показываем MM:SS
+            // ≤ 60 сек – MM:SS
             if(leftMs<=60000){
-                const leftSec=Math.ceil(leftMs/1000);   // округляем ВВЕРХ до секунды
-                const ls=leftSec%60;
-                const lm=Math.floor(leftSec/60);
-                leftShow.textContent=`${String(lm).padStart(2,'0')}:${String(ls).padStart(2,'0')}`;
+                const leftSec=Math.ceil(leftMs/1000);
+                const ls=leftSec%60; const lm=Math.floor(leftSec/60);
+                document.querySelector(`.leftShow[data-key="${key}"]`).textContent=
+                `${String(lm).padStart(2,'0')}:${String(ls).padStart(2,'0')}`;
                 return;
             }
-
-            // обычные минуты
+            // минуты
             const leftMin=Math.round(leftMs/60000);
-            const lh=Math.floor(leftMin/60);
-            const lm=leftMin%60;
-            leftShow.textContent=`${String(lh).padStart(2,'0')}:${String(lm).padStart(2,'0')}`;
+            const lh=Math.floor(leftMin/60); const lm=leftMin%60;
+            document.querySelector(`.leftShow[data-key="${key}"]`).textContent=
+            `${String(lh).padStart(2,'0')}:${String(lm).padStart(2,'0')}`;
         }
 
-        function fireAlarm(){
+        function fireAlarm(key){
             alarmFired=true;
             beep();
             document.body.classList.add('alarm');
+
+            // ---------- УВЕДОМЛЕНИЕ С РАЗНЫМ ТЕКСТОМ ----------
+            if ('Notification' in window && Notification.permission === 'granted') {
+                const texts={wash:'достиралось',dry:'досушилось',dish:'домылось'};
+                const name={wash:'Стиральная',dry:'Сушильная',dish:'Посудомойка'}[key];
+                new Notification('WashTime AI',{
+                    body:`${name} ${texts[key]}!`,
+                    icon:'/icon-192.png',
+                    vibrate:[200,100,200]
+                });
+            }
+
             setTimeout(()=>document.body.classList.remove('alarm'),3000);
         }
 
-        startTimeInput.addEventListener('change',()=>{alarmFired=false;updateTimes();});
-        updateTimes();
-        setInterval(updateTimes,1000);
+        function isDish(k){return k==='dish';}
+
+        /* ---------- СТАРТ ---------- */
+        initPanels();
+        document.querySelector('.tab').click(); // активировать первую
+        setInterval(()=>Object.keys(machines).forEach(k=>updateMachine(k)),1000);
+
+        /* ---------- запрос разрешения на уведомления ---------- */
+        if ('Notification' in window && Notification.permission === 'default') {
+            Notification.requestPermission();
+        }
+        /* ---------- регистрация service-worker для фоновых уведомлений ---------- */
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('data:text/javascript,'+encodeURIComponent(`
+                self.addEventListener('push',e=>{
+                    const data=e.data.json();
+                    self.registration.showNotification(data.title,{
+                        body:data.body,
+                        icon:data.icon||'/icon-192.png',
+                        vibrate:data.vibrate||[200,100,200]
+                    });
+                });
+            `));
+        }
     </script>
 </body>
 </html>
