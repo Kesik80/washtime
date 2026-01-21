@@ -1,7 +1,6 @@
 {
-  "name": "WashTime",
+  "name": "WashTime AI",
   "short_name": "WashTime",
-  "description": "Таймер для стиральной, сушильной и посудомоечной машины",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
