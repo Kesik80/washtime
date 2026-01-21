@@ -3,86 +3,41 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-
 <!-- Иконки -->
 <link rel="apple-touch-icon" href="/icons/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512.png">
-
 <!-- Манифест -->
 <link rel="manifest" href="/icons/manifest.json">
-
-<!-- iOS PWA -->
+<!-- iOS -->
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="WashTime AI">
-
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <!-- Тема -->
-<meta name="theme-color" content="#667eea" id="theme-meta">
-<title>WashTime AI – 3 машины + уведомления</title>
-
+<meta name="theme-color" content="#667eea">
+<title>WashTime AI</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{
-font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubuntu,Cantarell,sans-serif;
-background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
-min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;
-}
-.container{
-background:white;border-radius:20px;box-shadow:0 20px 40px rgba(0,0,0,.1);
-padding:20px 0;max-width:420px;width:100%;
-}
-h1{color:#333;margin-bottom:15px;font-size:24px;font-weight:600;text-align:center}
-.tabs{display:flex;border-bottom:1px solid #e0e0e0}
-.tab{
-flex:1;text-align:center;padding:10px;font-size:15px;cursor:pointer;
-color:#777;border:none;background:transparent;transition:color .2s
-}
-.tab.active{color:#667efa;font-weight:600}
-.panels{padding:10px 20px}
-.row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f5f5f5}
+body{font-family:sans-serif;background:#f5f7ff;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.container{background:white;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,0.1);padding:20px;max-width:400px;width:100%}
+h1{text-align:center;margin-bottom:20px;color:#333}
+.tabs{display:flex;gap:1px;background:#e0e0e0;border-radius:8px;overflow:hidden}
+.tab{flex:1;padding:10px;text-align:center;background:white;border:none;cursor:pointer;font-size:15px;color:#555}
+.tab.active{background:#667eea;color:white}
+.panel{display:none}
+.panel.active{display:block}
+.row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #eee}
 .row:last-child{border-bottom:none}
-.label{font-size:15px;color:#444;font-weight:500}
-.value{font-size:20px;font-weight:600;color:#222;width:auto;text-align:right}
-.end-row .value{color:#667eea;font-size:20px;padding-right:24px}
-.left-row .value{color:#ff6b00;font-size:20px;padding-right:24px}
-.prog-row{align-items:center}
-.prog-select{width:60px;font-size:18px;text-align:center}
-.check-row{padding:8px 0;justify-content:space-between}
-.check-label{font-size:14px;color:#444}
-.check-box{width:18px;height:18px;border:2px solid #667aea;border-radius:3px;background:white;cursor:pointer;position:relative}
-.check-box.checked{background:#667aea}
-.check-box::after{content:'';position:absolute;left:4px;top:1px;width:5px;height:9px;border:solid white;border-width:0 2px 2px 0;transform:rotate(45deg);display:none}
-.check-box.checked::after{display:block}
-.scroll-box{
-position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.45);
-display:none;align-items:center;justify-content:center;z-index:999
-}
-.scroll-box.show{display:flex}
-.scroll-panel{background:white;border-radius:16px;padding:15px 8px;display:flex;gap:15px}
-.scroll-col{height:180px;overflow-y:scroll;width:70px;scroll-snap-type:y mandatory;-ms-overflow-style:none;scrollbar-width:none}
-.scroll-col::-webkit-scrollbar{display:none}
-.scroll-col ul{list-style:none}
-.scroll-col li{height:30px;display:flex;align-items:center;justify-content:center;font-size:20px;color:#555;scroll-snap-align:center;cursor:pointer}
-.scroll-col li.sel{color:#667efa;font-weight:700}
-.ok-btn{margin-top:10px;width:100%;background:#667efa;color:white;border:none;padding:8px;border-radius:6px;font-size:14px;cursor:pointer}
-body.alarm{background:#ff6b00!important;transition:background .3s}
-
-/* Модальное окно завершения */
-#finishBox {
-  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(0,0,0,0.6); display: none; z-index: 1000;
-  align-items: center; justify-content: center;
-}
-#finishBox div {
-  background: white; border-radius: 16px; padding: 20px; text-align: center;
-  max-width: 300px; width: 90%;
-}
-#finishText { margin: 0 0 15px; font-size: 18px; color: #333; }
-#finishClose {
-  background: #667efa; color: white; border: none; padding: 8px 16px;
-  border-radius: 6px; font-size: 15px; cursor: pointer;
-}
+.label{color:#444}
+.value{font-weight:bold;color:#222;text-align:right}
+.check-row{align-items:center}
+.check-box{width:18px;height:18px;border:2px solid #667eea;border-radius:3px;cursor:pointer}
+.check-box.checked{background:#667eea}
+.check-box.checked::after{content:'';display:block;width:6px;height:10px;border:solid white;border-width:0 2px 2px 0;transform:rotate(45deg);margin:1px 0 0 4px}
+#finishBox{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:none;align-items:center;justify-content:center;z-index:1000}
+#finishBox div{background:white;padding:20px;border-radius:12px;text-align:center;max-width:300px;width:90%}
+#finishClose{margin-top:15px;background:#667eea;color:white;border:none;padding:8px 16px;border-radius:6px;cursor:pointer}
+body.alarm{background:#ffebee!important}
 </style>
 </head>
 <body>
@@ -94,37 +49,25 @@ body.alarm{background:#ff6b00!important;transition:background .3s}
     <button class="tab" data-machine="dry">Сушильная</button>
     <button class="tab" data-machine="dish">Посудомойка</button>
   </div>
-  <div class="panels" id="panels"></div>
+  <div id="panels"></div>
 </div>
 
-<!-- Скролл-окно выбора времени -->
-<div class="scroll-box" id="scrollBox">
-  <div>
-    <div class="scroll-panel">
-      <div class="scroll-col" id="hCol"><ul id="hList"></ul></div>
-      <div class="scroll-col" id="mCol"><ul id="mList"></ul></div>
-    </div>
-    <button class="ok-btn" id="okBtn">Готово</button>
-  </div>
-</div>
-
-<!-- Модальное окно завершения -->
 <div id="finishBox">
   <div>
-    <h3 id="finishText"></h3>
+    <div id="finishText" style="font-size:18px;margin-bottom:15px;"></div>
     <button id="finishClose">OK</button>
   </div>
 </div>
 
 <script>
-/* ---------- ДАННЫЕ ---------- */
+// Данные
 const machines = {
   wash: { h: 1, m: 42 },
   dry: { h: 1, m: 15 },
-  dish: { prog: 2, progTimes: { 1:'02:45',2:'02:00',3:'02:30',4:'00:55',5:'01:40',6:'00:10',7:'00:50' } }
+  dish: { prog: 2, progTimes: {1:'02:45',2:'02:00',3:'02:30',4:'00:55',5:'01:40',6:'00:10',7:'00:50'} }
 };
 
-/* ---------- SAMSUNG MELODY ---------- */
+// Samsung мелодия
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 let melodyActive = false;
 let melodyTimeout = null;
@@ -147,221 +90,130 @@ function samsungMelody(loop = true) {
   const noteDur = 0.15;
   const gap = 0.1;
   const groupPause = 0.4;
-  const notes = [659.25, 783.99, 1046.50]; // E5, G5, C6
-
-  for (let i = 0; i < 3; i++) {
-    playNote(notes[i], now + i * (noteDur + gap), noteDur);
-  }
-  for (let i = 0; i < 3; i++) {
-    playNote(notes[i], now + groupPause + i * (noteDur + gap), noteDur);
-  }
-
-  if (loop && melodyActive) {
-    melodyTimeout = setTimeout(() => samsungMelody(true), 2000);
-  }
+  const notes = [659.25, 783.99, 1046.50];
+  for (let i = 0; i < 3; i++) playNote(notes[i], now + i * (noteDur + gap), noteDur);
+  for (let i = 0; i < 3; i++) playNote(notes[i], now + groupPause + i * (noteDur + gap), noteDur);
+  if (loop && melodyActive) melodyTimeout = setTimeout(() => samsungMelody(true), 2000);
 }
 
 function stopMelody() {
   melodyActive = false;
-  if (melodyTimeout) {
-    clearTimeout(melodyTimeout);
-    melodyTimeout = null;
-  }
+  if (melodyTimeout) clearTimeout(melodyTimeout);
 }
 
-/* ---------- ЭЛЕМЕНТЫ ---------- */
+// Элементы
 const panels = document.getElementById('panels');
-const scrollBox = document.getElementById('scrollBox');
-const hList = document.getElementById('hList');
-const mList = document.getElementById('mList');
-const okBtn = document.getElementById('okBtn');
 const finishBox = document.getElementById('finishBox');
 const finishText = document.getElementById('finishText');
 const finishClose = document.getElementById('finishClose');
 
 let activeMachine = 'wash';
-let hSel = 1, mSel = 42;
 let signalEnabled = true;
 let alarmFired = false;
 
-/* ---------- РЕНДЕР ПАНЕЛЕЙ ---------- */
+// Рендер панелей
 function renderPanel(key) {
   const m = machines[key];
   const isDish = key === 'dish';
   const durValue = isDish ? m.progTimes[m.prog] : `${String(m.h).padStart(2,'0')}:${String(m.m).padStart(2,'0')}`;
   return `
-    <div class="panel" id="panel-${key}" style="display:${key===activeMachine?'block':'none'}">
+    <div class="panel ${key === activeMachine ? 'active' : ''}" data-machine="${key}">
       <div class="row">
-        <span class="label">Время старта</span>
-        <input type="time" class="value startTime" data-key="${key}" value="${timeNow()}">
+        <span class="label">Старт</span>
+        <input type="time" class="startTime" value="${new Date().toTimeString().slice(0,5)}">
       </div>
-      ${isDish ? `
-        <div class="row prog-row">
-          <span class="label">Программа</span>
-          <select class="prog-select" data-key="${key}">
-            ${[1,2,3,4,5,6,7].map(p => `<option value="${p}" ${p===m.prog?'selected':''}>${p}</option>`).join('')}
-          </select>
-        </div>` : ''}
+      ${isDish ? `<div class="row"><span class="label">Программа</span><select class="prog">${[1,2,3,4,5,6,7].map(p=>`<option ${p===m.prog?'selected':''}>${p}</option>`).join('')}</select></div>` : ''}
       <div class="row">
         <span class="label">Длительность</span>
-        <input type="time" class="value durTime" data-key="${key}" value="${durValue}" readonly>
+        <span class="value">${durValue}</span>
       </div>
-      <div class="row end-row">
-        <span class="label">Конец:</span>
-        <span class="value endShow" data-key="${key}">--:--</span>
+      <div class="row">
+        <span class="label">Конец</span>
+        <span class="endShow">--:--</span>
       </div>
-      <div class="row left-row">
-        <span class="label">Осталось:</span>
-        <span class="value leftShow" data-key="${key}">--:--</span>
+      <div class="row">
+        <span class="label">Осталось</span>
+        <span class="leftShow">--:--</span>
       </div>
       <div class="row check-row">
-        <span class="check-label">Сигнал по окончанию</span>
-        <div class="check-box ${signalEnabled?'checked':''}" data-key="${key}"></div>
+        <span class="label">Сигнал</span>
+        <div class="check-box ${signalEnabled ? 'checked' : ''}"></div>
       </div>
     </div>`;
 }
 
-function initPanels() {
-  Object.keys(machines).forEach(k => panels.insertAdjacentHTML('beforeend', renderPanel(k)));
-  panels.addEventListener('focusin', e => {
-    if (e.target.classList.contains('durTime')) {
-      const k = e.target.dataset.key;
-      const m = machines[k];
-      hSel = m.h; mSel = m.m;
-      document.querySelectorAll('.scroll-col li').forEach(li => li.classList.remove('sel'));
-      hList.children[hSel].classList.add('sel');
-      mList.children[mSel].classList.add('sel');
-      centerItem(hCol, hSel); centerItem(mCol, mSel);
-      scrollBox.classList.add('show');
-    }
+function init() {
+  Object.keys(machines).forEach(k => panels.innerHTML += renderPanel(k));
+  
+  // Переключение вкладок
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      activeMachine = tab.dataset.machine;
+      document.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.dataset.machine === activeMachine));
+      updateMachine(activeMachine);
+    });
   });
-  document.querySelectorAll('.startTime').forEach(inp => inp.addEventListener('change', e => updateMachine(e.target.dataset.key)));
-  document.querySelectorAll('.prog-select').forEach(sel => sel.addEventListener('change', e => {
-    const k = e.target.dataset.key;
-    machines[k].prog = +e.target.value;
-    const [hh, mm] = machines[k].progTimes[machines[k].prog].split(':').map(Number);
-    machines[k].h = hh; machines[k].m = mm;
-    document.querySelector(`.durTime[data-key="${k}"]`).value = machines[k].progTimes[machines[k].prog];
-    updateMachine(k);
-  }));
-  document.querySelectorAll('.check-box').forEach(box => box.addEventListener('click', () => {
+
+  // Чекбокс
+  document.querySelector('.check-box').addEventListener('click', e => {
     signalEnabled = !signalEnabled;
-    document.querySelectorAll('.check-box').forEach(b => b.classList.toggle('checked', signalEnabled));
-    if (!signalEnabled) alarmFired = false;
-  }));
-}
-
-/* ---------- ВКЛАДКИ ---------- */
-document.querySelectorAll('.tab').forEach(tab => tab.addEventListener('click', e => {
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  e.target.classList.add('active');
-  activeMachine = e.target.dataset.machine;
-  document.querySelectorAll('.panel').forEach(p => p.style.display = 'none');
-  document.getElementById(`panel-${activeMachine}`).style.display = 'block';
-  updateMachine(activeMachine);
-}));
-
-/* ---------- СКРОЛЛ-ЛИСТ ---------- */
-function fillLists() {
-  hList.innerHTML = ''; mList.innerHTML = '';
-  for (let i = 0; i < 10; i++) {
-    const lh = document.createElement('li');
-    lh.textContent = String(i).padStart(2, '0');
-    lh.dataset.val = i;
-    hList.appendChild(lh);
-  }
-  for (let i = 0; i < 60; i++) {
-    const lm = document.createElement('li');
-    lm.textContent = String(i).padStart(2, '0');
-    lm.dataset.val = i;
-    mList.appendChild(lm);
-  }
-}
-fillLists();
-
-function centerItem(col, idx) {
-  const liH = 30;
-  col.scrollTop = idx * liH - 2 * liH;
-}
-
-[hList, mList].forEach(list => {
-  list.addEventListener('click', e => {
-    if (e.target.tagName !== 'LI') return;
-    list.querySelectorAll('li').forEach(li => li.classList.remove('sel'));
-    e.target.classList.add('sel');
-    const val = Number(e.target.dataset.val);
-    if (list === hList) hSel = val; else mSel = val;
-    centerItem(list.parentElement, val);
+    document.querySelectorAll('.check-box').forEach(cb => cb.classList.toggle('checked', signalEnabled));
   });
-});
 
-function wheelScroll(col, list, max, storage) {
-  col.addEventListener('wheel', e => {
-    e.preventDefault();
-    let next = storage + (e.deltaY > 0 ? 1 : -1);
-    if (next < 0) next = max;
-    if (next > max) next = 0;
-    storage = next;
-    list.querySelectorAll('li').forEach(li => li.classList.remove('sel'));
-    list.children[next].classList.add('sel');
-    centerItem(col, next);
-    if (list === hList) hSel = next; else mSel = next;
+  // Программы посудомойки
+  document.querySelectorAll('.prog').forEach(sel => {
+    sel.addEventListener('change', e => {
+      const prog = +sel.value;
+      machines.dish.prog = prog;
+      const [h,m] = machines.dish.progTimes[prog].split(':').map(Number);
+      machines.dish.h = h; machines.dish.m = m;
+      document.querySelector('.panel[data-machine="dish"] .value').textContent = machines.dish.progTimes[prog];
+      updateMachine('dish');
+    });
   });
-}
-wheelScroll(hCol, hList, 9, hSel);
-wheelScroll(mCol, mList, 59, mSel);
 
-okBtn.addEventListener('click', () => {
-  const m = machines[activeMachine];
-  m.h = hSel; m.m = mSel;
-  const durVal = `${String(hSel).padStart(2, '0')}:${String(mSel).padStart(2, '0')}`;
-  document.querySelector(`.durTime[data-key="${activeMachine}"]`).value = durVal;
-  scrollBox.classList.remove('show');
+  // Время старта
+  document.querySelectorAll('.startTime').forEach(inp => {
+    inp.addEventListener('change', e => updateMachine(e.target.closest('.panel').dataset.machine));
+  });
+
   updateMachine(activeMachine);
-});
-
-/* ---------- ЛОГИКА ВРЕМЕНИ ---------- */
-function timeNow() {
-  const n = new Date();
-  return `${String(n.getHours()).padStart(2, '0')}:${String(n.getMinutes()).padStart(2, '0')}`;
+  setInterval(() => Object.keys(machines).forEach(updateMachine), 1000);
 }
 
+// Обновление таймера
 function updateMachine(key) {
-  const m = machines[key];
-  const startInput = document.querySelector(`.startTime[data-key="${key}"]`);
-  const durVal = isDish(key) ? m.progTimes[m.prog] : `${String(m.h).padStart(2, '0')}:${String(m.m).padStart(2, '0')}`;
+  const panel = document.querySelector(`.panel[data-machine="${key}"]`);
+  const startInput = panel.querySelector('.startTime');
   const startVal = startInput.value;
-  const [dh, dm] = durVal.split(':').map(Number);
-  const totalMin = dh * 60 + dm;
+  const m = machines[key];
+  const totalMin = (m.h * 60 + m.m);
   if (!startVal) {
-    document.querySelector(`.endShow[data-key="${key}"]`).textContent = '--:--';
-    document.querySelector(`.leftShow[data-key="${key}"]`).textContent = '--:--';
+    panel.querySelector('.endShow').textContent = '--:--';
+    panel.querySelector('.leftShow').textContent = '--:--';
     return;
   }
   const [sh, sm] = startVal.split(':').map(Number);
   const startDate = new Date(); startDate.setHours(sh, sm, 0, 0);
   const endDate = new Date(startDate.getTime() + totalMin * 60000);
-  const endStr = `${String(endDate.getHours()).padStart(2, '0')}:${String(endDate.getMinutes()).padStart(2, '0')}`;
-  document.querySelector(`.endShow[data-key="${key}"]`).textContent = endStr;
-  let leftMs = endDate.getTime() - Date.now();
+  const endStr = `${String(endDate.getHours()).padStart(2,'0')}:${String(endDate.getMinutes()).padStart(2,'0')}`;
+  panel.querySelector('.endShow').textContent = endStr;
+  const leftMs = endDate.getTime() - Date.now();
   if (leftMs <= 0) {
-    document.querySelector(`.leftShow[data-key="${key}"]`).textContent = '00:00';
+    panel.querySelector('.leftShow').textContent = '00:00';
     if (!alarmFired && signalEnabled) fireAlarm(key);
     return;
   }
   alarmFired = false;
-  if (leftMs <= 60000) {
-    const leftSec = Math.ceil(leftMs / 1000);
-    const ls = leftSec % 60; const lm = Math.floor(leftSec / 60);
-    document.querySelector(`.leftShow[data-key="${key}"]`).textContent = `${String(lm).padStart(2, '0')}:${String(ls).padStart(2, '0')}`;
-    return;
-  }
-  const leftMin = Math.round(leftMs / 60000);
-  const lh = Math.floor(leftMin / 60); const lm = leftMin % 60;
-  document.querySelector(`.leftShow[data-key="${key}"]`).textContent = `${String(lh).padStart(2, '0')}:${String(lm).padStart(2, '0')}`;
+  const leftSec = Math.ceil(leftMs / 1000);
+  const lm = Math.floor(leftSec / 60);
+  const ls = leftSec % 60;
+  panel.querySelector('.leftShow').textContent = `${String(lm).padStart(2,'0')}:${String(ls).padStart(2,'0')}`;
 }
 
-/* ---------- ФИНАЛЬНЫЙ СИГНАЛ ---------- */
+// Финальный сигнал
 function fireAlarm(key) {
   if (alarmFired) return;
   alarmFired = true;
@@ -373,7 +225,6 @@ function fireAlarm(key) {
   const names = { wash: 'Стиральная машина', dry: 'Сушильная машина', dish: 'Посудомойка' };
   const message = `${names[key]} ${texts[key]}`;
 
-  // Системное уведомление (Android)
   if ('serviceWorker' in navigator && Notification.permission === 'granted') {
     navigator.serviceWorker.ready.then(reg => {
       reg.showNotification('WashTime AI', {
@@ -385,7 +236,6 @@ function fireAlarm(key) {
       });
     });
   } else {
-    // Fallback (iPhone, запрет уведомлений)
     finishText.textContent = message;
     finishBox.style.display = 'flex';
   }
@@ -393,43 +243,33 @@ function fireAlarm(key) {
   setTimeout(() => document.body.classList.remove('alarm'), 3000);
 }
 
-/* ---------- ОСТАНОВКА МЕЛОДИИ ---------- */
+// Остановка мелодии
 finishClose.addEventListener('click', () => {
   finishBox.style.display = 'none';
   stopMelody();
 });
 
-window.addEventListener('focus', () => {
-  stopMelody();
-});
+window.addEventListener('focus', stopMelody);
 
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.addEventListener('message', event => {
-    if (event.data?.type === 'stopMelody') {
-      stopMelody();
-    }
+  navigator.serviceWorker.addEventListener('message', e => {
+    if (e.data?.type === 'stopMelody') stopMelody();
   });
 }
 
-function isDish(k) { return k === 'dish'; }
-
-/* ---------- СТАРТ ---------- */
-initPanels();
-document.querySelector('.tab').click();
-setInterval(() => Object.keys(machines).forEach(k => updateMachine(k)), 1000);
-
-/* ---------- УВЕДОМЛЕНИЯ ---------- */
+// Запрос уведомлений
 if ('Notification' in window && Notification.permission === 'default') {
   Notification.requestPermission();
 }
 
-/* ---------- SERVICE WORKER ---------- */
+// Регистрация SW
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
-      .catch(err => console.warn('SW registration failed:', err));
+    navigator.serviceWorker.register('/sw.js').catch(console.error);
   });
 }
+
+init();
 </script>
 </body>
 </html>
