@@ -104,7 +104,7 @@ const machines = {
   }
 };
 
-/* ---------- SAMSUNG MELODY ---------- */
+/* ---------- Web-Audio SAMSUNG MELODY ---------- */
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 let melodyActive = false;
 let melodyTimeout = null;
@@ -196,8 +196,8 @@ function renderPanel(key) {
         <div class="check-box ${signalEnabled?'checked':''}" data-key="${key}"></div>
       </div>
       <div class="row" style="justify-content:center;padding-top:5px;">
-        <button class="startStopBtn ${m.isRunning ? 'stop' : ''}" data-key="${key}">
-          ${m.isRunning ? 'Стоп' : 'Старт'}
+        <button class="startStopBtn" data-key="${key}">
+          ${machines[key].isRunning ? 'Стоп' : 'Старт'}
         </button>
       </div>
     </div>`;
@@ -219,33 +219,25 @@ function initPanels() {
     }
   });
 
-  // Start/Stop buttons
+  // Start/Stop
   document.addEventListener('click', e => {
     if (e.target.classList.contains('startStopBtn')) {
       const key = e.target.dataset.key;
       const m = machines[key];
-      if (m.isRunning) {
-        m.isRunning = false;
-        m.startTime = null;
-        e.target.textContent = 'Старт';
-        e.target.classList.remove('stop');
-      } else {
-        m.isRunning = true;
-        m.startTime = Date.now();
-        e.target.textContent = 'Стоп';
-        e.target.classList.add('stop');
-      }
+      m.isRunning = !m.isRunning;
+      m.startTime = m.isRunning ? Date.now() : null;
+      e.target.textContent = m.isRunning ? 'Стоп' : 'Старт';
       updateMachine(key);
     }
   });
 
-  // Other handlers
+  // Handlers
   document.querySelectorAll('.startTime').forEach(inp => inp.addEventListener('change', e => {
     const key = e.target.dataset.key;
     if (machines[key].isRunning) {
       machines[key].startTime = Date.now();
-      updateMachine(key);
     }
+    updateMachine(key);
   }));
 
   document.querySelectorAll('.prog-select').forEach(sel => sel.addEventListener('change', e => {
@@ -254,10 +246,8 @@ function initPanels() {
     const [hh, mm] = machines[key].progTimes[machines[key].prog].split(':').map(Number);
     machines[key].h = hh; machines[key].m = mm;
     document.querySelector(`.durTime[data-key="${key}"]`).value = machines[key].progTimes[machines[key].prog];
-    if (machines[key].isRunning) {
-      machines[key].startTime = Date.now();
-      updateMachine(key);
-    }
+    if (machines[key].isRunning) machines[key].startTime = Date.now();
+    updateMachine(key);
   }));
 
   document.querySelectorAll('.check-box').forEach(box => box.addEventListener('click', () => {
@@ -273,6 +263,7 @@ document.querySelectorAll('.tab').forEach(tab => tab.addEventListener('click', e
   activeMachine = e.target.dataset.machine;
   document.querySelectorAll('.panel').forEach(p => p.style.display = 'none');
   document.getElementById(`panel-${activeMachine}`).style.display = 'block';
+  updateMachine(activeMachine);
 }));
 
 /* ---------- СКРОЛЛ-ЛИСТ ---------- */
@@ -331,10 +322,8 @@ okBtn.addEventListener('click', () => {
   const durVal = `${String(hSel).padStart(2, '0')}:${String(mSel).padStart(2, '0')}`;
   document.querySelector(`.durTime[data-key="${activeMachine}"]`).value = durVal;
   scrollBox.classList.remove('show');
-  if (m.isRunning) {
-    m.startTime = Date.now();
-    updateMachine(activeMachine);
-  }
+  if (m.isRunning) m.startTime = Date.now();
+  updateMachine(activeMachine);
 });
 
 /* ---------- ЛОГИКА ВРЕМЕНИ ---------- */
@@ -351,18 +340,28 @@ function updateMachine(key) {
 
   const totalMs = (m.h * 60 + m.m) * 60000;
 
-  if (!m.isRunning) {
+  // --- ВСЕГДА обновляем "Конец" ---
+  if (startVal) {
+    const [sh, sm] = startVal.split(':').map(Number);
+    const startDate = new Date();
+    startDate.setHours(sh, sm, 0, 0);
+    const endDate = new Date(startDate.getTime() + totalMs);
+    const endStr = `${String(endDate.getHours()).padStart(2, '0')}:${String(endDate.getMinutes()).padStart(2, '0')}`;
+    panel.querySelector('.endShow').textContent = endStr;
+  } else {
     panel.querySelector('.endShow').textContent = '--:--';
+  }
+
+  // --- "Осталось" только если запущен ---
+  if (!m.isRunning) {
     panel.querySelector('.leftShow').textContent = '--:--';
     return;
   }
 
+  // Если запущен — считаем оставшееся время
   const endTime = m.startTime + totalMs;
-  const endDate = new Date(endTime);
-  const endStr = `${String(endDate.getHours()).padStart(2, '0')}:${String(endDate.getMinutes()).padStart(2, '0')}`;
-  panel.querySelector('.endShow').textContent = endStr;
-
   const leftMs = endTime - Date.now();
+
   if (leftMs <= 0) {
     panel.querySelector('.leftShow').textContent = '00:00';
     if (!alarmFired[key] && signalEnabled) {
@@ -439,6 +438,9 @@ function tick() {
   Object.keys(machines).forEach(k => {
     if (machines[k].isRunning) {
       updateMachine(k);
+    } else {
+      // Обновляем "Конец", даже если не запущен
+      updateMachine(k);
     }
   });
   requestAnimationFrame(tick);
@@ -448,5 +450,7 @@ tick();
 initPanels();
 document.querySelector('.tab').click();
 </script>
+
+
 </body>
 </html>
