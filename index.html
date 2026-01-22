@@ -11,33 +11,62 @@
 <link rel="manifest" href="/icons/manifest.json">
 <!-- iOS -->
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="WashTime AI">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <!-- Тема -->
-<meta name="theme-color" content="#667eea">
-<title>WashTime AI</title>
+<meta name="theme-color" content="#667eea" id="theme-meta">
+<title>WashTime AI – 3 машины + уведомления</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:sans-serif;background:#f5f7ff;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
-.container{background:white;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,0.1);padding:20px;max-width:400px;width:100%}
-h1{text-align:center;margin-bottom:20px;color:#333}
-.tabs{display:flex;gap:1px;background:#e0e0e0;border-radius:8px;overflow:hidden}
-.tab{flex:1;padding:10px;text-align:center;background:white;border:none;cursor:pointer;font-size:15px;color:#555}
-.tab.active{background:#667eea;color:white}
-.panel{display:none}
-.panel.active{display:block}
-.row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #eee}
+body{
+font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubuntu,Cantarell,sans-serif;
+background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;
+}
+.container{
+background:white;border-radius:20px;box-shadow:0 20px 40px rgba(0,0,0,.1);
+padding:20px 0;max-width:420px;width:100%;
+}
+h1{color:#333;margin-bottom:15px;font-size:24px;font-weight:600;text-align:center}
+.tabs{display:flex;border-bottom:1px solid #e0e0e0}
+.tab{
+flex:1;text-align:center;padding:10px;font-size:15px;cursor:pointer;
+color:#777;border:none;background:transparent;transition:color .2s
+}
+.tab.active{color:#667efa;font-weight:600}
+.panels{padding:10px 20px}
+.row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f5f5f5}
 .row:last-child{border-bottom:none}
-.label{color:#444}
-.value{font-weight:bold;color:#222;text-align:right}
-.check-row{align-items:center}
-.check-box{width:18px;height:18px;border:2px solid #667eea;border-radius:3px;cursor:pointer}
-.check-box.checked{background:#667eea}
-.check-box.checked::after{content:'';display:block;width:6px;height:10px;border:solid white;border-width:0 2px 2px 0;transform:rotate(45deg);margin:1px 0 0 4px}
-#finishBox{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:none;align-items:center;justify-content:center;z-index:1000}
-#finishBox div{background:white;padding:20px;border-radius:12px;text-align:center;max-width:300px;width:90%}
-#finishClose{margin-top:15px;background:#667eea;color:white;border:none;padding:8px 16px;border-radius:6px;cursor:pointer}
-body.alarm{background:#ffebee!important}
+.label{font-size:15px;color:#444;font-weight:500}
+.value{font-size:20px;font-weight:600;color:#222;width:auto;text-align:right}
+.end-row .value{color:#667eea;font-size:20px;padding-right:24px}
+.left-row .value{color:#ff6b00;font-size:20px;padding-right:24px}
+.prog-row{align-items:center}
+.prog-select{width:60px;font-size:18px;text-align:center}
+.check-row{padding:8px 0;justify-content:space-between}
+.check-label{font-size:14px;color:#444}
+.check-box{width:18px;height:18px;border:2px solid #667aea;border-radius:3px;background:white;cursor:pointer;position:relative}
+.check-box.checked{background:#667aea}
+.check-box::after{content:'';position:absolute;left:4px;top:1px;width:5px;height:9px;border:solid white;border-width:0 2px 2px 0;transform:rotate(45deg);display:none}
+.check-box.checked::after{display:block}
+.scroll-box{
+position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.45);
+display:none;align-items:center;justify-content:center;z-index:999
+}
+.scroll-box.show{display:flex}
+.scroll-panel{background:white;border-radius:16px;padding:15px 8px;display:flex;gap:15px}
+.scroll-col{height:180px;overflow-y:scroll;width:70px;scroll-snap-type:y mandatory;-ms-overflow-style:none;scrollbar-width:none}
+.scroll-col::-webkit-scrollbar{display:none}
+.scroll-col ul{list-style:none}
+.scroll-col li{height:30px;display:flex;align-items:center;justify-content:center;font-size:20px;color:#555;scroll-snap-align:center;cursor:pointer}
+.scroll-col li.sel{color:#667efa;font-weight:700}
+.ok-btn{margin-top:10px;width:100%;background:#667efa;color:white;border:none;padding:8px;border-radius:6px;font-size:14px;cursor:pointer}
+.startStopBtn{
+display:block;width:100%;margin-top:10px;padding:8px 0;
+background:#667efa;color:white;border:none;border-radius:6px;font-size:15px;font-weight:600;cursor:pointer;
+}
+.startStopBtn.stop{background:#ff6b00}
+body.alarm{background:#ff6b00!important;transition:background .3s}
 </style>
 </head>
 <body>
@@ -49,26 +78,33 @@ body.alarm{background:#ffebee!important}
     <button class="tab" data-machine="dry">Сушильная</button>
     <button class="tab" data-machine="dish">Посудомойка</button>
   </div>
-  <div id="panels"></div>
+  <div class="panels" id="panels"></div>
 </div>
 
-<div id="finishBox">
+<div class="scroll-box" id="scrollBox">
   <div>
-    <div id="finishText" style="font-size:18px;margin-bottom:15px;"></div>
-    <button id="finishClose">OK</button>
+    <div class="scroll-panel">
+      <div class="scroll-col" id="hCol"><ul id="hList"></ul></div>
+      <div class="scroll-col" id="mCol"><ul id="mList"></ul></div>
+    </div>
+    <button class="ok-btn" id="okBtn">Готово</button>
   </div>
 </div>
-
 
 <script>
 /* ---------- ДАННЫЕ ---------- */
 const machines = {
   wash: { h: 1, m: 42, isRunning: false, startTime: null },
   dry: { h: 1, m: 15, isRunning: false, startTime: null },
-  dish: { prog: 2, progTimes: {1:'02:45',2:'02:00',3:'02:30',4:'00:55',5:'01:40',6:'00:10',7:'00:50'}, isRunning: false, startTime: null }
+  dish: {
+    prog: 2,
+    progTimes: {1:'02:45',2:'02:00',3:'02:30',4:'00:55',5:'01:40',6:'00:10',7:'00:50'},
+    isRunning: false,
+    startTime: null
+  }
 };
 
-/* ---------- Web-Audio SAMSUNG MELODY ---------- */
+/* ---------- SAMSUNG MELODY ---------- */
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 let melodyActive = false;
 let melodyTimeout = null;
@@ -159,9 +195,9 @@ function renderPanel(key) {
         <span class="check-label">Сигнал по окончанию</span>
         <div class="check-box ${signalEnabled?'checked':''}" data-key="${key}"></div>
       </div>
-      <div class="row" style="justify-content:center;padding-top:10px;">
-        <button class="startStopBtn" data-key="${key}" style="background:#667efa;color:white;border:none;padding:8px 20px;border-radius:6px;font-size:15px;cursor:pointer;">
-          ${machines[key].isRunning ? 'Стоп' : 'Старт'}
+      <div class="row" style="justify-content:center;padding-top:5px;">
+        <button class="startStopBtn ${m.isRunning ? 'stop' : ''}" data-key="${key}">
+          ${m.isRunning ? 'Стоп' : 'Старт'}
         </button>
       </div>
     </div>`;
@@ -170,7 +206,6 @@ function renderPanel(key) {
 function initPanels() {
   Object.keys(machines).forEach(k => panels.insertAdjacentHTML('beforeend', renderPanel(k)));
 
-  // Focus on durTime → open scroll
   panels.addEventListener('focusin', e => {
     if (e.target.classList.contains('durTime')) {
       const k = e.target.dataset.key;
@@ -185,31 +220,30 @@ function initPanels() {
   });
 
   // Start/Stop buttons
-  document.querySelectorAll('.startStopBtn').forEach(btn => {
-    btn.addEventListener('click', e => {
+  document.addEventListener('click', e => {
+    if (e.target.classList.contains('startStopBtn')) {
       const key = e.target.dataset.key;
       const m = machines[key];
       if (m.isRunning) {
-        // Stop
         m.isRunning = false;
         m.startTime = null;
         e.target.textContent = 'Старт';
-        updateMachine(key);
+        e.target.classList.remove('stop');
       } else {
-        // Start
         m.isRunning = true;
         m.startTime = Date.now();
         e.target.textContent = 'Стоп';
-        updateMachine(key);
+        e.target.classList.add('stop');
       }
-    });
+      updateMachine(key);
+    }
   });
 
   // Other handlers
   document.querySelectorAll('.startTime').forEach(inp => inp.addEventListener('change', e => {
     const key = e.target.dataset.key;
     if (machines[key].isRunning) {
-      machines[key].startTime = Date.now(); // reset timer on time change
+      machines[key].startTime = Date.now();
       updateMachine(key);
     }
   }));
@@ -298,7 +332,7 @@ okBtn.addEventListener('click', () => {
   document.querySelector(`.durTime[data-key="${activeMachine}"]`).value = durVal;
   scrollBox.classList.remove('show');
   if (m.isRunning) {
-    m.startTime = Date.now(); // restart timer
+    m.startTime = Date.now();
     updateMachine(activeMachine);
   }
 });
@@ -315,8 +349,7 @@ function updateMachine(key) {
   const startInput = panel.querySelector('.startTime');
   const startVal = startInput.value;
 
-  const totalMin = (m.h * 60 + m.m);
-  const totalMs = totalMin * 60000;
+  const totalMs = (m.h * 60 + m.m) * 60000;
 
   if (!m.isRunning) {
     panel.querySelector('.endShow').textContent = '--:--';
@@ -324,13 +357,11 @@ function updateMachine(key) {
     return;
   }
 
-  // Calculate end time
   const endTime = m.startTime + totalMs;
   const endDate = new Date(endTime);
   const endStr = `${String(endDate.getHours()).padStart(2, '0')}:${String(endDate.getMinutes()).padStart(2, '0')}`;
   panel.querySelector('.endShow').textContent = endStr;
 
-  // Remaining time
   const leftMs = endTime - Date.now();
   if (leftMs <= 0) {
     panel.querySelector('.leftShow').textContent = '00:00';
@@ -366,7 +397,6 @@ function fireAlarm(key) {
   const names = { wash: 'Стиральная машина', dry: 'Сушильная машина', dish: 'Посудомойка' };
   const message = `${names[key]} ${texts[key]}`;
 
-  // System notification (Android)
   if ('serviceWorker' in navigator && Notification.permission === 'granted') {
     navigator.serviceWorker.ready.then(reg => {
       reg.showNotification('WashTime AI', {
@@ -378,7 +408,6 @@ function fireAlarm(key) {
       });
     });
   } else {
-    // Fallback
     alert(message);
   }
 
@@ -398,14 +427,14 @@ if ('Notification' in window && Notification.permission === 'default') {
   Notification.requestPermission();
 }
 
-// Register real SW file (not inline!)
+// Register REAL service worker file (not inline!)
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js').catch(console.error);
   });
 }
 
-/* ---------- ОСНОВНОЙ ЦИКЛ ОБНОВЛЕНИЯ ---------- */
+/* ---------- ОСНОВНОЙ ЦИКЛ ---------- */
 function tick() {
   Object.keys(machines).forEach(k => {
     if (machines[k].isRunning) {
@@ -419,7 +448,5 @@ tick();
 initPanels();
 document.querySelector('.tab').click();
 </script>
-
-
-
+</body>
 </html>
