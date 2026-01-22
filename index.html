@@ -59,15 +59,16 @@ body.alarm{background:#ffebee!important}
   </div>
 </div>
 
+
 <script>
-// Данные
+/* ---------- ДАННЫЕ ---------- */
 const machines = {
-  wash: { h: 1, m: 42 },
-  dry: { h: 1, m: 15 },
-  dish: { prog: 2, progTimes: {1:'02:45',2:'02:00',3:'02:30',4:'00:55',5:'01:40',6:'00:10',7:'00:50'} }
+  wash: { h: 1, m: 42, isRunning: false, startTime: null },
+  dry: { h: 1, m: 15, isRunning: false, startTime: null },
+  dish: { prog: 2, progTimes: {1:'02:45',2:'02:00',3:'02:30',4:'00:55',5:'01:40',6:'00:10',7:'00:50'}, isRunning: false, startTime: null }
 };
 
-// Samsung мелодия
+/* ---------- Web-Audio SAMSUNG MELODY ---------- */
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 let melodyActive = false;
 let melodyTimeout = null;
@@ -90,133 +91,273 @@ function samsungMelody(loop = true) {
   const noteDur = 0.15;
   const gap = 0.1;
   const groupPause = 0.4;
-  const notes = [659.25, 783.99, 1046.50];
-  for (let i = 0; i < 3; i++) playNote(notes[i], now + i * (noteDur + gap), noteDur);
-  for (let i = 0; i < 3; i++) playNote(notes[i], now + groupPause + i * (noteDur + gap), noteDur);
-  if (loop && melodyActive) melodyTimeout = setTimeout(() => samsungMelody(true), 2000);
+  const notes = [659.25, 783.99, 1046.50]; // E5, G5, C6
+
+  for (let i = 0; i < 3; i++) {
+    playNote(notes[i], now + i * (noteDur + gap), noteDur);
+  }
+  for (let i = 0; i < 3; i++) {
+    playNote(notes[i], now + groupPause + i * (noteDur + gap), noteDur);
+  }
+
+  if (loop && melodyActive) {
+    melodyTimeout = setTimeout(() => samsungMelody(true), 2000);
+  }
 }
 
 function stopMelody() {
   melodyActive = false;
-  if (melodyTimeout) clearTimeout(melodyTimeout);
+  if (melodyTimeout) {
+    clearTimeout(melodyTimeout);
+    melodyTimeout = null;
+  }
 }
 
-// Элементы
+/* ---------- ЭЛЕМЕНТЫ ---------- */
 const panels = document.getElementById('panels');
-const finishBox = document.getElementById('finishBox');
-const finishText = document.getElementById('finishText');
-const finishClose = document.getElementById('finishClose');
+const scrollBox = document.getElementById('scrollBox');
+const hList = document.getElementById('hList');
+const mList = document.getElementById('mList');
+const okBtn = document.getElementById('okBtn');
 
 let activeMachine = 'wash';
+let hSel = 1, mSel = 42;
 let signalEnabled = true;
-let alarmFired = false;
+let alarmFired = {};
 
-// Рендер панелей
+/* ---------- РЕНДЕР ПАНЕЛИ ---------- */
 function renderPanel(key) {
   const m = machines[key];
   const isDish = key === 'dish';
   const durValue = isDish ? m.progTimes[m.prog] : `${String(m.h).padStart(2,'0')}:${String(m.m).padStart(2,'0')}`;
   return `
-    <div class="panel ${key === activeMachine ? 'active' : ''}" data-machine="${key}">
+    <div class="panel" id="panel-${key}" style="display:${key===activeMachine?'block':'none'}">
       <div class="row">
-        <span class="label">Старт</span>
-        <input type="time" class="startTime" value="${new Date().toTimeString().slice(0,5)}">
+        <span class="label">Время старта</span>
+        <input type="time" class="value startTime" data-key="${key}" value="${timeNow()}">
       </div>
-      ${isDish ? `<div class="row"><span class="label">Программа</span><select class="prog">${[1,2,3,4,5,6,7].map(p=>`<option ${p===m.prog?'selected':''}>${p}</option>`).join('')}</select></div>` : ''}
+      ${isDish ? `
+        <div class="row prog-row">
+          <span class="label">Программа</span>
+          <select class="prog-select" data-key="${key}">
+            ${[1,2,3,4,5,6,7].map(p => `<option value="${p}" ${p===m.prog?'selected':''}>${p}</option>`).join('')}
+          </select>
+        </div>` : ''}
       <div class="row">
         <span class="label">Длительность</span>
-        <span class="value">${durValue}</span>
+        <input type="time" class="value durTime" data-key="${key}" value="${durValue}" readonly>
       </div>
-      <div class="row">
-        <span class="label">Конец</span>
-        <span class="endShow">--:--</span>
+      <div class="row end-row">
+        <span class="label">Конец:</span>
+        <span class="value endShow" data-key="${key}">--:--</span>
       </div>
-      <div class="row">
-        <span class="label">Осталось</span>
-        <span class="leftShow">--:--</span>
+      <div class="row left-row">
+        <span class="label">Осталось:</span>
+        <span class="value leftShow" data-key="${key}">--:--</span>
       </div>
       <div class="row check-row">
-        <span class="label">Сигнал</span>
-        <div class="check-box ${signalEnabled ? 'checked' : ''}"></div>
+        <span class="check-label">Сигнал по окончанию</span>
+        <div class="check-box ${signalEnabled?'checked':''}" data-key="${key}"></div>
+      </div>
+      <div class="row" style="justify-content:center;padding-top:10px;">
+        <button class="startStopBtn" data-key="${key}" style="background:#667efa;color:white;border:none;padding:8px 20px;border-radius:6px;font-size:15px;cursor:pointer;">
+          ${machines[key].isRunning ? 'Стоп' : 'Старт'}
+        </button>
       </div>
     </div>`;
 }
 
-function init() {
-  Object.keys(machines).forEach(k => panels.innerHTML += renderPanel(k));
-  
-  // Переключение вкладок
-  document.querySelectorAll('.tab').forEach(tab => {
-    tab.addEventListener('click', () => {
-      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-      tab.classList.add('active');
-      activeMachine = tab.dataset.machine;
-      document.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.dataset.machine === activeMachine));
-      updateMachine(activeMachine);
+function initPanels() {
+  Object.keys(machines).forEach(k => panels.insertAdjacentHTML('beforeend', renderPanel(k)));
+
+  // Focus on durTime → open scroll
+  panels.addEventListener('focusin', e => {
+    if (e.target.classList.contains('durTime')) {
+      const k = e.target.dataset.key;
+      const m = machines[k];
+      hSel = m.h; mSel = m.m;
+      document.querySelectorAll('.scroll-col li').forEach(li => li.classList.remove('sel'));
+      hList.children[hSel].classList.add('sel');
+      mList.children[mSel].classList.add('sel');
+      centerItem(hCol, hSel); centerItem(mCol, mSel);
+      scrollBox.classList.add('show');
+    }
+  });
+
+  // Start/Stop buttons
+  document.querySelectorAll('.startStopBtn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      const key = e.target.dataset.key;
+      const m = machines[key];
+      if (m.isRunning) {
+        // Stop
+        m.isRunning = false;
+        m.startTime = null;
+        e.target.textContent = 'Старт';
+        updateMachine(key);
+      } else {
+        // Start
+        m.isRunning = true;
+        m.startTime = Date.now();
+        e.target.textContent = 'Стоп';
+        updateMachine(key);
+      }
     });
   });
 
-  // Чекбокс
-  document.querySelector('.check-box').addEventListener('click', e => {
+  // Other handlers
+  document.querySelectorAll('.startTime').forEach(inp => inp.addEventListener('change', e => {
+    const key = e.target.dataset.key;
+    if (machines[key].isRunning) {
+      machines[key].startTime = Date.now(); // reset timer on time change
+      updateMachine(key);
+    }
+  }));
+
+  document.querySelectorAll('.prog-select').forEach(sel => sel.addEventListener('change', e => {
+    const key = e.target.dataset.key;
+    machines[key].prog = +e.target.value;
+    const [hh, mm] = machines[key].progTimes[machines[key].prog].split(':').map(Number);
+    machines[key].h = hh; machines[key].m = mm;
+    document.querySelector(`.durTime[data-key="${key}"]`).value = machines[key].progTimes[machines[key].prog];
+    if (machines[key].isRunning) {
+      machines[key].startTime = Date.now();
+      updateMachine(key);
+    }
+  }));
+
+  document.querySelectorAll('.check-box').forEach(box => box.addEventListener('click', () => {
     signalEnabled = !signalEnabled;
-    document.querySelectorAll('.check-box').forEach(cb => cb.classList.toggle('checked', signalEnabled));
-  });
-
-  // Программы посудомойки
-  document.querySelectorAll('.prog').forEach(sel => {
-    sel.addEventListener('change', e => {
-      const prog = +sel.value;
-      machines.dish.prog = prog;
-      const [h,m] = machines.dish.progTimes[prog].split(':').map(Number);
-      machines.dish.h = h; machines.dish.m = m;
-      document.querySelector('.panel[data-machine="dish"] .value').textContent = machines.dish.progTimes[prog];
-      updateMachine('dish');
-    });
-  });
-
-  // Время старта
-  document.querySelectorAll('.startTime').forEach(inp => {
-    inp.addEventListener('change', e => updateMachine(e.target.closest('.panel').dataset.machine));
-  });
-
-  updateMachine(activeMachine);
-  setInterval(() => Object.keys(machines).forEach(updateMachine), 1000);
+    document.querySelectorAll('.check-box').forEach(b => b.classList.toggle('checked', signalEnabled));
+  }));
 }
 
-// Обновление таймера
+/* ---------- ВКЛАДКИ ---------- */
+document.querySelectorAll('.tab').forEach(tab => tab.addEventListener('click', e => {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  e.target.classList.add('active');
+  activeMachine = e.target.dataset.machine;
+  document.querySelectorAll('.panel').forEach(p => p.style.display = 'none');
+  document.getElementById(`panel-${activeMachine}`).style.display = 'block';
+}));
+
+/* ---------- СКРОЛЛ-ЛИСТ ---------- */
+function fillLists() {
+  hList.innerHTML = ''; mList.innerHTML = '';
+  for (let i = 0; i < 10; i++) {
+    const lh = document.createElement('li');
+    lh.textContent = String(i).padStart(2, '0');
+    lh.dataset.val = i;
+    hList.appendChild(lh);
+  }
+  for (let i = 0; i < 60; i++) {
+    const lm = document.createElement('li');
+    lm.textContent = String(i).padStart(2, '0');
+    lm.dataset.val = i;
+    mList.appendChild(lm);
+  }
+}
+fillLists();
+
+function centerItem(col, idx) {
+  const liH = 30;
+  col.scrollTop = idx * liH - 2 * liH;
+}
+
+[hList, mList].forEach(list => {
+  list.addEventListener('click', e => {
+    if (e.target.tagName !== 'LI') return;
+    list.querySelectorAll('li').forEach(li => li.classList.remove('sel'));
+    e.target.classList.add('sel');
+    const val = Number(e.target.dataset.val);
+    if (list === hList) hSel = val; else mSel = val;
+    centerItem(list.parentElement, val);
+  });
+});
+
+function wheelScroll(col, list, max, storage) {
+  col.addEventListener('wheel', e => {
+    e.preventDefault();
+    let next = storage + (e.deltaY > 0 ? 1 : -1);
+    if (next < 0) next = max;
+    if (next > max) next = 0;
+    storage = next;
+    list.querySelectorAll('li').forEach(li => li.classList.remove('sel'));
+    list.children[next].classList.add('sel');
+    centerItem(col, next);
+    if (list === hList) hSel = next; else mSel = next;
+  });
+}
+wheelScroll(hCol, hList, 9, hSel);
+wheelScroll(mCol, mList, 59, mSel);
+
+okBtn.addEventListener('click', () => {
+  const m = machines[activeMachine];
+  m.h = hSel; m.m = mSel;
+  const durVal = `${String(hSel).padStart(2, '0')}:${String(mSel).padStart(2, '0')}`;
+  document.querySelector(`.durTime[data-key="${activeMachine}"]`).value = durVal;
+  scrollBox.classList.remove('show');
+  if (m.isRunning) {
+    m.startTime = Date.now(); // restart timer
+    updateMachine(activeMachine);
+  }
+});
+
+/* ---------- ЛОГИКА ВРЕМЕНИ ---------- */
+function timeNow() {
+  const n = new Date();
+  return `${String(n.getHours()).padStart(2, '0')}:${String(n.getMinutes()).padStart(2, '0')}`;
+}
+
 function updateMachine(key) {
-  const panel = document.querySelector(`.panel[data-machine="${key}"]`);
+  const m = machines[key];
+  const panel = document.getElementById(`panel-${key}`);
   const startInput = panel.querySelector('.startTime');
   const startVal = startInput.value;
-  const m = machines[key];
+
   const totalMin = (m.h * 60 + m.m);
-  if (!startVal) {
+  const totalMs = totalMin * 60000;
+
+  if (!m.isRunning) {
     panel.querySelector('.endShow').textContent = '--:--';
     panel.querySelector('.leftShow').textContent = '--:--';
     return;
   }
-  const [sh, sm] = startVal.split(':').map(Number);
-  const startDate = new Date(); startDate.setHours(sh, sm, 0, 0);
-  const endDate = new Date(startDate.getTime() + totalMin * 60000);
-  const endStr = `${String(endDate.getHours()).padStart(2,'0')}:${String(endDate.getMinutes()).padStart(2,'0')}`;
+
+  // Calculate end time
+  const endTime = m.startTime + totalMs;
+  const endDate = new Date(endTime);
+  const endStr = `${String(endDate.getHours()).padStart(2, '0')}:${String(endDate.getMinutes()).padStart(2, '0')}`;
   panel.querySelector('.endShow').textContent = endStr;
-  const leftMs = endDate.getTime() - Date.now();
+
+  // Remaining time
+  const leftMs = endTime - Date.now();
   if (leftMs <= 0) {
     panel.querySelector('.leftShow').textContent = '00:00';
-    if (!alarmFired && signalEnabled) fireAlarm(key);
+    if (!alarmFired[key] && signalEnabled) {
+      fireAlarm(key);
+      alarmFired[key] = true;
+    }
     return;
   }
-  alarmFired = false;
-  const leftSec = Math.ceil(leftMs / 1000);
-  const lm = Math.floor(leftSec / 60);
-  const ls = leftSec % 60;
-  panel.querySelector('.leftShow').textContent = `${String(lm).padStart(2,'0')}:${String(ls).padStart(2,'0')}`;
+
+  alarmFired[key] = false;
+
+  if (leftMs <= 60000) {
+    const leftSec = Math.ceil(leftMs / 1000);
+    const lm = Math.floor(leftSec / 60);
+    const ls = leftSec % 60;
+    panel.querySelector('.leftShow').textContent = `${String(lm).padStart(2, '0')}:${String(ls).padStart(2, '0')}`;
+  } else {
+    const leftMin = Math.round(leftMs / 60000);
+    const lh = Math.floor(leftMin / 60);
+    const lm = leftMin % 60;
+    panel.querySelector('.leftShow').textContent = `${String(lh).padStart(2, '0')}:${String(lm).padStart(2, '0')}`;
+  }
 }
 
-// Финальный сигнал
+/* ---------- ФИНАЛЬНЫЙ СИГНАЛ ---------- */
 function fireAlarm(key) {
-  if (alarmFired) return;
-  alarmFired = true;
   melodyActive = true;
   samsungMelody(true);
   document.body.classList.add('alarm');
@@ -225,6 +366,7 @@ function fireAlarm(key) {
   const names = { wash: 'Стиральная машина', dry: 'Сушильная машина', dish: 'Посудомойка' };
   const message = `${names[key]} ${texts[key]}`;
 
+  // System notification (Android)
   if ('serviceWorker' in navigator && Notification.permission === 'granted') {
     navigator.serviceWorker.ready.then(reg => {
       reg.showNotification('WashTime AI', {
@@ -236,40 +378,48 @@ function fireAlarm(key) {
       });
     });
   } else {
-    finishText.textContent = message;
-    finishBox.style.display = 'flex';
+    // Fallback
+    alert(message);
   }
 
   setTimeout(() => document.body.classList.remove('alarm'), 3000);
 }
 
-// Остановка мелодии
-finishClose.addEventListener('click', () => {
-  finishBox.style.display = 'none';
-  stopMelody();
-});
-
+// Stop melody on focus or notification click
 window.addEventListener('focus', stopMelody);
-
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.addEventListener('message', e => {
     if (e.data?.type === 'stopMelody') stopMelody();
   });
 }
 
-// Запрос уведомлений
+/* ---------- УВЕДОМЛЕНИЯ И SW ---------- */
 if ('Notification' in window && Notification.permission === 'default') {
   Notification.requestPermission();
 }
 
-// Регистрация SW
+// Register real SW file (not inline!)
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js').catch(console.error);
   });
 }
 
-init();
+/* ---------- ОСНОВНОЙ ЦИКЛ ОБНОВЛЕНИЯ ---------- */
+function tick() {
+  Object.keys(machines).forEach(k => {
+    if (machines[k].isRunning) {
+      updateMachine(k);
+    }
+  });
+  requestAnimationFrame(tick);
+}
+tick();
+
+initPanels();
+document.querySelector('.tab').click();
 </script>
-</body>
+
+
+
 </html>
