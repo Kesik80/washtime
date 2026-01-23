@@ -148,7 +148,7 @@ for (let i = 0; i < 3; i++) {
 playNote(notes[i], now + groupPause + i * (noteDur + gap), noteDur);
 }
 }
-/* ---------- TELEGRAM УВЕДОМЛЕНИЕ (остаётся, но не является приоритетом) ---------- */
+/* ---------- TELEGRAM УВЕДОМЛЕНИЕ ---------- */
 function sendTelegramNotification(messageText) {
 // 🔑 ЗАМЕНИ НА СВОЙ ТОКЕН ОТ @BotFather!
 const TELEGRAM_BOT_TOKEN = '8428389938:AAGA_3zHWiKGXqpLqAy4oskCxb9nPCGpgoU';
@@ -171,8 +171,8 @@ const okBtn = document.getElementById('okBtn');
 let activeMachine = 'wash';
 let hSel = 1, mSel = 42;
 let signalEnabled = true;
-// 🔒 Отдельный флаг для каждой машины
-let alarmFired = { wash: false, dry: false, dish: false };
+// 🔒 Удаляем флаг alarmFired, полагаемся на isRunning
+// let alarmFired = { wash: false, dry: false, dish: false };
 /* ---------- ЗАПОЛНЕНИЕ СПИСКОВ ---------- */
 function fillLists() {
 hList.innerHTML = '';
@@ -339,7 +339,7 @@ scrollBox.style.display = 'none';
 if (m.isRunning) m.startTime = Date.now();
 updateMachine(activeMachine);
 });
-/* ---------- ЛОГИКА ВРЕМЕНИ (ИСПРАВЛЕННАЯ) ---------- */
+/* ---------- ЛОГИКА ВРЕМЕНИ (ОБНОВЛЁННАЯ) ---------- */
 function updateMachine(key) {
     const m = machines[key];
     const panel = document.querySelector(`.panel[data-machine="${key}"]`);
@@ -361,9 +361,10 @@ function updateMachine(key) {
     }
 
     // --- ПРОВЕРКА СОСТОЯНИЯ ТАЙМЕРА ---
+    // Если таймер не запущен, показываем "--:--" и обновляем кнопку, затем выходим
     if (!m.isRunning) {
         panel.querySelector('.leftShow').textContent = '--:--';
-        // --- НОВОЕ: ГАРАНТИРОВАННО ОБНОВЛЯЕМ КНОПКУ, ЕСЛИ ТАЙМЕР НЕ ЗАПУЩЕН ---
+        // --- ГАРАНТИРОВАННОЕ ОБНОВЛЕНИЕ КНОПКИ ---
         const btn = panel.querySelector('.startStopBtn');
         if (btn) {
             btn.textContent = 'Старт';
@@ -373,32 +374,32 @@ function updateMachine(key) {
         return;
     }
 
+    // Рассчитываем оставшееся время ТОЛЬКО если таймер запущен
     const totalMs = (m.h * 60 + m.m) * 60000;
     const endTime = m.startTime + totalMs;
     const leftMs = endTime - Date.now();
 
+    // --- ПРОВЕРКА ЗАВЕРШЕНИЯ ТАЙМЕРА ---
+    // Проверяем только если таймер запущен и время истекло
     if (leftMs <= 0) {
         panel.querySelector('.leftShow').textContent = '00:00';
-        if (!alarmFired[key] && signalEnabled) {
-            fireAlarm(key);
-            alarmFired[key] = true;
-            // 🔒 Автоматически останавливаем таймер
-            machines[key].isRunning = false;
-            // Обновляем кнопку (это может быть лишним, так как следующий вызов updateMachine обработает isRunning=false, но пусть будет для ясности)
-            const btn = panel.querySelector('.startStopBtn');
-            if (btn) {
-                btn.textContent = 'Старт';
-                btn.classList.remove('stop');
-            }
+        // Если сигнал включён и таймер всё ещё считается запущенным (вдруг состояние изменилось между проверками?)
+        if (signalEnabled && m.isRunning) {
+            fireAlarm(key); // Вызываем функцию сигнала, которая остановит таймер и обновит кнопку
+            // После вызова fireAlarm, m.isRunning уже false, и кнопка обновлена.
+            // Выходим из updateMachine для этой машины.
+            return;
         }
-        return; // ВАЖНО: выходим, чтобы не выполнить код ниже для <= 60000 или остального времени
     }
+    // --- КОНЕЦ ПРОВЕРКИ ЗАВЕРШЕНИЯ ---
 
-    // Сбрасываем флаг ТОЛЬКО если таймер ещё идёт
-    if (m.isRunning) {
-        alarmFired[key] = false;
-    }
+    // Сбрасываем флаг ТОЛЬКО если таймер ещё идёт (это может быть нужно при изменении времени/программы)
+    // if (m.isRunning) {
+    //     alarmFired[key] = false; // Не используем alarmFired
+    // }
 
+    // --- ОТОБРАЖЕНИЕ ОСТАВШЕГОСЯ ВРЕМЕНИ ---
+    // Отображение оставшегося времени (если таймер запущен и не закончился)
     if (leftMs <= 60000) {
         const leftSec = Math.ceil(leftMs / 1000);
         const lm = Math.floor(leftSec / 60);
@@ -410,10 +411,16 @@ function updateMachine(key) {
         const lm = leftMin % 60;
         panel.querySelector('.leftShow').textContent = `${String(lh).padStart(2, '0')}:${String(lm).padStart(2, '0')}`;
     }
+    // --- КОНЕЦ ОТОБРАЖЕНИЯ ---
 }
 
-/* ---------- ФИНАЛЬНЫЙ СИГНАЛ (ТОЛЬКО ОДИН РАЗ, С БРАУЗЕРНЫМ УВЕДОМЛЕНИЕМ) ---------- */
+/* ---------- ФИНАЛЬНЫЙ СИГНАЛ (ТОЛЬКО ОДИН РАЗ, С ОСТАНОВКОЙ ТАЙМЕРА ВНУТРИ) ---------- */
 function fireAlarm(key) {
+    // Проверка на всякий случай: если сигнал уже сработал, выходим
+    // Это дополнительная защита, хотя основная логика теперь в updateMachine
+    // const m = machines[key];
+    // if (!m.isRunning) return; // Уже остановлен
+
     samsungMelodyOnce(); // ← один раз, без цикла
     document.body.classList.add('alarm');
 
@@ -421,59 +428,52 @@ function fireAlarm(key) {
     const names = { wash: 'Стиральная машина', dry: 'Сушильная машина', dish: 'Посудомойка' };
     const message = `${names[key]} ${texts[key]}`;
 
-    // --- ОТПРАВКА БРАУЗЕРНОГО УВЕДОМЛЕНИЯ ---
+    // Отправка в Telegram
+    sendTelegramNotification(message);
+
+    // --- ОТПРАВКА БРАУЗЕРНОГО УВЕДОМЛЕНИЯ (ПРИОРИТЕТ) ---
     if ('Notification' in window) {
         if (Notification.permission === 'granted') {
-            // Создаём уведомление
             const notification = new Notification('WashTime AI - Задание выполнено!', {
                 body: message,
-                icon: '/icons/icon-192.png', // Убедитесь, что путь к иконке правильный
-                badge: '/icons/icon-192.png', // Иконка для панели уведомлений (Android)
-                vibrate: [300, 200, 300], // Паттерн вибрации
-                requireInteraction: false, // Уведомление само исчезнет
-                tag: `washtime-${key}` // Тег позволяет избежать дубликатов
+                icon: '/icons/icon-192.png',
+                badge: '/icons/icon-192.png',
+                vibrate: [300, 200, 300],
+                requireInteraction: false,
+                tag: `washtime-${key}`
             });
-
-            // Опционально: добавить действие при клике
-            // notification.onclick = function(event) {
-            //     event.preventDefault();
-            //     window.focus();
-            // };
-
         } else {
-            console.warn("Разрешение на уведомления не получено:", Notification.permission);
-            // Резервный вариант: если уведомления запрещены, можно попытаться запросить снова,
-            // но браузеры ограничивают повторные запросы после отказа пользователя.
-            // Обычно пользователь должен сам зайти в настройки сайта и включить уведомления.
+            console.warn("Уведомления не разрешены:", Notification.permission);
+            // Резервный вариант: alert (работает только если вкладка активна)
+            alert(message);
         }
     } else {
-        console.warn("API Уведомлений не поддерживается этим браузером.");
-        // Резервный вариант для браузеров без поддержки Notification
-        // alert(message); // Это НЕ сработает в фоне.
+        console.warn("API Уведомлений не поддерживается.");
+        alert(message);
     }
-    // --- КОНЕЦ ОТПРАВКИ УВЕДОМЛЕНИЯ ---
+    // --- КОНЕЦ УВЕДОМЛЕНИЯ ---
 
-    // Отправка в Telegram остаётся, но не является приоритетом
-    sendTelegramNotification(message);
+    // --- КРИТИЧЕСКИЕ ИЗМЕНЕНИЯ: ОСТАНОВКА ТАЙМЕРА И ОБНОВЛЕНИЕ КНОПКИ ВНУТРИ fireAlarm ---
+    const m = machines[key];
+    m.isRunning = false; // Останавливаем таймер
+
+    // Находим панель и кнопку для этой машины
+    const panel = document.querySelector(`.panel[data-machine="${key}"]`);
+    const btn = panel ? panel.querySelector('.startStopBtn') : null;
+
+    // Обновляем текст кнопки и её стиль
+    if (btn) {
+        btn.textContent = 'Старт';
+        btn.classList.remove('stop');
+    }
+    // --- КОНЕЦ ОСТАНОВКИ ---
 
     setTimeout(() => document.body.classList.remove('alarm'), 3000);
 }
 
 /* ---------- ИНИЦИАЛИЗАЦИЯ ---------- */
-// Запрашиваем разрешение на уведомления при загрузке
-if ('Notification' in window) {
-    if (Notification.permission === 'default') {
-        // Попробуем запросить разрешение
-        Notification.requestPermission().then(permission => {
-            if (permission === 'granted') {
-                console.log("Разрешение на уведомления получено.");
-            } else {
-                console.log("Разрешение на уведомления не получено или отклонено.", permission);
-            }
-        });
-    } else {
-        console.log("Разрешение на уведомления уже было обработано ранее:", Notification.permission);
-    }
+if ('Notification' in window && Notification.permission === 'default') {
+Notification.requestPermission();
 }
 fillLists();
 initPanels();
