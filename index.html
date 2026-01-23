@@ -118,19 +118,16 @@ const machines = {
   dish: {
     prog: 2,
     progTimes: {1:'02:45',2:'02:00',3:'02:30',4:'00:55',5:'01:40',6:'00:10',7:'00:50'},
-    h: 2,  // ← ДОБАВЛЕНО
-    m: 0,  // ← ДОБАВЛЕНО
+    h: 2,
+    m: 0,
     isRunning: false,
     startTime: null,
     startTimeVal: timeNow()
   }
 };
 
-/* ---------- SAMSUNG MELODY ---------- */
+/* ---------- SAMSUNG MELODY (ОДИН РАЗ) ---------- */
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-let melodyActive = false;
-let melodyTimeout = null;
-
 function playNote(freq, startTime, duration = 0.15, volume = 0.25) {
   const osc = audioCtx.createOscillator();
   const gain = audioCtx.createGain();
@@ -143,29 +140,35 @@ function playNote(freq, startTime, duration = 0.15, volume = 0.25) {
   osc.stop(startTime + duration);
 }
 
-function samsungMelody(loop = true) {
+function samsungMelodyOnce() {
   if (audioCtx.state === 'suspended') audioCtx.resume();
   const now = audioCtx.currentTime;
   const noteDur = 0.15;
   const gap = 0.1;
   const groupPause = 0.4;
-  const notes = [659.25, 783.99, 1046.50];
-
+  const notes = [659.25, 783.99, 1046.50]; // E5, G5, C6
   for (let i = 0; i < 3; i++) {
     playNote(notes[i], now + i * (noteDur + gap), noteDur);
   }
   for (let i = 0; i < 3; i++) {
     playNote(notes[i], now + groupPause + i * (noteDur + gap), noteDur);
   }
-
-  if (loop && melodyActive) {
-    melodyTimeout = setTimeout(() => samsungMelody(true), 2000);
-  }
 }
 
-function stopMelody() {
-  melodyActive = false;
-  if (melodyTimeout) clearTimeout(melodyTimeout);
+/* ---------- TELEGRAM УВЕДОМЛЕНИЕ ---------- */
+function sendTelegramNotification(messageText) {
+  // 🔑 ЗАМЕНИ НА СВОЙ ТОКЕН ОТ @BotFather!
+  const TELEGRAM_BOT_TOKEN = '8428389938:AAGA_3zHWiKGXqpLqAy4oskCxb9nPCGpgoU';
+  const TELEGRAM_CHAT_ID = '832827924';
+
+  fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      chat_id: TELEGRAM_CHAT_ID,
+      text: `✅ ${messageText}`
+    })
+  }).catch(() => {});
 }
 
 /* ---------- ЭЛЕМЕНТЫ ---------- */
@@ -178,7 +181,8 @@ const okBtn = document.getElementById('okBtn');
 let activeMachine = 'wash';
 let hSel = 1, mSel = 42;
 let signalEnabled = true;
-let alarmFired = {};
+// 🔒 Отдельный флаг для каждой машины
+let alarmFired = { wash: false, dry: false, dish: false };
 
 /* ---------- ЗАПОЛНЕНИЕ СПИСКОВ ---------- */
 function fillLists() {
@@ -302,7 +306,7 @@ document.addEventListener('change', e => {
     machines[key].prog = +e.target.value;
     const [h, mm] = machines[key].progTimes[machines[key].prog].split(':').map(Number);
     machines[key].h = h;
-    machines[key].m = mm; // ← важно: m, а не m.m!
+    machines[key].m = mm;
     document.querySelector(`.panel[data-machine="${key}"] .durTime`).value = machines[key].progTimes[machines[key].prog];
     if (machines[key].isRunning) machines[key].startTime = Date.now();
     updateMachine(key);
@@ -353,7 +357,7 @@ setupWheelScroll(mCol, 59);
 okBtn.addEventListener('click', () => {
   const m = machines[activeMachine];
   m.h = hSel;
-  m.m = mSel; // ← было m.m = mSel — ошибка!
+  m.m = mSel;
   document.querySelector(`.panel[data-machine="${activeMachine}"] .durTime`).value = 
     `${String(hSel).padStart(2,'0')}:${String(mSel).padStart(2,'0')}`;
   scrollBox.style.display = 'none';
@@ -372,7 +376,7 @@ function updateMachine(key) {
     if (!isNaN(sh) && !isNaN(sm)) {
       const startDate = new Date();
       startDate.setHours(sh, sm, 0, 0);
-      const totalMs = (m.h * 60 + m.m) * 60000; // ← теперь m.h и m.m всегда есть
+      const totalMs = (m.h * 60 + m.m) * 60000;
       const endDate = new Date(startDate.getTime() + totalMs);
       const endStr = `${String(endDate.getHours()).padStart(2, '0')}:${String(endDate.getMinutes()).padStart(2, '0')}`;
       panel.querySelector('.endShow').textContent = endStr;
@@ -397,11 +401,24 @@ function updateMachine(key) {
     if (!alarmFired[key] && signalEnabled) {
       fireAlarm(key);
       alarmFired[key] = true;
+      
+      // 🔒 Автоматически останавливаем таймер
+      machines[key].isRunning = false;
+      
+      // Обновляем кнопку
+      const btn = panel.querySelector('.startStopBtn');
+      if (btn) {
+        btn.textContent = 'Старт';
+        btn.classList.remove('stop');
+      }
     }
     return;
   }
 
-  alarmFired[key] = false;
+  // Сбрасываем флаг ТОЛЬКО если таймер ещё идёт
+  if (m.isRunning) {
+    alarmFired[key] = false;
+  }
 
   if (leftMs <= 60000) {
     const leftSec = Math.ceil(leftMs / 1000);
@@ -416,25 +433,22 @@ function updateMachine(key) {
   }
 }
 
-/* ---------- УВЕДОМЛЕНИЕ ---------- */
+/* ---------- ФИНАЛЬНЫЙ СИГНАЛ (ТОЛЬКО ОДИН РАЗ) ---------- */
 function fireAlarm(key) {
-  melodyActive = true;
-  samsungMelody(true);
+  samsungMelodyOnce(); // ← один раз, без цикла
   document.body.classList.add('alarm');
 
   const texts = { wash: 'достиралась!', dry: 'досушилась!', dish: 'домылась!' };
   const names = { wash: 'Стиральная машина', dry: 'Сушильная машина', dish: 'Посудомойка' };
   const message = `${names[key]} ${texts[key]}`;
 
-  if ('serviceWorker' in navigator && Notification.permission === 'granted') {
-    navigator.serviceWorker.ready.then(reg => {
-      reg.showNotification('WashTime AI', {
-        body: message,
-        icon: '/icons/icon-192.png',
-        vibrate: [300, 200, 300],
-        requireInteraction: true,
-        tag: 'wash-complete'
-      });
+  sendTelegramNotification(message);
+
+  if ('Notification' in window && Notification.permission === 'granted') {
+    new Notification('WashTime AI', {
+      body: message,
+      icon: '/icons/icon-192.png',
+      vibrate: [300, 200, 300]
     });
   } else {
     alert(message);
@@ -443,23 +457,9 @@ function fireAlarm(key) {
   setTimeout(() => document.body.classList.remove('alarm'), 3000);
 }
 
-// Stop melody on focus or notification click
-window.addEventListener('focus', stopMelody);
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.addEventListener('message', e => {
-    if (e.data?.type === 'stopMelody') stopMelody();
-  });
-}
-
 /* ---------- ИНИЦИАЛИЗАЦИЯ ---------- */
 if ('Notification' in window && Notification.permission === 'default') {
   Notification.requestPermission();
-}
-
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch(console.error);
-  });
 }
 
 fillLists();
