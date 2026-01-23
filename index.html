@@ -160,7 +160,7 @@ body: JSON.stringify({
 chat_id: TELEGRAM_CHAT_ID,
 text: `✅ ${messageText}`
 })
-}).catch(() => {}); // Игнорируем ошибки fetch
+}).catch(() => {});
 }
 /* ---------- ЭЛЕМЕНТЫ ---------- */
 const panels = document.getElementById('panels');
@@ -171,9 +171,8 @@ const okBtn = document.getElementById('okBtn');
 let activeMachine = 'wash';
 let hSel = 1, mSel = 42;
 let signalEnabled = true;
-// 🔧 Используем флаги для предотвращения зацикливания сигнала
+// 🔒 Отдельный флаг для каждой машины
 let alarmFired = { wash: false, dry: false, dish: false };
-
 /* ---------- ЗАПОЛНЕНИЕ СПИСКОВ ---------- */
 function fillLists() {
 hList.innerHTML = '';
@@ -268,11 +267,6 @@ if (e.target.classList.contains('startStopBtn')) {
 const panel = e.target.closest('.panel');
 const key = panel.dataset.machine;
 const m = machines[key];
-
-// --- КРИТИЧЕСКОЕ ИЗМЕНЕНИЕ ---
-// При нажатии кнопки, сбрасываем флаг alarmFired для этой машины
-alarmFired[key] = false;
-
 m.isRunning = !m.isRunning;
 m.startTime = m.isRunning ? Date.now() : null;
 e.target.textContent = m.isRunning ? 'Стоп' : 'Старт';
@@ -285,11 +279,7 @@ document.addEventListener('change', e => {
 if (e.target.classList.contains('startTime')) {
 const key = e.target.closest('.panel').dataset.machine;
 machines[key].startTimeVal = e.target.value;
-if (machines[key].isRunning) {
-    machines[key].startTime = Date.now();
-    // Также сбрасываем флаг, если меняется время старта для запущенного таймера
-    alarmFired[key] = false;
-}
+if (machines[key].isRunning) machines[key].startTime = Date.now();
 updateMachine(key);
 }
 if (e.target.classList.contains('prog-select')) {
@@ -299,11 +289,7 @@ const [h, mm] = machines[key].progTimes[machines[key].prog].split(':').map(Numbe
 machines[key].h = h;
 machines[key].m = mm;
 document.querySelector(`.panel[data-machine="${key}"] .durTime`).value = machines[key].progTimes[machines[key].prog];
-if (machines[key].isRunning) {
-    machines[key].startTime = Date.now();
-    // Также сбрасываем флаг, если меняется программа для запущенного таймера
-    alarmFired[key] = false;
-}
+if (machines[key].isRunning) machines[key].startTime = Date.now();
 updateMachine(key);
 }
 });
@@ -350,19 +336,13 @@ m.m = mSel;
 document.querySelector(`.panel[data-machine="${activeMachine}"] .durTime`).value =
 `${String(hSel).padStart(2,'0')}:${String(mSel).padStart(2,'0')}`;
 scrollBox.style.display = 'none';
-if (m.isRunning) {
-    m.startTime = Date.now();
-    // Также сбрасываем флаг, если меняется длительность для запущенного таймера
-    alarmFired[activeMachine] = false;
-}
+if (m.isRunning) m.startTime = Date.now();
 updateMachine(activeMachine);
 });
-/* ---------- ЛОГИКА ВРЕМЕНИ (ПОЛНОСТЬЮ ПЕРЕПИСАНА) ---------- */
+/* ---------- ЛОГИКА ВРЕМЕНИ (ИСПРАВЛЕННАЯ) ---------- */
 function updateMachine(key) {
     const m = machines[key];
     const panel = document.querySelector(`.panel[data-machine="${key}"]`);
-
-    // --- ЛОГИКА РАСЧЕТА ВРЕМЕНИ ОКОНЧАНИЯ ---
     const startVal = m.startTimeVal;
     if (startVal && /^\d{2}:\d{2}$/.test(startVal)) {
         const [sh, sm] = startVal.split(':').map(Number);
@@ -381,35 +361,44 @@ function updateMachine(key) {
     }
 
     // --- ПРОВЕРКА СОСТОЯНИЯ ТАЙМЕРА ---
-    // Если таймер не запущен, показываем "--:--" и выходим
     if (!m.isRunning) {
         panel.querySelector('.leftShow').textContent = '--:--';
+        // --- НОВОЕ: ГАРАНТИРОВАННО ОБНОВЛЯЕМ КНОПКУ, ЕСЛИ ТАЙМЕР НЕ ЗАПУЩЕН ---
+        const btn = panel.querySelector('.startStopBtn');
+        if (btn) {
+            btn.textContent = 'Старт';
+            btn.classList.remove('stop');
+        }
+        // ---
         return;
     }
 
-    // Рассчитываем оставшееся время
     const totalMs = (m.h * 60 + m.m) * 60000;
     const endTime = m.startTime + totalMs;
     const leftMs = endTime - Date.now();
 
-    // --- ПРОВЕРКА ЗАВЕРШЕНИЯ ТАЙМЕРА ---
     if (leftMs <= 0) {
-        // Устанавливаем оставшееся время в 00:00
         panel.querySelector('.leftShow').textContent = '00:00';
-
-        // Проверяем, нужно ли включать сигнал И сигнал ЕЩЁ не сработал
-        if (signalEnabled && !alarmFired[key]) {
-            alarmFired[key] = true; // Отмечаем, что сигнал сработал
-            fireAlarm(key);         // Вызываем функцию сигнала
-            // В fireAlarm будет остановка таймера и обновление кнопки
+        if (!alarmFired[key] && signalEnabled) {
+            fireAlarm(key);
+            alarmFired[key] = true;
+            // 🔒 Автоматически останавливаем таймер
+            machines[key].isRunning = false;
+            // Обновляем кнопку (это может быть лишним, так как следующий вызов updateMachine обработает isRunning=false, но пусть будет для ясности)
+            const btn = panel.querySelector('.startStopBtn');
+            if (btn) {
+                btn.textContent = 'Старт';
+                btn.classList.remove('stop');
+            }
         }
-        // Завершаем выполнение функции для этой машины
-        return;
+        return; // ВАЖНО: выходим, чтобы не выполнить код ниже для <= 60000 или остального времени
     }
-    // --- КОНЕЦ ПРОВЕРКИ ЗАВЕРШЕНИЯ ---
 
-    // --- ОТОБРАЖЕНИЕ ОСТАВШЕГОСЯ ВРЕМЕНИ ---
-    // Отображение оставшегося времени (если таймер запущен и не закончился)
+    // Сбрасываем флаг ТОЛЬКО если таймер ещё идёт
+    if (m.isRunning) {
+        alarmFired[key] = false;
+    }
+
     if (leftMs <= 60000) {
         const leftSec = Math.ceil(leftMs / 1000);
         const lm = Math.floor(leftSec / 60);
@@ -421,55 +410,26 @@ function updateMachine(key) {
         const lm = leftMin % 60;
         panel.querySelector('.leftShow').textContent = `${String(lh).padStart(2, '0')}:${String(lm).padStart(2, '0')}`;
     }
-    // --- КОНЕЦ ОТОБРАЖЕНИЯ ---
 }
-
-/* ---------- ФИНАЛЬНЫЙ СИГНАЛ (ТОЛЬКО ОДИН РАЗ, С ОСТАНОВКОЙ ТАЙМЕРА) ---------- */
+/* ---------- ФИНАЛЬНЫЙ СИГНАЛ (ТОЛЬКО ОДИН РАЗ) ---------- */
 function fireAlarm(key) {
-    // Проигрываем мелодию один раз
-    samsungMelodyOnce();
-
-    // Визуальный эффект
-    document.body.classList.add('alarm');
-
-    // Подготовка сообщения
-    const texts = { wash: 'достиралась!', dry: 'досушилась!', dish: 'домылась!' };
-    const names = { wash: 'Стиральная машина', dry: 'Сушильная машина', dish: 'Посудомойка' };
-    const message = `${names[key]} ${texts[key]}`;
-
-    // Отправка уведомления в Telegram
-    sendTelegramNotification(message);
-
-    // Уведомление в браузере или alert
-    if ('Notification' in window && Notification.permission === 'granted') {
-        new Notification('WashTime AI', {
-            body: message,
-            icon: '/icons/icon-192.png',
-            vibrate: [300, 200, 300]
-        });
-    } else {
-        alert(message);
-    }
-
-    // Удаляем визуальный эффект через 3 секунды
-    setTimeout(() => document.body.classList.remove('alarm'), 3000);
-
-    // --- КРИТИЧЕСКИЕ ИЗМЕНЕНИЯ ---
-    // Останавливаем таймер для этой машины
-    machines[key].isRunning = false;
-
-    // Находим панель и кнопку для этой машины
-    const panel = document.querySelector(`.panel[data-machine="${key}"]`);
-    const btn = panel ? panel.querySelector('.startStopBtn') : null;
-
-    // Обновляем текст кнопки и её стиль
-    if (btn) {
-        btn.textContent = 'Старт';
-        btn.classList.remove('stop');
-    }
-    // --- КОНЕЦ КРИТИЧЕСКИХ ИЗМЕНЕНИЙ ---
+samsungMelodyOnce(); // ← один раз, без цикла
+document.body.classList.add('alarm');
+const texts = { wash: 'достиралась!', dry: 'досушилась!', dish: 'домылась!' };
+const names = { wash: 'Стиральная машина', dry: 'Сушильная машина', dish: 'Посудомойка' };
+const message = `${names[key]} ${texts[key]}`;
+sendTelegramNotification(message);
+if ('Notification' in window && Notification.permission === 'granted') {
+new Notification('WashTime AI', {
+body: message,
+icon: '/icons/icon-192.png',
+vibrate: [300, 200, 300]
+});
+} else {
+alert(message);
 }
-
+setTimeout(() => document.body.classList.remove('alarm'), 3000);
+}
 /* ---------- ИНИЦИАЛИЗАЦИЯ ---------- */
 if ('Notification' in window && Notification.permission === 'default') {
 Notification.requestPermission();
