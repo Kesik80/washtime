@@ -160,7 +160,7 @@ body: JSON.stringify({
 chat_id: TELEGRAM_CHAT_ID,
 text: `✅ ${messageText}`
 })
-}).catch(() => {});
+}).catch(() => {}); // Игнорируем ошибки fetch
 }
 /* ---------- ЭЛЕМЕНТЫ ---------- */
 const panels = document.getElementById('panels');
@@ -171,6 +171,9 @@ const okBtn = document.getElementById('okBtn');
 let activeMachine = 'wash';
 let hSel = 1, mSel = 42;
 let signalEnabled = true;
+// 🔧 Используем флаги для предотвращения зацикливания сигнала
+let alarmFired = { wash: false, dry: false, dish: false };
+
 /* ---------- ЗАПОЛНЕНИЕ СПИСКОВ ---------- */
 function fillLists() {
 hList.innerHTML = '';
@@ -265,6 +268,11 @@ if (e.target.classList.contains('startStopBtn')) {
 const panel = e.target.closest('.panel');
 const key = panel.dataset.machine;
 const m = machines[key];
+
+// --- КРИТИЧЕСКОЕ ИЗМЕНЕНИЕ ---
+// При нажатии кнопки, сбрасываем флаг alarmFired для этой машины
+alarmFired[key] = false;
+
 m.isRunning = !m.isRunning;
 m.startTime = m.isRunning ? Date.now() : null;
 e.target.textContent = m.isRunning ? 'Стоп' : 'Старт';
@@ -277,7 +285,11 @@ document.addEventListener('change', e => {
 if (e.target.classList.contains('startTime')) {
 const key = e.target.closest('.panel').dataset.machine;
 machines[key].startTimeVal = e.target.value;
-if (machines[key].isRunning) machines[key].startTime = Date.now();
+if (machines[key].isRunning) {
+    machines[key].startTime = Date.now();
+    // Также сбрасываем флаг, если меняется время старта для запущенного таймера
+    alarmFired[key] = false;
+}
 updateMachine(key);
 }
 if (e.target.classList.contains('prog-select')) {
@@ -287,7 +299,11 @@ const [h, mm] = machines[key].progTimes[machines[key].prog].split(':').map(Numbe
 machines[key].h = h;
 machines[key].m = mm;
 document.querySelector(`.panel[data-machine="${key}"] .durTime`).value = machines[key].progTimes[machines[key].prog];
-if (machines[key].isRunning) machines[key].startTime = Date.now();
+if (machines[key].isRunning) {
+    machines[key].startTime = Date.now();
+    // Также сбрасываем флаг, если меняется программа для запущенного таймера
+    alarmFired[key] = false;
+}
 updateMachine(key);
 }
 });
@@ -334,10 +350,14 @@ m.m = mSel;
 document.querySelector(`.panel[data-machine="${activeMachine}"] .durTime`).value =
 `${String(hSel).padStart(2,'0')}:${String(mSel).padStart(2,'0')}`;
 scrollBox.style.display = 'none';
-if (m.isRunning) m.startTime = Date.now();
+if (m.isRunning) {
+    m.startTime = Date.now();
+    // Также сбрасываем флаг, если меняется длительность для запущенного таймера
+    alarmFired[activeMachine] = false;
+}
 updateMachine(activeMachine);
 });
-/* ---------- НОВАЯ ЛОГИКА ВРЕМЕНИ (ПРОСТАЯ ПРОВЕРКА ЗАВЕРШЕНИЯ) ---------- */
+/* ---------- ЛОГИКА ВРЕМЕНИ (ПОЛНОСТЬЮ ПЕРЕПИСАНА) ---------- */
 function updateMachine(key) {
     const m = machines[key];
     const panel = document.querySelector(`.panel[data-machine="${key}"]`);
@@ -377,11 +397,11 @@ function updateMachine(key) {
         // Устанавливаем оставшееся время в 00:00
         panel.querySelector('.leftShow').textContent = '00:00';
 
-        // Проверяем, нужно ли включать сигнал И таймер ЕЩЁ не был остановлен
-        // (это важно, так как сигнал может остановить таймер в процессе этого же вызова updateMachine)
-        if (signalEnabled && m.isRunning) {
-            fireAlarm(key); // Вызываем функцию сигнала
-            // fireAlarm теперь вызывает остановку через клик
+        // Проверяем, нужно ли включать сигнал И сигнал ЕЩЁ не сработал
+        if (signalEnabled && !alarmFired[key]) {
+            alarmFired[key] = true; // Отмечаем, что сигнал сработал
+            fireAlarm(key);         // Вызываем функцию сигнала
+            // В fireAlarm будет остановка таймера и обновление кнопки
         }
         // Завершаем выполнение функции для этой машины
         return;
@@ -404,21 +424,20 @@ function updateMachine(key) {
     // --- КОНЕЦ ОТОБРАЖЕНИЯ ---
 }
 
-/* ---------- НОВАЯ ФУНКЦИЯ ФИНАЛЬНОГО СИГНАЛА (ТОЛЬКО ОДИН РАЗ, С ИМИТАЦИЕЙ КЛИКА НА СТОП) ---------- */
+/* ---------- ФИНАЛЬНЫЙ СИГНАЛ (ТОЛЬКО ОДИН РАЗ, С ОСТАНОВКОЙ ТАЙМЕРА) ---------- */
 function fireAlarm(key) {
-    // Проверка на всякий случай, вдруг m.isRunning стал false между проверкой в updateMachine и вызовом fireAlarm
-    if (!machines[key].isRunning) {
-        console.warn(`fireAlarm called for ${key}, but it's not running.`);
-        return;
-    }
+    // Проигрываем мелодию один раз
+    samsungMelodyOnce();
 
-    samsungMelodyOnce(); // Проигрываем мелодию один раз
-    document.body.classList.add('alarm'); // Визуальный эффект
+    // Визуальный эффект
+    document.body.classList.add('alarm');
 
+    // Подготовка сообщения
     const texts = { wash: 'достиралась!', dry: 'досушилась!', dish: 'домылась!' };
     const names = { wash: 'Стиральная машина', dry: 'Сушильная машина', dish: 'Посудомойка' };
     const message = `${names[key]} ${texts[key]}`;
 
+    // Отправка уведомления в Telegram
     sendTelegramNotification(message);
 
     // Уведомление в браузере или alert
@@ -435,16 +454,20 @@ function fireAlarm(key) {
     // Удаляем визуальный эффект через 3 секунды
     setTimeout(() => document.body.classList.remove('alarm'), 3000);
 
-    // --- ИМИТАЦИЯ НАЖАТИЯ НА КНОПКУ СТОП ---
+    // --- КРИТИЧЕСКИЕ ИЗМЕНЕНИЯ ---
+    // Останавливаем таймер для этой машины
+    machines[key].isRunning = false;
+
     // Находим панель и кнопку для этой машины
     const panel = document.querySelector(`.panel[data-machine="${key}"]`);
-    const stopButton = panel ? panel.querySelector('.startStopBtn') : null;
+    const btn = panel ? panel.querySelector('.startStopBtn') : null;
 
-    if (stopButton && machines[key].isRunning) {
-        // Имитируем клик по кнопке "Стоп"
-        stopButton.click();
+    // Обновляем текст кнопки и её стиль
+    if (btn) {
+        btn.textContent = 'Старт';
+        btn.classList.remove('stop');
     }
-    // --- КОНЕЦ ИМИТАЦИИ ---
+    // --- КОНЕЦ КРИТИЧЕСКИХ ИЗМЕНЕНИЙ ---
 }
 
 /* ---------- ИНИЦИАЛИЗАЦИЯ ---------- */
