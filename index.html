@@ -148,7 +148,7 @@ for (let i = 0; i < 3; i++) {
 playNote(notes[i], now + groupPause + i * (noteDur + gap), noteDur);
 }
 }
-/* ---------- TELEGRAM УВЕДОМЛЕНИЕ ---------- */
+/* ---------- TELEGRAM УВЕДОМЛЕНИЕ (остаётся, но не является приоритетом) ---------- */
 function sendTelegramNotification(messageText) {
 // 🔑 ЗАМЕНИ НА СВОЙ ТОКЕН ОТ @BotFather!
 const TELEGRAM_BOT_TOKEN = '8428389938:AAGA_3zHWiKGXqpLqAy4oskCxb9nPCGpgoU';
@@ -411,28 +411,69 @@ function updateMachine(key) {
         panel.querySelector('.leftShow').textContent = `${String(lh).padStart(2, '0')}:${String(lm).padStart(2, '0')}`;
     }
 }
-/* ---------- ФИНАЛЬНЫЙ СИГНАЛ (ТОЛЬКО ОДИН РАЗ) ---------- */
+
+/* ---------- ФИНАЛЬНЫЙ СИГНАЛ (ТОЛЬКО ОДИН РАЗ, С БРАУЗЕРНЫМ УВЕДОМЛЕНИЕМ) ---------- */
 function fireAlarm(key) {
-samsungMelodyOnce(); // ← один раз, без цикла
-document.body.classList.add('alarm');
-const texts = { wash: 'достиралась!', dry: 'досушилась!', dish: 'домылась!' };
-const names = { wash: 'Стиральная машина', dry: 'Сушильная машина', dish: 'Посудомойка' };
-const message = `${names[key]} ${texts[key]}`;
-sendTelegramNotification(message);
-if ('Notification' in window && Notification.permission === 'granted') {
-new Notification('WashTime AI', {
-body: message,
-icon: '/icons/icon-192.png',
-vibrate: [300, 200, 300]
-});
-} else {
-alert(message);
+    samsungMelodyOnce(); // ← один раз, без цикла
+    document.body.classList.add('alarm');
+
+    const texts = { wash: 'достиралась!', dry: 'досушилась!', dish: 'домылась!' };
+    const names = { wash: 'Стиральная машина', dry: 'Сушильная машина', dish: 'Посудомойка' };
+    const message = `${names[key]} ${texts[key]}`;
+
+    // --- ОТПРАВКА БРАУЗЕРНОГО УВЕДОМЛЕНИЯ ---
+    if ('Notification' in window) {
+        if (Notification.permission === 'granted') {
+            // Создаём уведомление
+            const notification = new Notification('WashTime AI - Задание выполнено!', {
+                body: message,
+                icon: '/icons/icon-192.png', // Убедитесь, что путь к иконке правильный
+                badge: '/icons/icon-192.png', // Иконка для панели уведомлений (Android)
+                vibrate: [300, 200, 300], // Паттерн вибрации
+                requireInteraction: false, // Уведомление само исчезнет
+                tag: `washtime-${key}` // Тег позволяет избежать дубликатов
+            });
+
+            // Опционально: добавить действие при клике
+            // notification.onclick = function(event) {
+            //     event.preventDefault();
+            //     window.focus();
+            // };
+
+        } else {
+            console.warn("Разрешение на уведомления не получено:", Notification.permission);
+            // Резервный вариант: если уведомления запрещены, можно попытаться запросить снова,
+            // но браузеры ограничивают повторные запросы после отказа пользователя.
+            // Обычно пользователь должен сам зайти в настройки сайта и включить уведомления.
+        }
+    } else {
+        console.warn("API Уведомлений не поддерживается этим браузером.");
+        // Резервный вариант для браузеров без поддержки Notification
+        // alert(message); // Это НЕ сработает в фоне.
+    }
+    // --- КОНЕЦ ОТПРАВКИ УВЕДОМЛЕНИЯ ---
+
+    // Отправка в Telegram остаётся, но не является приоритетом
+    sendTelegramNotification(message);
+
+    setTimeout(() => document.body.classList.remove('alarm'), 3000);
 }
-setTimeout(() => document.body.classList.remove('alarm'), 3000);
-}
+
 /* ---------- ИНИЦИАЛИЗАЦИЯ ---------- */
-if ('Notification' in window && Notification.permission === 'default') {
-Notification.requestPermission();
+// Запрашиваем разрешение на уведомления при загрузке
+if ('Notification' in window) {
+    if (Notification.permission === 'default') {
+        // Попробуем запросить разрешение
+        Notification.requestPermission().then(permission => {
+            if (permission === 'granted') {
+                console.log("Разрешение на уведомления получено.");
+            } else {
+                console.log("Разрешение на уведомления не получено или отклонено.", permission);
+            }
+        });
+    } else {
+        console.log("Разрешение на уведомления уже было обработано ранее:", Notification.permission);
+    }
 }
 fillLists();
 initPanels();
