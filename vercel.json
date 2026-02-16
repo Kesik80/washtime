@@ -1,0 +1,20 @@
+{
+  "routes": [
+    {
+      "src": "/sw.js",
+      "dest": "/sw.js",
+      "headers": {
+        "Content-Type": "application/javascript",
+        "Service-Worker-Allowed": "/"
+      }
+    },
+    {
+      "src": "/icons/(.*)",
+      "dest": "/icons/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ]
+}
