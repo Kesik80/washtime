@@ -225,6 +225,9 @@ ${[1,2,3,4,5,6,7].map(p => `<option value="${p}" ${p===m.prog?'selected':''}>${p
 <button class="startStopBtn ${machines[key].isRunning ? 'stop' : ''}">
 ${machines[key].isRunning ? 'Стоп' : 'Старт'}
 </button>
+<button class="testBtn" style="display:block;width:100%;margin-top:8px;padding:6px;background:#eee;border:none;border-radius:6px;font-size:13px;color:#666;cursor:pointer">
+Тест Telegram
+</button>
 </div>`;
 }
 function initPanels() {
@@ -259,6 +262,29 @@ panels.addEventListener('focusin', e => {
     centerItem(hCol, hSel);
     centerItem(mCol, mSel);
     scrollBox.style.display = 'flex';
+  }
+});
+
+/* ---------- ТЕСТ TELEGRAM ---------- */
+document.addEventListener('click', async e => {
+  if (e.target.classList.contains('testBtn')) {
+    const panel = e.target.closest('.panel');
+    const key = panel.dataset.machine;
+    const names = { wash: 'Стиральная машина', dry: 'Сушильная машина', dish: 'Посудомойка' };
+    const texts = { wash: 'достиралась!', dry: 'досушилась!', dish: 'домылась!' };
+    e.target.textContent = 'Отправляю...';
+    try {
+      const res = await fetch('/api/notify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: `${names[key]} ${texts[key]}` })
+      });
+      const data = await res.json();
+      e.target.textContent = data.success ? '✅ Отправлено!' : '❌ Ошибка: ' + JSON.stringify(data);
+    } catch (err) {
+      e.target.textContent = '❌ ' + err.message;
+    }
+    setTimeout(() => e.target.textContent = 'Тест Telegram', 3000);
   }
 });
 
