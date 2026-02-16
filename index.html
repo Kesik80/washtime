@@ -275,6 +275,12 @@ document.addEventListener('click', e => {
     e.target.textContent = m.isRunning ? 'Стоп' : 'Старт';
     e.target.classList.toggle('stop', m.isRunning);
     updateMachine(key);
+
+    if (m.isRunning) {
+      scheduleSwNotification(key);   // планируем уведомление в SW
+    } else {
+      cancelSwNotification(key);     // отменяем если нажали Стоп
+    }
   }
 });
 
@@ -460,7 +466,15 @@ async function registerSW() {
   if (!('serviceWorker' in navigator)) return;
   try {
     swRegistration = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
-    console.log('SW зарегистрирован');
+    // Ждём пока SW станет активным
+    if (swRegistration.installing) {
+      await new Promise(resolve => {
+        swRegistration.installing.addEventListener('statechange', function() {
+          if (this.state === 'activated') resolve();
+        });
+      });
+    }
+    console.log('SW зарегистрирован и активен');
   } catch (e) {
     console.warn('SW не зарегистрирован:', e);
   }
@@ -473,22 +487,58 @@ async function requestNotifyPermission() {
   }
 }
 
-/* ---------- ПОКАЗАТЬ УВЕДОМЛЕНИЕ (через SW или напрямую) ---------- */
+/* ---------- ПЛАНИРОВАНИЕ УВЕДОМЛЕНИЯ ЧЕРЕЗ SW ---------- */
+function getEndDateForKey(key) {
+  const m = machines[key];
+  const startVal = m.startTimeVal;
+  if (!startVal) return null;
+  const [sh, sm] = startVal.split(':').map(Number);
+  const now = new Date();
+  const startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), sh, sm, 0, 0);
+  const totalMs = (m.h * 60 + m.m) * 60000;
+  return new Date(startDate.getTime() + totalMs);
+}
+
+function scheduleSwNotification(key) {
+  if (!swRegistration || !swRegistration.active) return;
+  if (Notification.permission !== 'granted') return;
+
+  const endDate = getEndDateForKey(key);
+  if (!endDate) return;
+
+  const delayMs = endDate.getTime() - Date.now();
+  if (delayMs <= 0) return;
+
+  const texts = { wash: 'достиралась!', dry: 'досушилась!', dish: 'домылась!' };
+  const names = { wash: 'Стиральная машина', dry: 'Сушильная машина', dish: 'Посудомойка' };
+  const body = `${names[key]} ${texts[key]}`;
+
+  swRegistration.active.postMessage({
+    type: 'SCHEDULE',
+    key,
+    title: '✅ WashTime AI',
+    body,
+    tag: `washtime-${key}`,
+    delayMs
+  });
+}
+
+function cancelSwNotification(key) {
+  if (!swRegistration || !swRegistration.active) return;
+  swRegistration.active.postMessage({ type: 'CANCEL', key });
+}
+
+/* ---------- ПОКАЗАТЬ УВЕДОМЛЕНИЕ НЕМЕДЛЕННО (страница активна) ---------- */
 async function showPushNotification(title, body, tag) {
-  // Вибрация — всегда если страница активна
   if ('vibrate' in navigator) {
     navigator.vibrate([500, 200, 500, 200, 500]);
   }
-
   if (Notification.permission !== 'granted') return;
 
-  // Через Service Worker — работает на заблокированном экране
   if (swRegistration && swRegistration.active) {
     swRegistration.active.postMessage({ type: 'NOTIFY', title, body, tag });
     return;
   }
-
-  // Fallback — обычное уведомление
   new Notification(title, {
     body,
     icon: '/icons/icon-192.png',
