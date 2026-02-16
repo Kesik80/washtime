@@ -108,14 +108,14 @@ function timeNow() {
   return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 }
 
-/* ---------- ДАННЫЕ С hasFinished ---------- */
+/* ---------- ДАННЫЕ МАШИН ---------- */
 const machines = {
-  wash: { h: 1, m: 42, isRunning: false, hasFinished: false, startTime: null, startTimeVal: timeNow() },
-  dry: { h: 1, m: 15, isRunning: false, hasFinished: false, startTime: null, startTimeVal: timeNow() },
+  wash: { h: 1, m: 42, isRunning: false, hasFinished: false, startTimeVal: timeNow() },
+  dry: { h: 1, m: 15, isRunning: false, hasFinished: false, startTimeVal: timeNow() },
   dish: {
     prog: 2,
     progTimes: {1:'02:45',2:'02:00',3:'02:30',4:'00:55',5:'01:40',6:'00:10',7:'00:50'},
-    h: 2, m: 0, isRunning: false, hasFinished: false, startTime: null, startTimeVal: timeNow()
+    h: 2, m: 0, isRunning: false, hasFinished: false, startTimeVal: timeNow()
   }
 };
 
@@ -147,7 +147,7 @@ function samsungMelodyOnce() {
   }
 }
 
-/* ---------- БЕЗОПАСНАЯ ОТПРАВКА УВЕДОМЛЕНИЯ ЧЕРЕЗ Vercel ---------- */
+/* ---------- БЕЗОПАСНАЯ ОТПРАВКА В TELEGRAM ЧЕРЕЗ Vercel ---------- */
 async function sendTelegramNotification(messageText) {
   try {
     await fetch('/api/notify', {
@@ -160,7 +160,7 @@ async function sendTelegramNotification(messageText) {
   }
 }
 
-/* ---------- ЭЛЕМЕНТЫ ---------- */
+/* ---------- ЭЛЕМЕНТЫ DOM ---------- */
 const panels = document.getElementById('panels');
 const scrollBox = document.getElementById('scrollBox');
 const hList = document.getElementById('hList');
@@ -170,7 +170,7 @@ let activeMachine = 'wash';
 let hSel = 1, mSel = 42;
 let signalEnabled = true;
 
-/* ---------- ЗАПОЛНЕНИЕ СПИСКОВ ---------- */
+/* ---------- ЗАПОЛНЕНИЕ СПИСКОВ ВРЕМЕНИ ---------- */
 function fillLists() {
   hList.innerHTML = '';
   mList.innerHTML = '';
@@ -188,7 +188,7 @@ function fillLists() {
   }
 }
 
-/* ---------- РЕНДЕР ПАНЕЛИ ---------- */
+/* ---------- РЕНДЕР Панели ---------- */
 function renderPanel(key) {
   const m = machines[key];
   const isDish = key === 'dish';
@@ -262,18 +262,16 @@ panels.addEventListener('focusin', e => {
   }
 });
 
-/* ---------- START/STOP ---------- */
+/* ---------- START / STOP ---------- */
 document.addEventListener('click', e => {
   if (e.target.classList.contains('startStopBtn')) {
     const panel = e.target.closest('.panel');
     const key = panel.dataset.machine;
     const m = machines[key];
     if (!m.isRunning) {
-      // Сброс флага при новом запуске
       m.hasFinished = false;
     }
     m.isRunning = !m.isRunning;
-    m.startTime = m.isRunning ? Date.now() : null;
     e.target.textContent = m.isRunning ? 'Стоп' : 'Старт';
     e.target.classList.toggle('stop', m.isRunning);
     updateMachine(key);
@@ -285,7 +283,6 @@ document.addEventListener('change', e => {
   if (e.target.classList.contains('startTime')) {
     const key = e.target.closest('.panel').dataset.machine;
     machines[key].startTimeVal = e.target.value;
-    if (machines[key].isRunning) machines[key].startTime = Date.now();
     updateMachine(key);
   }
   if (e.target.classList.contains('prog-select')) {
@@ -295,7 +292,6 @@ document.addEventListener('change', e => {
     machines[key].h = h;
     machines[key].m = mm;
     document.querySelector(`.panel[data-machine="${key}"] .durTime`).value = machines[key].progTimes[machines[key].prog];
-    if (machines[key].isRunning) machines[key].startTime = Date.now();
     updateMachine(key);
   }
 });
@@ -308,7 +304,7 @@ document.addEventListener('click', e => {
   }
 });
 
-/* ---------- СКРОЛЛ-ВЫБОР ---------- */
+/* ---------- СКРОЛЛ-ВЫБОР ВРЕМЕНИ ---------- */
 function centerItem(col, idx) {
   const liH = 30;
   col.scrollTop = idx * liH - 2 * liH;
@@ -344,31 +340,40 @@ okBtn.addEventListener('click', () => {
   document.querySelector(`.panel[data-machine="${activeMachine}"] .durTime`).value =
     `${String(hSel).padStart(2,'0')}:${String(mSel).padStart(2,'0')}`;
   scrollBox.style.display = 'none';
-  if (m.isRunning) m.startTime = Date.now();
   updateMachine(activeMachine);
 });
 
-/* ---------- ЛОГИКА ВРЕМЕНИ ---------- */
+/* ---------- ОСНОВНАЯ ЛОГИКА ВРЕМЕНИ (ИСПРАВЛЕНА!) ---------- */
 function updateMachine(key) {
   const m = machines[key];
   const panel = document.querySelector(`.panel[data-machine="${key}"]`);
   const startVal = m.startTimeVal;
-  if (startVal && /^\d{2}:\d{2}$/.test(startVal)) {
-    const [sh, sm] = startVal.split(':').map(Number);
-    if (!isNaN(sh) && !isNaN(sm)) {
-      const startDate = new Date();
-      startDate.setHours(sh, sm, 0, 0);
-      const totalMs = (m.h * 60 + m.m) * 60000;
-      const endDate = new Date(startDate.getTime() + totalMs);
-      const endStr = `${String(endDate.getHours()).padStart(2, '0')}:${String(endDate.getMinutes()).padStart(2, '0')}`;
-      panel.querySelector('.endShow').textContent = endStr;
-    } else {
-      panel.querySelector('.endShow').textContent = '--:--';
-    }
-  } else {
+
+  // Валидация
+  if (!startVal || !/^\d{2}:\d{2}$/.test(startVal)) {
     panel.querySelector('.endShow').textContent = '--:--';
+    panel.querySelector('.leftShow').textContent = '--:--';
+    return;
   }
 
+  const [sh, sm] = startVal.split(':').map(Number);
+  if (isNaN(sh) || isNaN(sm) || sh < 0 || sh > 23 || sm < 0 || sm > 59) {
+    panel.querySelector('.endShow').textContent = '--:--';
+    panel.querySelector('.leftShow').textContent = '--:--';
+    return;
+  }
+
+  // Дата старта — всегда сегодня (пользователь сам ввёл время)
+  const now = new Date();
+  const startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), sh, sm, 0, 0);
+
+  // Время окончания
+  const totalMs = (m.h * 60 + m.m) * 60000;
+  const endDate = new Date(startDate.getTime() + totalMs);
+  const endStr = `${String(endDate.getHours()).padStart(2, '0')}:${String(endDate.getMinutes()).padStart(2, '0')}`;
+  panel.querySelector('.endShow').textContent = endStr;
+
+  // Если таймер не запущен
   if (!m.isRunning) {
     panel.querySelector('.leftShow').textContent = '--:--';
     const btn = panel.querySelector('.startStopBtn');
@@ -379,30 +384,35 @@ function updateMachine(key) {
     return;
   }
 
-  const totalMs = (m.h * 60 + m.m) * 60000;
-  const endTime = m.startTime + totalMs;
-  const leftMs = endTime - Date.now();
+  // Оставшееся время до реального окончания
+  const leftMs = endDate.getTime() - now.getTime();
 
-  // 🔥 ОСНОВНОЕ: один раз при завершении
-  if (leftMs <= 0 && !m.hasFinished) {
+  // Завершение
+  if (leftMs <= 0) {
     panel.querySelector('.leftShow').textContent = '00:00';
-    if (signalEnabled) {
+    if (signalEnabled && !m.hasFinished) {
       fireFinalSignal(key);
     }
     return;
   }
 
-  // Отображение оставшегося времени
-  if (leftMs <= 60000) {
+  // --- Отображение оставшегося времени ---
+  if (leftMs < 60000) {
+    // Менее минуты — секунды
     const leftSec = Math.ceil(leftMs / 1000);
     const lm = Math.floor(leftSec / 60);
     const ls = leftSec % 60;
     panel.querySelector('.leftShow').textContent = `${String(lm).padStart(2, '0')}:${String(ls).padStart(2, '0')}`;
   } else {
-    const leftMin = Math.round(leftMs / 60000);
-    const lh = Math.floor(leftMin / 60);
-    const lm = leftMin % 60;
-    panel.querySelector('.leftShow').textContent = `${String(lh).padStart(2, '0')}:${String(lm).padStart(2, '0')}`;
+    // Больше минуты — часы и минуты (ограничено 99 часами)
+    const totalMinutes = Math.ceil(leftMs / 60000);
+    const lh = Math.floor(totalMinutes / 60);
+    const lm = totalMinutes % 60;
+    if (lh > 99) {
+      panel.querySelector('.leftShow').textContent = '99:59';
+    } else {
+      panel.querySelector('.leftShow').textContent = `${String(lh).padStart(2, '0')}:${String(lm).padStart(2, '0')}`;
+    }
   }
 }
 
@@ -416,39 +426,16 @@ function fireFinalSignal(key) {
   // Звук
   samsungMelodyOnce();
 
-  // Вибрация
-  if ('vibrate' in navigator) {
-    navigator.vibrate([500, 200, 500]);
-  }
-
   // Текст
   const texts = { wash: 'достиралась!', dry: 'досушилась!', dish: 'домылась!' };
   const names = { wash: 'Стиральная машина', dry: 'Сушильная машина', dish: 'Посудомойка' };
   const message = `${names[key]} ${texts[key]}`;
 
-  // Telegram через Vercel
-  sendTelegramNotification(message);
+  // Уведомление + вибрация (работает на заблокированном экране через SW)
+  showPushNotification('✅ WashTime AI', message, `washtime-${key}`);
 
-  // Системное уведомление
-  if ('Notification' in window) {
-    if (Notification.permission === 'granted') {
-      new Notification('✅ WashTime AI', {
-        body: message,
-        icon: '/icons/icon-192.png',
-        badge: '/icons/icon-192.png',
-        vibrate: [500, 200, 500],
-        requireInteraction: false,
-        tag: `washtime-${key}`,
-        silent: false
-      });
-    } else if (Notification.permission === 'default') {
-      Notification.requestPermission().then(() => {
-        if (Notification.permission === 'granted') {
-          new Notification('✅ WashTime AI', { body: message });
-        }
-      });
-    }
-  }
+  // Telegram
+  sendTelegramNotification(message);
 
   // Обновление UI
   const panel = document.querySelector(`.panel[data-machine="${key}"]`);
@@ -466,10 +453,80 @@ function fireFinalSignal(key) {
   setTimeout(() => document.body.classList.remove('alarm'), 3000);
 }
 
-/* ---------- ИНИЦИАЛИЗАЦИЯ ---------- */
-if ('Notification' in window && Notification.permission === 'default') {
-  Notification.requestPermission();
+/* ---------- SERVICE WORKER (встроенный через Blob) ---------- */
+const SW_CODE = `
+self.addEventListener('message', e => {
+  if (e.data && e.data.type === 'NOTIFY') {
+    self.registration.showNotification(e.data.title, {
+      body: e.data.body,
+      icon: '/icons/icon-192.png',
+      badge: '/icons/icon-192.png',
+      vibrate: [500, 200, 500, 200, 500],
+      requireInteraction: true,
+      tag: e.data.tag || 'washtime',
+      renotify: true,
+      silent: false
+    });
+  }
+});
+self.addEventListener('notificationclick', e => {
+  e.notification.close();
+  e.waitUntil(clients.matchAll({type:'window'}).then(list => {
+    if (list.length) return list[0].focus();
+    return clients.openWindow('/');
+  }));
+});
+`;
+
+let swRegistration = null;
+
+async function registerSW() {
+  if (!('serviceWorker' in navigator)) return;
+  try {
+    const blob = new Blob([SW_CODE], { type: 'application/javascript' });
+    const swUrl = URL.createObjectURL(blob);
+    swRegistration = await navigator.serviceWorker.register(swUrl, { scope: '/' });
+    console.log('SW зарегистрирован');
+  } catch (e) {
+    console.warn('SW не зарегистрирован:', e);
+  }
 }
+
+async function requestNotifyPermission() {
+  if (!('Notification' in window)) return;
+  if (Notification.permission === 'default') {
+    await Notification.requestPermission();
+  }
+}
+
+/* ---------- ПОКАЗАТЬ УВЕДОМЛЕНИЕ (через SW или напрямую) ---------- */
+async function showPushNotification(title, body, tag) {
+  // Вибрация — всегда если страница активна
+  if ('vibrate' in navigator) {
+    navigator.vibrate([500, 200, 500, 200, 500]);
+  }
+
+  if (Notification.permission !== 'granted') return;
+
+  // Через Service Worker — работает на заблокированном экране
+  if (swRegistration && swRegistration.active) {
+    swRegistration.active.postMessage({ type: 'NOTIFY', title, body, tag });
+    return;
+  }
+
+  // Fallback — обычное уведомление
+  new Notification(title, {
+    body,
+    icon: '/icons/icon-192.png',
+    vibrate: [500, 200, 500],
+    requireInteraction: true,
+    tag
+  });
+}
+
+/* ---------- ИНИЦИАЛИЗАЦИЯ ---------- */
+registerSW();
+requestNotifyPermission();
 fillLists();
 initPanels();
 document.querySelector('.tab').click();
