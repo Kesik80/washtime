@@ -453,39 +453,13 @@ function fireFinalSignal(key) {
   setTimeout(() => document.body.classList.remove('alarm'), 3000);
 }
 
-/* ---------- SERVICE WORKER (встроенный через Blob) ---------- */
-const SW_CODE = `
-self.addEventListener('message', e => {
-  if (e.data && e.data.type === 'NOTIFY') {
-    self.registration.showNotification(e.data.title, {
-      body: e.data.body,
-      icon: '/icons/icon-192.png',
-      badge: '/icons/icon-192.png',
-      vibrate: [500, 200, 500, 200, 500],
-      requireInteraction: true,
-      tag: e.data.tag || 'washtime',
-      renotify: true,
-      silent: false
-    });
-  }
-});
-self.addEventListener('notificationclick', e => {
-  e.notification.close();
-  e.waitUntil(clients.matchAll({type:'window'}).then(list => {
-    if (list.length) return list[0].focus();
-    return clients.openWindow('/');
-  }));
-});
-`;
-
+/* ---------- SERVICE WORKER ---------- */
 let swRegistration = null;
 
 async function registerSW() {
   if (!('serviceWorker' in navigator)) return;
   try {
-    const blob = new Blob([SW_CODE], { type: 'application/javascript' });
-    const swUrl = URL.createObjectURL(blob);
-    swRegistration = await navigator.serviceWorker.register(swUrl, { scope: '/' });
+    swRegistration = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
     console.log('SW зарегистрирован');
   } catch (e) {
     console.warn('SW не зарегистрирован:', e);
