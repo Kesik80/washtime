@@ -303,9 +303,10 @@ document.addEventListener('click', e => {
     updateMachine(key);
 
     if (m.isRunning) {
-      scheduleSwNotification(key);   // планируем уведомление в SW
+      scheduleSwNotification(key);        // SW таймер (пока страница жива)
+      scheduleServerNotification(key);    // серверный Telegram (надёжный fallback)
     } else {
-      cancelSwNotification(key);     // отменяем если нажали Стоп
+      cancelSwNotification(key);
     }
   }
 });
@@ -510,6 +511,29 @@ async function requestNotifyPermission() {
   if (!('Notification' in window)) return;
   if (Notification.permission === 'default') {
     await Notification.requestPermission();
+  }
+}
+
+/* ---------- СЕРВЕРНОЕ РАСПИСАНИЕ TELEGRAM ---------- */
+async function scheduleServerNotification(key) {
+  const endDate = getEndDateForKey(key);
+  if (!endDate) return;
+
+  const texts = { wash: 'достиралась!', dry: 'досушилась!', dish: 'домылась!' };
+  const names = { wash: 'Стиральная машина', dry: 'Сушильная машина', dish: 'Посудомойка' };
+  const message = `${names[key]} ${texts[key]}`;
+
+  try {
+    await fetch('/api/schedule', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        endTime: endDate.toISOString(),
+        message
+      })
+    });
+  } catch (e) {
+    console.warn('Не удалось запланировать уведомление:', e);
   }
 }
 
