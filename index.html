@@ -459,7 +459,7 @@ let swRegistration = null;
 async function registerSW() {
   if (!('serviceWorker' in navigator)) return;
   try {
-    swRegistration = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
+    swRegistration = await navigator.serviceWorker.register('/api/sw', { scope: '/' });
     console.log('SW зарегистрирован');
   } catch (e) {
     console.warn('SW не зарегистрирован:', e);
