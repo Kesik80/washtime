@@ -13,27 +13,27 @@ export default async function handler(req, res) {
   }
 
   const QSTASH_TOKEN = process.env.QSTASH_TOKEN;
-  const APP_URL = process.env.APP_URL; // например: https://your-app.vercel.app
 
-  if (!QSTASH_TOKEN || !APP_URL) {
-    return res.status(500).json({ error: 'Не настроены QSTASH_TOKEN или APP_URL' });
+  if (!QSTASH_TOKEN) {
+    return res.status(500).json({ error: 'Не настроен QSTASH_TOKEN' });
   }
 
   const endMs = new Date(endTime).getTime();
   const nowMs = Date.now();
   const delaySeconds = Math.max(0, Math.round((endMs - nowMs) / 1000));
 
+  // URL захардкожен — не нужна переменная APP_URL
+  const notifyUrl = 'https://washtime.vercel.app/api/notify';
+
   try {
     const qstashRes = await fetch(
-      `https://qstash.upstash.io/v2/publish/${APP_URL}/api/notify`,
+      `https://qstash-eu-central-1.upstash.io/v2/publish/${notifyUrl}`,
       {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${QSTASH_TOKEN}`,
           'Content-Type': 'application/json',
-          // Задержка в секундах — QStash подождёт и сам вызовет /api/notify
           'Upstash-Delay': `${delaySeconds}s`,
-          // Гарантируем доставку: 3 попытки
           'Upstash-Retries': '3',
         },
         body: JSON.stringify({ message })
