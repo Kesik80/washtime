@@ -12,1350 +12,1137 @@
 <link rel="apple-touch-icon" href="/icons/icon-192.png">
 <title>LaundryAI</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg: #0a0a0f;
-  --bg2: #111118;
-  --bg3: #1a1a24;
-  --surface: rgba(255,255,255,0.04);
-  --surface2: rgba(255,255,255,0.08);
-  --border: rgba(255,255,255,0.08);
-  --border2: rgba(255,255,255,0.14);
-  --text: #f0f0f5;
-  --text2: rgba(240,240,245,0.55);
-  --text3: rgba(240,240,245,0.3);
-  --accent-wash: #4f8fff;
-  --accent-dry: #ff6b35;
-  --accent-dish: #34c98a;
-  --ring-size: 200px;
-  --safe-top: env(safe-area-inset-top, 0px);
-  --safe-bot: env(safe-area-inset-bottom, 0px);
+  --bg:#0a0a0f; --bg2:#111118; --bg3:#1a1a24;
+  --surface:rgba(255,255,255,.04); --surface2:rgba(255,255,255,.08);
+  --border:rgba(255,255,255,.08); --border2:rgba(255,255,255,.14);
+  --text:#f0f0f5; --text2:rgba(240,240,245,.55); --text3:rgba(240,240,245,.28);
+  --accent-wash:#4f8fff; --accent-dry:#ff6b35; --accent-dish:#34c98a;
+  --safe-top:env(safe-area-inset-top,0px); --safe-bot:env(safe-area-inset-bottom,0px);
 }
 [data-theme="light"] {
-  --bg: #f0f0f7;
-  --bg2: #e8e8f0;
-  --bg3: #ffffff;
-  --surface: rgba(0,0,0,0.04);
-  --surface2: rgba(0,0,0,0.07);
-  --border: rgba(0,0,0,0.08);
-  --border2: rgba(0,0,0,0.13);
-  --text: #0a0a18;
-  --text2: rgba(10,10,24,0.55);
-  --text3: rgba(10,10,24,0.3);
+  --bg:#f0f0f7; --bg2:#e8e8f0; --bg3:#ffffff;
+  --surface:rgba(0,0,0,.04); --surface2:rgba(0,0,0,.07);
+  --border:rgba(0,0,0,.08); --border2:rgba(0,0,0,.13);
+  --text:#0a0a18; --text2:rgba(10,10,24,.55); --text3:rgba(10,10,24,.28);
 }
-* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-html { height:100%; }
-body {
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden}
+body{
   font-family:'DM Sans',sans-serif;
-  background:var(--bg);
-  color:var(--text);
-  min-height:100vh;
-  padding-top:calc(var(--safe-top) + 16px);
-  padding-bottom:calc(var(--safe-bot) + 90px);
-  padding-left:16px;
-  padding-right:16px;
+  background:var(--bg); color:var(--text);
+  display:flex; flex-direction:column;
   transition:background .3s,color .3s;
-  overflow-x:hidden;
 }
 
-/* HEADER */
-.header {
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  margin-bottom:28px;
-  padding:0 4px;
-}
-.logo {
-  font-size:22px;
-  font-weight:600;
-  letter-spacing:-0.5px;
-  color:var(--text);
-}
-.logo span { color:var(--accent-wash); }
-.header-actions { display:flex; gap:8px; align-items:center; }
-.icon-btn {
-  width:38px; height:38px;
-  background:var(--surface2);
-  border:1px solid var(--border);
-  border-radius:12px;
-  display:flex; align-items:center; justify-content:center;
-  cursor:pointer;
-  transition:background .2s, transform .1s;
-  color:var(--text2);
-}
-.icon-btn:active { transform:scale(0.93); }
-.icon-btn svg { width:18px; height:18px; }
-
-/* PROFILE SELECTOR */
-.profile-bar {
-  display:flex; gap:8px; margin-bottom:24px;
-  overflow-x:auto; padding-bottom:4px;
-  -ms-overflow-style:none; scrollbar-width:none;
-}
-.profile-bar::-webkit-scrollbar { display:none; }
-.profile-chip {
+/* ── HEADER ── */
+.header{
   flex-shrink:0;
-  padding:7px 16px;
-  border-radius:20px;
-  border:1px solid var(--border);
-  background:var(--surface);
-  font-size:13px;
-  font-weight:500;
-  color:var(--text2);
-  cursor:pointer;
-  transition:all .2s;
-  white-space:nowrap;
-}
-.profile-chip.active {
-  background:var(--accent-wash);
-  border-color:var(--accent-wash);
-  color:#fff;
-}
-.profile-chip.add-chip {
-  background:none;
-  border-style:dashed;
-  color:var(--text3);
-}
-
-/* MACHINE CARDS */
-.machines { display:flex; flex-direction:column; gap:16px; }
-.machine-card {
-  background:var(--bg3);
-  border:1px solid var(--border);
-  border-radius:24px;
-  padding:24px;
-  transition:all .3s;
-  position:relative;
-  overflow:hidden;
-}
-.machine-card::before {
-  content:'';
-  position:absolute;
-  top:0; left:0; right:0;
-  height:1px;
-  background:linear-gradient(90deg, transparent, var(--border2), transparent);
-}
-.machine-card.running {
-  border-color:var(--card-accent);
-  box-shadow:0 0 0 1px var(--card-accent), 0 8px 32px rgba(0,0,0,0.3);
-}
-.machine-card.wash { --card-accent: var(--accent-wash); }
-.machine-card.dry { --card-accent: var(--accent-dry); }
-.machine-card.dish { --card-accent: var(--accent-dish); }
-
-.card-top {
-  display:flex;
-  justify-content:space-between;
-  align-items:flex-start;
-  margin-bottom:20px;
-}
-.machine-info { flex:1; }
-.machine-icon {
-  width:44px; height:44px;
-  border-radius:14px;
-  display:flex; align-items:center; justify-content:center;
-  font-size:22px;
-  margin-bottom:10px;
-}
-.machine-card.wash .machine-icon { background:rgba(79,143,255,0.12); }
-.machine-card.dry .machine-icon { background:rgba(255,107,53,0.12); }
-.machine-card.dish .machine-icon { background:rgba(52,201,138,0.12); }
-.machine-name {
-  font-size:17px;
-  font-weight:600;
-  margin-bottom:2px;
-}
-.machine-status {
-  font-size:12px;
-  color:var(--text3);
-  font-weight:500;
-  letter-spacing:0.3px;
-  text-transform:uppercase;
-}
-.machine-status.active { color:var(--card-accent); }
-
-/* PROGRESS RING */
-.ring-wrap {
-  width:var(--ring-size);
-  height:var(--ring-size);
-  position:relative;
-  flex-shrink:0;
-}
-.ring-svg {
-  width:100%; height:100%;
-  transform:rotate(-90deg);
-}
-.ring-track {
-  fill:none;
-  stroke:var(--border);
-  stroke-width:6;
-}
-.ring-progress {
-  fill:none;
-  stroke:var(--card-accent);
-  stroke-width:6;
-  stroke-linecap:round;
-  transition:stroke-dashoffset .8s ease;
-  filter:drop-shadow(0 0 6px var(--card-accent));
-}
-.ring-center {
-  position:absolute;
-  top:50%; left:50%;
-  transform:translate(-50%,-50%);
-  text-align:center;
-}
-.ring-time {
-  font-family:'DM Mono',monospace;
-  font-size:28px;
-  font-weight:500;
-  color:var(--text);
-  line-height:1;
-  margin-bottom:4px;
-}
-.ring-label {
-  font-size:11px;
-  color:var(--text3);
-  text-transform:uppercase;
-  letter-spacing:0.5px;
-}
-
-/* Центральный блок карточки */
-.card-center {
-  display:flex;
-  justify-content:center;
-  margin-bottom:20px;
-}
-
-/* SETTINGS ROW */
-.settings-row {
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:10px;
-  margin-bottom:16px;
-}
-.setting-box {
-  background:var(--surface);
-  border:1px solid var(--border);
-  border-radius:14px;
-  padding:12px 14px;
-  cursor:pointer;
-  transition:background .2s;
-}
-.setting-box:active { background:var(--surface2); }
-.setting-box-label {
-  font-size:11px;
-  color:var(--text3);
-  text-transform:uppercase;
-  letter-spacing:0.3px;
-  margin-bottom:4px;
-}
-.setting-box-value {
-  font-family:'DM Mono',monospace;
-  font-size:16px;
-  font-weight:500;
-  color:var(--text);
-}
-.setting-box-value.accent { color:var(--card-accent); }
-
-/* START/STOP BUTTON */
-.start-btn {
-  width:100%;
-  padding:15px;
-  border:none;
-  border-radius:16px;
-  font-family:'DM Sans',sans-serif;
-  font-size:15px;
-  font-weight:600;
-  cursor:pointer;
-  transition:all .2s;
-  letter-spacing:0.3px;
-}
-.start-btn.start {
-  background:var(--card-accent);
-  color:#fff;
-  box-shadow:0 4px 20px rgba(0,0,0,0.3);
-}
-.start-btn.stop {
-  background:var(--surface2);
-  color:var(--text2);
-  border:1px solid var(--border2);
-}
-.start-btn:active { transform:scale(0.97); }
-
-/* ПРОГРАММА (посудомойка) */
-.prog-row {
-  display:flex; gap:6px;
-  margin-bottom:16px;
-  overflow-x:auto;
-  padding-bottom:2px;
-  -ms-overflow-style:none; scrollbar-width:none;
-}
-.prog-row::-webkit-scrollbar { display:none; }
-.prog-chip {
-  flex-shrink:0;
-  padding:6px 12px;
-  border-radius:10px;
-  border:1px solid var(--border);
-  background:var(--surface);
-  font-size:12px;
-  font-weight:500;
-  color:var(--text2);
-  cursor:pointer;
-  transition:all .15s;
-}
-.prog-chip.active {
-  background:rgba(52,201,138,0.15);
-  border-color:var(--accent-dish);
-  color:var(--accent-dish);
-}
-
-/* HISTORY PANEL */
-.section-title {
-  font-size:13px;
-  font-weight:600;
-  color:var(--text3);
-  text-transform:uppercase;
-  letter-spacing:0.5px;
-  margin:28px 4px 12px;
-}
-.history-list { display:flex; flex-direction:column; gap:8px; }
-.history-item {
-  display:flex;
-  align-items:center;
-  gap:12px;
-  padding:12px 16px;
-  background:var(--bg3);
-  border:1px solid var(--border);
-  border-radius:14px;
-}
-.history-dot {
-  width:8px; height:8px;
-  border-radius:50%;
-  flex-shrink:0;
-}
-.history-text { flex:1; font-size:14px; color:var(--text2); }
-.history-time {
-  font-family:'DM Mono',monospace;
-  font-size:12px;
-  color:var(--text3);
-}
-.history-empty {
-  text-align:center;
-  padding:20px;
-  color:var(--text3);
-  font-size:14px;
-}
-
-/* BOTTOM NAV */
-.bottom-nav {
-  position:fixed;
-  bottom:0; left:0; right:0;
-  padding:12px 24px calc(var(--safe-bot) + 12px);
-  background:var(--bg);
-  border-top:1px solid var(--border);
-  display:flex;
-  justify-content:space-around;
-  backdrop-filter:blur(20px);
-  -webkit-backdrop-filter:blur(20px);
-}
-.nav-btn {
-  display:flex; flex-direction:column; align-items:center; gap:4px;
-  cursor:pointer;
-  color:var(--text3);
-  transition:color .2s;
-  background:none; border:none; font-family:'DM Sans',sans-serif;
-}
-.nav-btn.active { color:var(--accent-wash); }
-.nav-btn svg { width:22px; height:22px; }
-.nav-btn span { font-size:11px; font-weight:500; }
-
-/* PICKER OVERLAY */
-.overlay {
-  position:fixed; inset:0;
-  background:rgba(0,0,0,0.6);
-  backdrop-filter:blur(8px);
-  -webkit-backdrop-filter:blur(8px);
-  display:none;
-  align-items:flex-end;
-  justify-content:center;
-  z-index:100;
-  padding:0 8px 8px;
-}
-.overlay.open { display:flex; }
-.picker-sheet {
-  background:var(--bg3);
-  border:1px solid var(--border2);
-  border-radius:24px;
-  width:100%;
-  max-width:400px;
-  padding:20px;
-  animation:slideUp .3s cubic-bezier(.32,1,.23,1);
-}
-@keyframes slideUp {
-  from { transform:translateY(40px); opacity:0; }
-  to { transform:translateY(0); opacity:1; }
-}
-.sheet-handle {
-  width:36px; height:4px;
-  background:var(--border2);
-  border-radius:2px;
-  margin:0 auto 16px;
-}
-.sheet-title {
-  font-size:16px; font-weight:600;
-  margin-bottom:20px;
-  text-align:center;
-}
-.picker-cols {
-  display:flex; justify-content:center; gap:0; margin-bottom:16px;
-}
-.picker-col {
-  height:200px; overflow-y:scroll; width:80px;
-  -ms-overflow-style:none; scrollbar-width:none;
-  position:relative;
-}
-.picker-col::-webkit-scrollbar { display:none; }
-.picker-sep {
-  width:20px; display:flex; align-items:center; justify-content:center;
-  font-size:20px; font-weight:300; color:var(--text2);
-  padding-top:80px;
-}
-.picker-col ul { list-style:none; padding:80px 0; }
-.picker-col li {
-  height:40px; display:flex; align-items:center; justify-content:center;
-  font-family:'DM Mono',monospace;
-  font-size:22px; color:var(--text3); cursor:pointer;
-  transition:color .15s;
-}
-.picker-col li.sel {
-  color:var(--text);
-  font-weight:500;
-}
-.picker-line {
-  position:absolute;
-  top:50%; left:0; right:0;
-  height:40px; margin-top:-20px;
-  border-top:1px solid var(--border2);
-  border-bottom:1px solid var(--border2);
-  pointer-events:none;
-}
-.sheet-ok {
-  width:100%; padding:15px;
-  background:var(--accent-wash);
-  color:#fff; border:none;
-  border-radius:14px;
-  font-family:'DM Sans',sans-serif;
-  font-size:15px; font-weight:600;
-  cursor:pointer;
-  transition:opacity .15s;
-}
-.sheet-ok:active { opacity:0.85; }
-
-/* PROFILE MODAL */
-.profile-modal {
-  position:fixed; inset:0;
-  background:rgba(0,0,0,0.6);
-  backdrop-filter:blur(8px);
-  -webkit-backdrop-filter:blur(8px);
-  display:none;
-  align-items:center;
-  justify-content:center;
-  z-index:200;
-  padding:24px;
-}
-.profile-modal.open { display:flex; }
-.profile-sheet {
-  background:var(--bg3);
-  border:1px solid var(--border2);
-  border-radius:24px;
-  width:100%; max-width:360px;
-  padding:24px;
-  animation:slideUp .3s cubic-bezier(.32,1,.23,1);
-}
-.profile-list { display:flex; flex-direction:column; gap:8px; margin-bottom:16px; }
-.profile-item {
-  display:flex; align-items:center; gap:12px;
-  padding:12px 14px;
-  background:var(--surface);
-  border:1px solid var(--border);
-  border-radius:14px;
-  cursor:pointer;
-  transition:background .2s;
-}
-.profile-item.active-profile { border-color:var(--accent-wash); }
-.profile-avatar {
-  width:36px; height:36px; border-radius:50%;
-  display:flex; align-items:center; justify-content:center;
-  font-size:18px;
-  background:var(--surface2);
-  flex-shrink:0;
-}
-.profile-name { font-size:15px; font-weight:500; flex:1; }
-.profile-del { color:var(--text3); cursor:pointer; padding:4px; }
-.add-profile-row {
-  display:flex; gap:8px;
-}
-.add-profile-input {
-  flex:1; padding:12px 14px;
-  background:var(--surface);
-  border:1px solid var(--border);
-  border-radius:12px;
-  color:var(--text);
-  font-family:'DM Sans',sans-serif;
-  font-size:14px;
-  outline:none;
-}
-.add-profile-input:focus { border-color:var(--accent-wash); }
-.add-profile-btn {
-  padding:12px 16px;
-  background:var(--accent-wash);
-  color:#fff; border:none;
-  border-radius:12px;
-  font-family:'DM Sans',sans-serif;
-  font-size:14px; font-weight:600;
-  cursor:pointer;
-}
-.modal-close {
-  display:block; width:100%; padding:12px;
-  background:var(--surface);
-  border:1px solid var(--border);
-  border-radius:12px;
-  color:var(--text2);
-  font-family:'DM Sans',sans-serif;
-  font-size:14px; cursor:pointer; margin-top:8px;
-}
-
-/* NOTIFICATION TOGGLE */
-.notif-row {
   display:flex; align-items:center; justify-content:space-between;
-  padding:10px 0;
-  border-top:1px solid var(--border);
-  margin-top:12px;
+  padding:calc(var(--safe-top) + 14px) 20px 12px;
 }
-.notif-label { font-size:13px; color:var(--text2); }
-.toggle {
-  width:44px; height:26px;
-  background:var(--border2);
-  border-radius:13px;
-  position:relative;
-  cursor:pointer;
-  transition:background .2s;
+.logo{font-size:21px;font-weight:600;letter-spacing:-.5px}
+.logo span{color:var(--accent-wash)}
+.hbtns{display:flex;gap:8px}
+.icon-btn{
+  width:36px;height:36px;border-radius:11px;
+  background:var(--surface2);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;color:var(--text2);transition:transform .1s;
 }
-.toggle.on { background:var(--card-accent); }
-.toggle-knob {
-  position:absolute;
-  top:3px; left:3px;
-  width:20px; height:20px;
-  background:#fff;
-  border-radius:50%;
-  transition:transform .2s;
-  box-shadow:0 1px 4px rgba(0,0,0,0.3);
-}
-.toggle.on .toggle-knob { transform:translateX(18px); }
+.icon-btn:active{transform:scale(.92)}
+.icon-btn svg{width:17px;height:17px}
 
-/* PAGE VIEWS */
-.page { display:none; }
-.page.active { display:block; }
+/* ── PROFILE BAR ── */
+.profile-bar{
+  flex-shrink:0;
+  display:flex;gap:8px;
+  padding:0 20px 12px;
+  overflow-x:auto;scrollbar-width:none;
+}
+.profile-bar::-webkit-scrollbar{display:none}
+.pchip{
+  flex-shrink:0;padding:6px 14px;border-radius:20px;
+  border:1px solid var(--border);background:var(--surface);
+  font-size:13px;font-weight:500;color:var(--text2);
+  cursor:pointer;transition:all .2s;white-space:nowrap;
+}
+.pchip.active{background:var(--accent-wash);border-color:var(--accent-wash);color:#fff}
 
-/* TIME INPUT */
-.time-input {
-  background:none; border:none;
-  font-family:'DM Mono',monospace;
-  font-size:16px; font-weight:500;
-  color:var(--text);
-  width:100%; cursor:pointer;
-  outline:none;
+/* ── TAB DOTS ── */
+.tab-dots{
+  flex-shrink:0;
+  display:flex;justify-content:center;gap:8px;
+  padding:0 0 10px;
+}
+.tab-dot{
+  width:8px;height:8px;border-radius:50%;
+  background:var(--border2);transition:all .3s;cursor:pointer;
+}
+.tab-dot.active{
+  width:24px;border-radius:4px;
+  background:var(--card-accent,var(--accent-wash));
 }
 
-/* TOAST */
-.toast {
-  position:fixed;
-  top:calc(var(--safe-top) + 20px);
-  left:50%; transform:translateX(-50%) translateY(-80px);
-  background:var(--bg3);
-  border:1px solid var(--border2);
-  border-radius:14px;
-  padding:12px 20px;
-  font-size:14px; font-weight:500;
-  z-index:300;
+/* ── SCROLL CONTAINER ── */
+.cards-scroll{
+  flex:1;overflow:hidden;position:relative;
+}
+.cards-track{
+  display:flex;height:100%;
+  transition:transform .35s cubic-bezier(.32,1,.23,1);
+  will-change:transform;
+}
+.card-slide{
+  flex-shrink:0;width:100%;height:100%;
+  overflow-y:auto;scrollbar-width:none;
+  padding:4px 20px calc(var(--safe-bot) + 20px);
+}
+.card-slide::-webkit-scrollbar{display:none}
+
+/* ── MACHINE CARD ── */
+.machine-card{
+  background:var(--bg3);border:1px solid var(--border);
+  border-radius:28px;padding:24px;
+  transition:border-color .3s,box-shadow .3s;
+  position:relative;overflow:hidden;
+}
+.machine-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--border2),transparent);
+}
+.machine-card.running{
+  border-color:var(--card-accent);
+  box-shadow:0 0 0 1px var(--card-accent),0 12px 40px rgba(0,0,0,.35);
+}
+.machine-card.wash{--card-accent:var(--accent-wash)}
+.machine-card.dry{--card-accent:var(--accent-dry)}
+.machine-card.dish{--card-accent:var(--accent-dish)}
+
+/* card header */
+.card-head{display:flex;align-items:center;gap:12px;margin-bottom:24px}
+.micon{
+  width:48px;height:48px;border-radius:16px;
+  display:flex;align-items:center;justify-content:center;font-size:24px;
+}
+.wash .micon{background:rgba(79,143,255,.12)}
+.dry .micon{background:rgba(255,107,53,.12)}
+.dish .micon{background:rgba(52,201,138,.12)}
+.mname{font-size:18px;font-weight:600}
+.mstatus{font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;margin-top:2px}
+.mstatus.on{color:var(--card-accent)}
+
+/* ring */
+.ring-wrap{display:flex;justify-content:center;margin-bottom:24px;position:relative}
+.ring-svg{width:200px;height:200px;transform:rotate(-90deg)}
+.ring-track{fill:none;stroke:var(--border);stroke-width:7}
+.ring-prog{
+  fill:none;stroke:var(--card-accent);stroke-width:7;stroke-linecap:round;
+  transition:stroke-dashoffset .9s ease;
+  filter:drop-shadow(0 0 7px var(--card-accent));
+}
+@keyframes ringPulse{
+  0%,100%{opacity:1;filter:drop-shadow(0 0 7px var(--card-accent))}
+  50%{opacity:.65;filter:drop-shadow(0 0 20px var(--card-accent))}
+}
+.machine-card.running .ring-prog{animation:ringPulse 2.2s ease-in-out infinite}
+.ring-center{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  text-align:center;pointer-events:none;
+}
+.ring-time{
+  font-family:'DM Mono',monospace;font-size:32px;font-weight:500;
+  line-height:1;margin-bottom:5px;color:var(--text);
+}
+.ring-lbl{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px}
+
+/* settings grid */
+.srow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.sbox{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:14px;padding:12px 14px;cursor:pointer;
+  transition:background .15s;
+}
+.sbox:active{background:var(--surface2)}
+.slbl{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.3px;margin-bottom:4px}
+.sval{font-family:'DM Mono',monospace;font-size:16px;font-weight:500;color:var(--text)}
+.sval.ac{color:var(--card-accent)}
+.time-inp{
+  background:none;border:none;font-family:'DM Mono',monospace;
+  font-size:16px;font-weight:500;color:var(--text);width:100%;outline:none;cursor:pointer;
+}
+
+/* programs */
+.prog-row{
+  display:flex;gap:6px;margin-bottom:10px;
+  overflow-x:auto;scrollbar-width:none;padding-bottom:2px;
+}
+.prog-row::-webkit-scrollbar{display:none}
+.pchip-sm{
+  flex-shrink:0;padding:6px 11px;border-radius:10px;
+  border:1px solid var(--border);background:var(--surface);
+  font-size:12px;font-weight:500;color:var(--text2);cursor:pointer;transition:all .15s;
+}
+.pchip-sm.active{
+  background:rgba(52,201,138,.15);
+  border-color:var(--accent-dish);color:var(--accent-dish);
+}
+
+/* signal toggle */
+.notif-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 0;border-top:1px solid var(--border);margin-top:4px;
+}
+.notif-lbl{font-size:13px;color:var(--text2)}
+.toggle{width:44px;height:26px;background:var(--border2);border-radius:13px;position:relative;cursor:pointer;transition:background .2s}
+.toggle.on{background:var(--card-accent)}
+.toggle-knob{
+  position:absolute;top:3px;left:3px;width:20px;height:20px;
+  background:#fff;border-radius:50%;transition:transform .2s;
+  box-shadow:0 1px 4px rgba(0,0,0,.3);
+}
+.toggle.on .toggle-knob{transform:translateX(18px)}
+
+/* start btn */
+.start-btn{
+  width:100%;padding:15px;margin-top:14px;border:none;border-radius:16px;
+  font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;
+  cursor:pointer;transition:all .15s;position:relative;overflow:hidden;
+}
+.start-btn.go{background:var(--card-accent);color:#fff;box-shadow:0 4px 20px rgba(0,0,0,.25)}
+.start-btn.stop{background:var(--surface2);color:var(--text2);border:1px solid var(--border2)}
+.start-btn:active{transform:scale(.97)}
+
+/* ripple */
+@keyframes ripp{from{transform:scale(0);opacity:.4}to{transform:scale(4);opacity:0}}
+.rip{
+  position:absolute;border-radius:50%;width:40px;height:40px;
+  background:rgba(255,255,255,.35);pointer-events:none;
+  animation:ripp .5s ease-out forwards;margin:-20px;
+}
+
+/* ── STATS PAGE ── */
+.stats-page{padding:4px 20px calc(var(--safe-bot)+20px)}
+.section-title{
+  font-size:12px;font-weight:600;color:var(--text3);
+  text-transform:uppercase;letter-spacing:.6px;margin:20px 0 12px;
+}
+.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:4px}
+.sstat{
+  background:var(--bg3);border:1px solid var(--border);
+  border-radius:18px;padding:16px 10px;text-align:center;
+}
+.sstat-val{font-family:'DM Mono',monospace;font-size:26px;font-weight:500;margin-bottom:4px}
+.sstat-lbl{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.3px}
+.avg-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:4px}
+.avg-box{
+  background:var(--bg3);border:1px solid var(--border);
+  border-radius:18px;padding:16px;
+}
+.avg-box-lbl{font-size:12px;color:var(--text3);margin-bottom:6px}
+.avg-box-val{font-family:'DM Mono',monospace;font-size:20px;font-weight:500}
+
+/* bar chart */
+.chart-wrap{
+  background:var(--bg3);border:1px solid var(--border);
+  border-radius:18px;padding:20px;margin-bottom:4px;
+}
+.chart-title{font-size:13px;font-weight:500;color:var(--text2);margin-bottom:16px}
+.bar-chart{display:flex;align-items:flex-end;gap:6px;height:80px}
+.bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.bar{width:100%;border-radius:4px 4px 0 0;min-height:3px;transition:height .4s ease}
+.bar-lbl{font-size:9px;color:var(--text3);font-family:'DM Mono',monospace}
+
+/* history */
+.hist-list{display:flex;flex-direction:column;gap:8px}
+.hist-item{
+  display:flex;align-items:center;gap:12px;
+  padding:12px 16px;background:var(--bg3);
+  border:1px solid var(--border);border-radius:14px;
+}
+.hdot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.htext{flex:1;font-size:14px;color:var(--text2)}
+.htime{font-family:'DM Mono',monospace;font-size:11px;color:var(--text3)}
+.hist-empty{text-align:center;padding:24px;color:var(--text3);font-size:14px}
+
+/* ── BOTTOM NAV ── */
+.bnav{
+  flex-shrink:0;
+  display:flex;justify-content:space-around;
+  padding:10px 24px calc(var(--safe-bot)+10px);
+  background:var(--bg);border-top:1px solid var(--border);
+}
+.nbtn{
+  display:flex;flex-direction:column;align-items:center;gap:3px;
+  background:none;border:none;cursor:pointer;
+  color:var(--text3);font-family:'DM Sans',sans-serif;
+  transition:color .2s;
+}
+.nbtn.active{color:var(--accent-wash)}
+.nbtn svg{width:22px;height:22px}
+.nbtn span{font-size:10px;font-weight:500}
+
+/* ── PICKER SHEET ── */
+.overlay{
+  position:fixed;inset:0;z-index:100;
+  background:rgba(0,0,0,.6);backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
+  display:none;align-items:flex-end;justify-content:center;padding:0 8px 8px;
+}
+.overlay.open{display:flex}
+.sheet{
+  background:var(--bg3);border:1px solid var(--border2);
+  border-radius:24px;width:100%;max-width:400px;padding:20px;
+  animation:slideUp .3s cubic-bezier(.32,1,.23,1);
+}
+@keyframes slideUp{from{transform:translateY(50px);opacity:0}to{transform:translateY(0);opacity:1}}
+.shandle{width:36px;height:4px;background:var(--border2);border-radius:2px;margin:0 auto 16px}
+.stitle{font-size:16px;font-weight:600;text-align:center;margin-bottom:20px}
+.pcols{display:flex;justify-content:center;gap:0;margin-bottom:16px}
+.pcol{height:200px;overflow-y:scroll;width:80px;scrollbar-width:none;position:relative}
+.pcol::-webkit-scrollbar{display:none}
+.psep{width:20px;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:300;color:var(--text2);padding-top:80px}
+.pcol ul{list-style:none;padding:80px 0}
+.pcol li{height:40px;display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:22px;color:var(--text3);cursor:pointer;transition:color .15s}
+.pcol li.sel{color:var(--text);font-weight:500}
+.pline{position:absolute;top:50%;left:0;right:0;height:40px;margin-top:-20px;border-top:1px solid var(--border2);border-bottom:1px solid var(--border2);pointer-events:none}
+.sheet-ok{width:100%;padding:14px;background:var(--accent-wash);color:#fff;border:none;border-radius:14px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;cursor:pointer}
+.sheet-ok:active{opacity:.85}
+
+/* ── PROFILE MODAL ── */
+.pmodal{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.6);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;padding:24px}
+.pmodal.open{display:flex}
+.pmsheet{background:var(--bg3);border:1px solid var(--border2);border-radius:24px;width:100%;max-width:360px;padding:24px;animation:slideUp .3s cubic-bezier(.32,1,.23,1)}
+.plist{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+.pitem{display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--surface);border:1px solid var(--border);border-radius:14px;cursor:pointer;transition:background .15s}
+.pitem.cur{border-color:var(--accent-wash)}
+.pavatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;background:var(--surface2);flex-shrink:0}
+.pname{font-size:15px;font-weight:500;flex:1}
+.pdel{color:var(--text3);padding:4px;cursor:pointer;font-size:16px}
+.padd{display:flex;gap:8px;margin-bottom:8px}
+.pinput{flex:1;padding:12px 14px;background:var(--surface);border:1px solid var(--border);border-radius:12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;outline:none}
+.pinput:focus{border-color:var(--accent-wash)}
+.pbtn{padding:12px 16px;background:var(--accent-wash);color:#fff;border:none;border-radius:12px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;cursor:pointer}
+.pclose{display:block;width:100%;padding:12px;background:var(--surface);border:1px solid var(--border);border-radius:12px;color:var(--text2);font-family:'DM Sans',sans-serif;font-size:14px;cursor:pointer}
+
+/* ── FINISH OVERLAY ── */
+#finishCanvas{position:fixed;inset:0;pointer-events:none;z-index:498}
+.finish-ov{
+  position:fixed;inset:0;z-index:499;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:var(--bg);padding:32px;
+  opacity:0;pointer-events:none;transition:opacity .4s;
+}
+.finish-ov.show{opacity:1;pointer-events:all}
+.fin-emoji{font-size:88px;margin-bottom:16px;animation:popIn .5s cubic-bezier(.34,1.56,.64,1)}
+@keyframes popIn{from{transform:scale(0)}to{transform:scale(1)}}
+.fin-title{font-size:30px;font-weight:700;margin-bottom:8px;text-align:center}
+.fin-sub{font-size:16px;color:var(--text2);margin-bottom:44px;text-align:center}
+.fin-close{
+  padding:16px 52px;
+  background:var(--fin-accent,var(--accent-wash));
+  color:#fff;border:none;border-radius:18px;
+  font-family:'DM Sans',sans-serif;font-size:16px;font-weight:600;cursor:pointer;
+  box-shadow:0 6px 24px rgba(0,0,0,.3);
+}
+.fin-close:active{transform:scale(.96)}
+
+/* ── TOAST ── */
+.toast{
+  position:fixed;top:calc(var(--safe-top)+16px);
+  left:50%;transform:translateX(-50%) translateY(-80px);
+  background:var(--bg3);border:1px solid var(--border2);
+  border-radius:14px;padding:11px 20px;font-size:14px;font-weight:500;
+  z-index:600;white-space:nowrap;box-shadow:0 8px 32px rgba(0,0,0,.4);
   transition:transform .3s cubic-bezier(.32,1,.23,1);
-  white-space:nowrap;
-  box-shadow:0 8px 32px rgba(0,0,0,0.4);
 }
-.toast.show { transform:translateX(-50%) translateY(0); }
-
-/* ALARM PULSE */
-@keyframes alarmPulse {
-  0%,100% { opacity:1; }
-  50% { opacity:0.4; }
-}
-.machine-card.alarm { animation:alarmPulse .8s ease infinite; }
-
-/* RESPONSIVE */
-@media(min-width:600px) {
-  body { max-width:420px; margin:0 auto; }
-}
+.toast.show{transform:translateX(-50%) translateY(0)}
 </style>
 </head>
 <body>
 
 <div class="header">
   <div class="logo">Laundry<span>AI</span></div>
-  <div class="header-actions">
-    <button class="icon-btn" id="themeBtn" title="Сменить тему">
+  <div class="hbtns">
+    <button class="icon-btn" id="themeBtn">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/>
-        <line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
-        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/>
-        <line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
-        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+        <circle cx="12" cy="12" r="5"/>
+        <line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+        <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
       </svg>
     </button>
-    <button class="icon-btn" id="profileBtn" title="Профили">
+    <button class="icon-btn" id="profileBtn">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
         <circle cx="9" cy="7" r="4"/>
-        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
       </svg>
     </button>
   </div>
 </div>
 
-<!-- PROFILE BAR -->
 <div class="profile-bar" id="profileBar"></div>
 
-<!-- PAGES -->
-<div class="page active" id="pageMain">
-  <!-- MACHINES -->
-  <div class="machines" id="machinesContainer"></div>
+<!-- TAB DOTS -->
+<div class="tab-dots" id="tabDots"></div>
 
-  <!-- HISTORY -->
-  <div class="section-title">История</div>
-  <div class="history-list" id="historyList"></div>
+<!-- MAIN / STATS PAGES -->
+<div id="pageMain" style="flex:1;overflow:hidden;display:flex;flex-direction:column">
+  <div class="cards-scroll" id="cardsScroll">
+    <div class="cards-track" id="cardsTrack"></div>
+  </div>
+</div>
+
+<div id="pageStats" style="flex:1;overflow-y:auto;scrollbar-width:none;display:none">
+  <div class="stats-page">
+    <div class="section-title">Всего запусков</div>
+    <div class="stats-grid">
+      <div class="sstat"><div class="sstat-val" id="stW" style="color:var(--accent-wash)">0</div><div class="sstat-lbl">🫧 Стирок</div></div>
+      <div class="sstat"><div class="sstat-val" id="stD" style="color:var(--accent-dry)">0</div><div class="sstat-lbl">💨 Сушек</div></div>
+      <div class="sstat"><div class="sstat-val" id="stDi" style="color:var(--accent-dish)">0</div><div class="sstat-lbl">✨ Мытий</div></div>
+    </div>
+    <div class="section-title">Среднее время</div>
+    <div class="avg-row">
+      <div class="avg-box"><div class="avg-box-lbl">⏱ Среднее</div><div class="avg-box-val" id="avgTime">—</div></div>
+      <div class="avg-box"><div class="avg-box-lbl">📅 Этот месяц</div><div class="avg-box-val" id="thisMonth">0</div></div>
+    </div>
+    <div class="section-title">Активность за 7 дней</div>
+    <div class="chart-wrap">
+      <div class="bar-chart" id="barChart"></div>
+    </div>
+    <div class="section-title">История</div>
+    <div class="hist-list" id="histList"></div>
+  </div>
 </div>
 
 <!-- BOTTOM NAV -->
-<div class="bottom-nav">
-  <button class="nav-btn active" id="navMain">
+<div class="bnav">
+  <button class="nbtn active" id="navHome">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
       <polyline points="9 22 9 12 15 12 15 22"/>
     </svg>
-    <span>Главная</span>
+    <span>Машины</span>
+  </button>
+  <button class="nbtn" id="navStats">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/>
+      <line x1="6" y1="20" x2="6" y2="14"/>
+    </svg>
+    <span>Статистика</span>
   </button>
 </div>
 
-<!-- TIME PICKER OVERLAY -->
-<div class="overlay" id="pickerOverlay">
-  <div class="picker-sheet">
-    <div class="sheet-handle"></div>
-    <div class="sheet-title" id="pickerTitle">Длительность</div>
-    <div class="picker-cols">
-      <div class="picker-col" id="hCol">
-        <div class="picker-line"></div>
-        <ul id="hList"></ul>
-      </div>
-      <div class="picker-sep">:</div>
-      <div class="picker-col" id="mCol">
-        <div class="picker-line"></div>
-        <ul id="mList"></ul>
-      </div>
+<!-- PICKER -->
+<div class="overlay" id="pickerOv">
+  <div class="sheet">
+    <div class="shandle"></div>
+    <div class="stitle">Длительность</div>
+    <div class="pcols">
+      <div class="pcol" id="hCol"><div class="pline"></div><ul id="hList"></ul></div>
+      <div class="psep">:</div>
+      <div class="pcol" id="mCol"><div class="pline"></div><ul id="mList"></ul></div>
     </div>
     <button class="sheet-ok" id="pickerOk">Готово</button>
   </div>
 </div>
 
 <!-- PROFILE MODAL -->
-<div class="profile-modal" id="profileModal">
-  <div class="profile-sheet">
-    <div class="sheet-title">Профили</div>
-    <div class="profile-list" id="profileListEl"></div>
-    <div class="add-profile-row">
-      <input class="add-profile-input" id="newProfileName" placeholder="Имя профиля" maxlength="20">
-      <button class="add-profile-btn" id="addProfileBtn">+</button>
+<div class="pmodal" id="pModal">
+  <div class="pmsheet">
+    <div class="stitle">Профили</div>
+    <div class="plist" id="pList"></div>
+    <div class="padd">
+      <input class="pinput" id="pNewName" placeholder="Имя профиля" maxlength="18">
+      <button class="pbtn" id="pAddBtn">+</button>
     </div>
-    <button class="modal-close" id="profileModalClose">Закрыть</button>
+    <button class="pclose" id="pClose">Закрыть</button>
   </div>
 </div>
 
-<!-- TOAST -->
+<!-- FINISH -->
+<canvas id="finishCanvas"></canvas>
+<div class="finish-ov" id="finishOv">
+  <div class="fin-emoji" id="finEmoji">🫧</div>
+  <div class="fin-title" id="finTitle">Готово!</div>
+  <div class="fin-sub" id="finSub">Стирка завершена</div>
+  <button class="fin-close" id="finClose">Отлично! 🎉</button>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
-/* ═══════════════════════════════════════════
-   ДАННЫЕ
-═══════════════════════════════════════════ */
-const EMOJIS = ['👤','👨','👩','🧒','👴','👵','🧑'];
-const MACHINE_DEFS = {
-  wash: {
-    name:'Стиральная', icon:'🫧', cls:'wash', accent:'var(--accent-wash)',
-    defaultH:1, defaultM:42,
-    programs: null
-  },
-  dry: {
-    name:'Сушильная', icon:'💨', cls:'dry', accent:'var(--accent-dry)',
-    defaultH:1, defaultM:15,
-    programs: null
-  },
-  dish: {
-    name:'Посудомойка', icon:'✨', cls:'dish', accent:'var(--accent-dish)',
-    defaultH:2, defaultM:0,
-    programs: {
-      1:{label:'Интенсив',h:2,m:45}, 2:{label:'Эко',h:2,m:0},
-      3:{label:'Авто',h:2,m:30},     4:{label:'Быстрая',h:0,m:55},
-      5:{label:'Тихая',h:1,m:40},    6:{label:'Ополаск.',h:0,m:10},
-      7:{label:'Нежная',h:0,m:50}
-    }
-  }
+/* ═══════════════════════════
+   CONSTANTS
+═══════════════════════════ */
+const KEYS = ['wash','dry','dish'];
+const DEF = {
+  wash:{name:'Стиральная',icon:'🫧',cls:'wash',h:1,m:42,programs:null},
+  dry: {name:'Сушильная', icon:'💨',cls:'dry', h:1,m:15,programs:null},
+  dish:{name:'Посудомойка',icon:'✨',cls:'dish',h:2,m:0,
+    programs:{1:{label:'Интенсив',h:2,m:45},2:{label:'Эко',h:2,m:0},
+              3:{label:'Авто',h:2,m:30},4:{label:'Быстрая',h:0,m:55},
+              5:{label:'Тихая',h:1,m:40},6:{label:'Ополаск.',h:0,m:10},
+              7:{label:'Нежная',h:0,m:50}}}
+};
+const RING_R=88, RING_C=2*Math.PI*88;
+const EMOJIS=['👤','👨','👩','🧒','👴','👵','🧑'];
+const ACC={wash:'var(--accent-wash)',dry:'var(--accent-dry)',dish:'var(--accent-dish)'};
+const FINISH={
+  wash:{emoji:'🫧',title:'Стирка готова!',sub:'Пора вешать бельё',ac:'var(--accent-wash)'},
+  dry: {emoji:'💨',title:'Сушка готова!', sub:'Бельё высохло',    ac:'var(--accent-dry)'},
+  dish:{emoji:'✨',title:'Посуда чистая!',sub:'Можно доставать',  ac:'var(--accent-dish)'}
 };
 
-/* ═══════════════════════════════════════════
+/* ═══════════════════════════
    STATE
-═══════════════════════════════════════════ */
-let state = loadState();
-let pickerContext = null; // {key, field}
-let hSel = 0, mSel = 0;
+═══════════════════════════ */
+let S = loadS();
+let curSlide = 0;
+let pickerCtx = null, hSel=0, mSel=0;
 
-function defaultState() {
-  return {
-    profiles: [{id:'default', name:'Я', emoji:'👤'}],
-    activeProfile: 'default',
-    machines: {
-      default: makeMachines()
-    },
-    history: [],
-    theme: 'auto',
-    signalEnabled: true
-  };
-}
-function makeMachines() {
-  const m = {};
-  for (const [key, def] of Object.entries(MACHINE_DEFS)) {
-    m[key] = {
-      h: def.defaultH, m: def.defaultM,
-      startH: new Date().getHours(),
-      startM: new Date().getMinutes(),
-      isRunning: false, hasFinished: false,
-      prog: 2, signalEnabled: true
-    };
-  }
+function mkMachines(){
+  const m={};
+  KEYS.forEach(k=>{
+    m[k]={h:DEF[k].h,m:DEF[k].m,startH:new Date().getHours(),startM:new Date().getMinutes(),
+           isRunning:false,hasFinished:false,prog:2,signalEnabled:true};
+  });
   return m;
 }
-function loadState() {
-  try {
-    const s = localStorage.getItem('laundry_state');
-    if (s) {
-      const parsed = JSON.parse(s);
-      // migrate: ensure all profiles have machines
-      for (const p of parsed.profiles) {
-        if (!parsed.machines[p.id]) parsed.machines[p.id] = makeMachines();
-      }
-      return parsed;
+function defS(){
+  return{profiles:[{id:'me',name:'Я',emoji:'👤'}],activeProfile:'me',
+         machines:{me:mkMachines()},history:[],theme:'auto'};
+}
+function loadS(){
+  try{
+    const s=localStorage.getItem('laiS2');
+    if(s){
+      const p=JSON.parse(s);
+      p.profiles.forEach(pr=>{if(!p.machines[pr.id])p.machines[pr.id]=mkMachines()});
+      return p;
     }
-  } catch(e) {}
-  return defaultState();
+  }catch(e){}
+  return defS();
 }
-function saveState() {
-  try { localStorage.setItem('laundry_state', JSON.stringify(state)); } catch(e) {}
-}
-function getMachine(key) {
-  const pid = state.activeProfile;
-  if (!state.machines[pid]) state.machines[pid] = makeMachines();
-  return state.machines[pid][key];
+function saveS(){try{localStorage.setItem('laiS2',JSON.stringify(S))}catch(e){}}
+function getM(key){
+  const pid=S.activeProfile;
+  if(!S.machines[pid])S.machines[pid]=mkMachines();
+  return S.machines[pid][key];
 }
 
-/* ═══════════════════════════════════════════
+/* ═══════════════════════════
    THEME
-═══════════════════════════════════════════ */
-function applyTheme(t) {
-  if (t === 'auto') {
-    const dark = window.matchMedia('(prefers-color-scheme:dark)').matches;
-    document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
-  } else {
-    document.documentElement.setAttribute('data-theme', t);
-  }
+═══════════════════════════ */
+function applyTheme(t){
+  if(t==='auto'){
+    const dk=window.matchMedia('(prefers-color-scheme:dark)').matches;
+    document.documentElement.setAttribute('data-theme',dk?'dark':'light');
+  } else document.documentElement.setAttribute('data-theme',t);
 }
-applyTheme(state.theme);
-window.matchMedia('(prefers-color-scheme:dark)').addEventListener('change', () => {
-  if (state.theme === 'auto') applyTheme('auto');
+applyTheme(S.theme);
+window.matchMedia('(prefers-color-scheme:dark)').addEventListener('change',()=>{
+  if(S.theme==='auto')applyTheme('auto');
 });
-document.getElementById('themeBtn').addEventListener('click', () => {
-  const themes = ['auto','dark','light'];
-  const idx = themes.indexOf(state.theme);
-  state.theme = themes[(idx+1) % themes.length];
-  applyTheme(state.theme);
-  saveState();
-  showToast(state.theme === 'auto' ? '🌗 Авто тема' : state.theme === 'dark' ? '🌙 Тёмная тема' : '☀️ Светлая тема');
-});
+document.getElementById('themeBtn').onclick=()=>{
+  const ts=['auto','dark','light'];
+  S.theme=ts[(ts.indexOf(S.theme)+1)%3];
+  applyTheme(S.theme); saveS();
+  showToast(S.theme==='auto'?'🌗 Авто':S.theme==='dark'?'🌙 Тёмная':'☀️ Светлая');
+};
 
-/* ═══════════════════════════════════════════
+/* ═══════════════════════════
    PROFILES
-═══════════════════════════════════════════ */
-function renderProfileBar() {
-  const bar = document.getElementById('profileBar');
-  bar.innerHTML = '';
-  for (const p of state.profiles) {
-    const chip = document.createElement('button');
-    chip.className = 'profile-chip' + (p.id === state.activeProfile ? ' active' : '');
-    chip.textContent = p.emoji + ' ' + p.name;
-    chip.addEventListener('click', () => {
-      state.activeProfile = p.id;
-      saveState();
-      renderProfileBar();
-      renderMachines();
-      renderHistory();
-    });
-    bar.appendChild(chip);
-  }
+═══════════════════════════ */
+function renderProfileBar(){
+  const bar=document.getElementById('profileBar');
+  bar.innerHTML='';
+  S.profiles.forEach(p=>{
+    const c=document.createElement('button');
+    c.className='pchip'+(p.id===S.activeProfile?' active':'');
+    c.textContent=p.emoji+' '+p.name;
+    c.onclick=()=>{S.activeProfile=p.id;saveS();renderProfileBar();buildSlides();renderStats();renderHist();};
+    bar.appendChild(c);
+  });
 }
-function renderProfileModal() {
-  const list = document.getElementById('profileListEl');
-  list.innerHTML = '';
-  for (const p of state.profiles) {
-    const item = document.createElement('div');
-    item.className = 'profile-item' + (p.id === state.activeProfile ? ' active-profile' : '');
-    item.innerHTML = `
-      <div class="profile-avatar">${p.emoji}</div>
-      <div class="profile-name">${p.name}</div>
-      ${state.profiles.length > 1 ? `<div class="profile-del" data-id="${p.id}">✕</div>` : ''}
-    `;
-    item.addEventListener('click', (e) => {
-      if (e.target.classList.contains('profile-del')) return;
-      state.activeProfile = p.id;
-      saveState();
-      renderProfileBar();
-      renderMachines();
-      renderHistory();
-    });
-    const del = item.querySelector('.profile-del');
-    if (del) del.addEventListener('click', () => {
-      if (state.activeProfile === p.id) state.activeProfile = state.profiles[0].id;
-      state.profiles = state.profiles.filter(x => x.id !== p.id);
-      delete state.machines[p.id];
-      saveState();
-      renderProfileModal();
-      renderProfileBar();
-      renderMachines();
-    });
-    list.appendChild(item);
-  }
+function renderPModal(){
+  const el=document.getElementById('pList');
+  el.innerHTML='';
+  S.profiles.forEach(p=>{
+    const d=document.createElement('div');
+    d.className='pitem'+(p.id===S.activeProfile?' cur':'');
+    d.innerHTML=`<div class="pavatar">${p.emoji}</div><div class="pname">${p.name}</div>`+
+      (S.profiles.length>1?`<div class="pdel" data-id="${p.id}">✕</div>`:'');
+    d.onclick=e=>{
+      if(e.target.classList.contains('pdel'))return;
+      S.activeProfile=p.id;saveS();
+      renderProfileBar();buildSlides();renderStats();renderHist();
+    };
+    const del=d.querySelector('.pdel');
+    if(del)del.onclick=()=>{
+      if(S.activeProfile===p.id)S.activeProfile=S.profiles[0].id;
+      S.profiles=S.profiles.filter(x=>x.id!==p.id);
+      delete S.machines[p.id];saveS();
+      renderPModal();renderProfileBar();buildSlides();
+    };
+    el.appendChild(d);
+  });
 }
-document.getElementById('profileBtn').addEventListener('click', () => {
-  renderProfileModal();
-  document.getElementById('profileModal').classList.add('open');
-});
-document.getElementById('profileModalClose').addEventListener('click', () => {
-  document.getElementById('profileModal').classList.remove('open');
-});
-document.getElementById('addProfileBtn').addEventListener('click', () => {
-  const inp = document.getElementById('newProfileName');
-  const name = inp.value.trim();
-  if (!name) return;
-  const id = 'p_' + Date.now();
-  const emoji = EMOJIS[state.profiles.length % EMOJIS.length];
-  state.profiles.push({id, name, emoji});
-  state.machines[id] = makeMachines();
-  inp.value = '';
-  saveState();
-  renderProfileModal();
-  renderProfileBar();
+document.getElementById('profileBtn').onclick=()=>{renderPModal();document.getElementById('pModal').classList.add('open')};
+document.getElementById('pClose').onclick=()=>document.getElementById('pModal').classList.remove('open');
+document.getElementById('pAddBtn').onclick=()=>{
+  const inp=document.getElementById('pNewName');
+  const name=inp.value.trim();if(!name)return;
+  const id='p'+Date.now();
+  const emoji=EMOJIS[S.profiles.length%EMOJIS.length];
+  S.profiles.push({id,name,emoji});
+  S.machines[id]=mkMachines();inp.value='';saveS();
+  renderPModal();renderProfileBar();
+};
+
+/* ═══════════════════════════
+   SWIPE SLIDER
+═══════════════════════════ */
+let touchStartX=0, touchStartY=0, dragging=false, dragDX=0;
+
+function buildSlides(){
+  const track=document.getElementById('cardsTrack');
+  track.innerHTML='';
+  KEYS.forEach((key,i)=>{
+    const slide=document.createElement('div');
+    slide.className='card-slide';
+    slide.innerHTML=buildCardHTML(key);
+    track.appendChild(slide);
+    bindCard(slide,key);
+  });
+  buildDots();
+  goToSlide(curSlide,false);
+}
+
+function buildCardHTML(key){
+  const def=DEF[key], m=getM(key);
+  const durStr=`${String(m.h).padStart(2,'0')}:${String(m.m).padStart(2,'0')}`;
+  const startStr=`${String(m.startH).padStart(2,'0')}:${String(m.startM).padStart(2,'0')}`;
+  const progHtml=def.programs?`<div class="prog-row">`+
+    Object.entries(def.programs).map(([p,pd])=>
+      `<button class="pchip-sm${m.prog==p?' active':''}" data-prog="${p}">${pd.label}</button>`
+    ).join('')+`</div>`:'';
+  return `
+  <div class="machine-card ${def.cls}${m.isRunning?' running':''}" id="card-${key}">
+    <div class="card-head">
+      <div class="micon">${def.icon}</div>
+      <div>
+        <div class="mname">${def.name}</div>
+        <div class="mstatus${m.isRunning?' on':''}" id="st-${key}">${m.isRunning?'Работает':'Ожидание'}</div>
+      </div>
+    </div>
+    <div class="ring-wrap">
+      <svg class="ring-svg" viewBox="0 0 200 200">
+        <circle class="ring-track" cx="100" cy="100" r="${RING_R}"/>
+        <circle class="ring-prog" id="rp-${key}" cx="100" cy="100" r="${RING_R}"
+          stroke-dasharray="${RING_C}" stroke-dashoffset="${RING_C}"/>
+      </svg>
+      <div class="ring-center">
+        <div class="ring-time" id="rt-${key}">--:--</div>
+        <div class="ring-lbl" id="rl-${key}">осталось</div>
+      </div>
+    </div>
+    ${progHtml}
+    <div class="srow">
+      <div class="sbox" id="startBox-${key}">
+        <div class="slbl">Старт</div>
+        <input type="time" class="time-inp" id="si-${key}" value="${startStr}">
+      </div>
+      <div class="sbox" id="durBox-${key}">
+        <div class="slbl">Длительность</div>
+        <div class="sval" id="dv-${key}">${durStr}</div>
+      </div>
+    </div>
+    <div class="srow">
+      <div class="sbox"><div class="slbl">Конец</div><div class="sval ac" id="ev-${key}">--:--</div></div>
+      <div class="sbox"><div class="slbl">Осталось</div><div class="sval" id="lv-${key}">--:--</div></div>
+    </div>
+    <div class="notif-row">
+      <span class="notif-lbl">Сигнал по окончанию</span>
+      <div class="toggle${m.signalEnabled?' on':''}" id="tog-${key}"><div class="toggle-knob"></div></div>
+    </div>
+    <button class="start-btn${m.isRunning?' stop':' go'}" id="sb-${key}">
+      ${m.isRunning?'Остановить':'Запустить'}
+    </button>
+  </div>`;
+}
+
+function bindCard(slide, key){
+  const def=DEF[key];
+  // programs
+  if(def.programs){
+    slide.querySelectorAll('.pchip-sm').forEach(ch=>{
+      ch.onclick=()=>{
+        const p=parseInt(ch.dataset.prog);
+        const m=getM(key); m.prog=p; m.h=def.programs[p].h; m.m=def.programs[p].m;
+        saveS(); buildSlides(); goToSlide(curSlide,false);
+      };
+    });
+  }
+  // start time
+  slide.querySelector(`#si-${key}`).onchange=e=>{
+    const [h,mm]=e.target.value.split(':').map(Number);
+    const m=getM(key); m.startH=h; m.startM=mm; saveS();
+  };
+  // duration picker
+  slide.querySelector(`#durBox-${key}`).onclick=()=>openPicker(key);
+  // toggle
+  slide.querySelector(`#tog-${key}`).onclick=()=>{
+    const m=getM(key); m.signalEnabled=!m.signalEnabled;
+    slide.querySelector(`#tog-${key}`).classList.toggle('on',m.signalEnabled); saveS();
+  };
+  // start/stop
+  slide.querySelector(`#sb-${key}`).onclick=e=>{
+    addRipple(e.currentTarget,e); handleSS(key);
+  };
+}
+
+function buildDots(){
+  const dots=document.getElementById('tabDots');
+  dots.innerHTML='';
+  KEYS.forEach((k,i)=>{
+    const d=document.createElement('div');
+    d.className='tab-dot'+(i===curSlide?' active':'');
+    if(i===curSlide) d.style.setProperty('--card-accent',`var(--accent-${k})`);
+    d.onclick=()=>goToSlide(i);
+    dots.appendChild(d);
+  });
+}
+
+function goToSlide(idx, animate=true){
+  curSlide=Math.max(0,Math.min(KEYS.length-1,idx));
+  const track=document.getElementById('cardsTrack');
+  if(!animate) track.style.transition='none'; else track.style.transition='transform .35s cubic-bezier(.32,1,.23,1)';
+  track.style.transform=`translateX(${-curSlide*100}%)`;
+  if(!animate) requestAnimationFrame(()=>track.style.transition='');
+  buildDots();
+}
+
+// Touch swipe
+const scroll=document.getElementById('cardsScroll');
+scroll.addEventListener('touchstart',e=>{
+  touchStartX=e.touches[0].clientX;
+  touchStartY=e.touches[0].clientY;
+  dragging=true; dragDX=0;
+},{passive:true});
+scroll.addEventListener('touchmove',e=>{
+  if(!dragging)return;
+  dragDX=e.touches[0].clientX-touchStartX;
+  const dy=e.touches[0].clientY-touchStartY;
+  if(Math.abs(dy)>Math.abs(dragDX)&&Math.abs(dragDX)<10){dragging=false;return;}
+},{passive:true});
+scroll.addEventListener('touchend',()=>{
+  if(!dragging)return; dragging=false;
+  if(dragDX<-50) goToSlide(curSlide+1);
+  else if(dragDX>50) goToSlide(curSlide-1);
 });
 
-/* ═══════════════════════════════════════════
+/* ═══════════════════════════
    RING HELPERS
-═══════════════════════════════════════════ */
-const RING_R = 88;
-const RING_C = 2 * Math.PI * RING_R;
-function ringOffset(pct) { return RING_C - (RING_C * Math.max(0, Math.min(1, pct))); }
-
-/* ═══════════════════════════════════════════
-   RENDER MACHINES
-═══════════════════════════════════════════ */
-function renderMachines() {
-  const container = document.getElementById('machinesContainer');
-  container.innerHTML = '';
-  for (const [key, def] of Object.entries(MACHINE_DEFS)) {
-    const m = getMachine(key);
-    const card = document.createElement('div');
-    card.className = `machine-card ${def.cls}` + (m.isRunning ? ' running' : '');
-    card.id = `card-${key}`;
-
-    const isDish = key === 'dish';
-    const durStr = `${String(m.h).padStart(2,'0')}:${String(m.m).padStart(2,'0')}`;
-    const startStr = `${String(m.startH).padStart(2,'0')}:${String(m.startM).padStart(2,'0')}`;
-
-    let progHtml = '';
-    if (isDish) {
-      const progs = def.programs;
-      progHtml = `<div class="prog-row">` +
-        Object.entries(progs).map(([p,pd]) =>
-          `<button class="prog-chip${m.prog==p?' active':''}" data-prog="${p}">${pd.label}</button>`
-        ).join('') + `</div>`;
-    }
-
-    card.innerHTML = `
-      <div class="card-top">
-        <div class="machine-info">
-          <div class="machine-icon">${def.icon}</div>
-          <div class="machine-name">${def.name}</div>
-          <div class="machine-status ${m.isRunning?'active':''}" id="status-${key}">
-            ${m.isRunning ? 'Работает' : 'Ожидание'}
-          </div>
-        </div>
-      </div>
-      <div class="card-center">
-        <div class="ring-wrap" style="--ring-size:190px">
-          <svg class="ring-svg" viewBox="0 0 200 200">
-            <circle class="ring-track" cx="100" cy="100" r="${RING_R}"/>
-            <circle class="ring-progress" id="ring-${key}" cx="100" cy="100" r="${RING_R}"
-              stroke-dasharray="${RING_C}"
-              stroke-dashoffset="${ringOffset(0)}"/>
-          </svg>
-          <div class="ring-center">
-            <div class="ring-time" id="ringTime-${key}">--:--</div>
-            <div class="ring-label" id="ringLabel-${key}">осталось</div>
-          </div>
-        </div>
-      </div>
-      ${progHtml}
-      <div class="settings-row">
-        <div class="setting-box" id="startBox-${key}">
-          <div class="setting-box-label">Старт</div>
-          <input type="time" class="time-input" id="startTime-${key}"
-            value="${startStr}">
-        </div>
-        <div class="setting-box" id="durBox-${key}">
-          <div class="setting-box-label">Длительность</div>
-          <div class="setting-box-value" id="durVal-${key}">${durStr}</div>
-        </div>
-      </div>
-      <div class="settings-row" style="grid-template-columns:1fr 1fr">
-        <div class="setting-box">
-          <div class="setting-box-label">Конец</div>
-          <div class="setting-box-value accent" id="endVal-${key}">--:--</div>
-        </div>
-        <div class="setting-box">
-          <div class="setting-box-label">Осталось</div>
-          <div class="setting-box-value" id="leftVal-${key}">--:--</div>
-        </div>
-      </div>
-      <div class="notif-row">
-        <span class="notif-label">Сигнал по окончанию</span>
-        <div class="toggle ${m.signalEnabled?'on':''}" id="toggle-${key}">
-          <div class="toggle-knob"></div>
-        </div>
-      </div>
-      <button class="start-btn ${m.isRunning?'stop':'start'} mt" id="startBtn-${key}" style="margin-top:14px">
-        ${m.isRunning ? 'Остановить' : 'Запустить'}
-      </button>
-    `;
-    container.appendChild(card);
-
-    // Программы
-    if (isDish) {
-      card.querySelectorAll('.prog-chip').forEach(chip => {
-        chip.addEventListener('click', () => {
-          const p = parseInt(chip.dataset.prog);
-          const m2 = getMachine(key);
-          m2.prog = p;
-          m2.h = def.programs[p].h;
-          m2.m = def.programs[p].m;
-          saveState();
-          renderMachines();
-        });
-      });
-    }
-
-    // Время старта
-    document.getElementById(`startTime-${key}`).addEventListener('change', e => {
-      const [h,mm] = e.target.value.split(':').map(Number);
-      const m2 = getMachine(key);
-      m2.startH = h; m2.startM = mm;
-      saveState();
-    });
-
-    // Длительность — открыть picker
-    document.getElementById(`durBox-${key}`).addEventListener('click', () => {
-      openPicker(key, 'dur');
-    });
-
-    // Toggle сигнала
-    document.getElementById(`toggle-${key}`).addEventListener('click', () => {
-      const m2 = getMachine(key);
-      m2.signalEnabled = !m2.signalEnabled;
-      document.getElementById(`toggle-${key}`).classList.toggle('on', m2.signalEnabled);
-      saveState();
-    });
-
-    // Старт/Стоп
-    document.getElementById(`startBtn-${key}`).addEventListener('click', () => {
-      handleStartStop(key);
-    });
-  }
-  updateAllMachines();
+═══════════════════════════ */
+function setRing(key,pct){
+  const el=document.getElementById(`rp-${key}`);
+  if(el) el.style.strokeDashoffset=RING_C-(RING_C*Math.max(0,Math.min(1,pct)));
+}
+function getEndDate(key){
+  const m=getM(key);
+  const now=new Date();
+  const s=new Date(now.getFullYear(),now.getMonth(),now.getDate(),m.startH,m.startM,0,0);
+  return new Date(s.getTime()+(m.h*60+m.m)*60000);
 }
 
-/* ═══════════════════════════════════════════
-   START / STOP
-═══════════════════════════════════════════ */
-function handleStartStop(key) {
-  const m = getMachine(key);
-  if (!m.isRunning) {
-    m.isRunning = true;
-    m.hasFinished = false;
-    // Обновляем время старта на текущее
-    const now = new Date();
-    m.startH = now.getHours();
-    m.startM = now.getMinutes();
-    document.getElementById(`startTime-${key}`).value =
-      `${String(m.startH).padStart(2,'0')}:${String(m.startM).padStart(2,'0')}`;
-    saveState();
-    scheduleServerNotification(key);
-    scheduleSwNotification(key);
-    updateCard(key);
-    document.getElementById(`card-${key}`).classList.add('running');
-    document.getElementById(`startBtn-${key}`).textContent = 'Остановить';
-    document.getElementById(`startBtn-${key}`).className = 'start-btn stop';
-    document.getElementById(`status-${key}`).textContent = 'Работает';
-    document.getElementById(`status-${key}`).className = 'machine-status active';
-  } else {
-    m.isRunning = false;
-    cancelSwNotification(key);
-    saveState();
-    document.getElementById(`card-${key}`).classList.remove('running');
-    document.getElementById(`startBtn-${key}`).textContent = 'Запустить';
-    document.getElementById(`startBtn-${key}`).className = 'start-btn start';
-    document.getElementById(`status-${key}`).textContent = 'Ожидание';
-    document.getElementById(`status-${key}`).className = 'machine-status';
-    document.getElementById(`ringTime-${key}`).textContent = '--:--';
-    document.getElementById(`ring-${key}`).style.strokeDashoffset = ringOffset(0);
-    document.getElementById(`leftVal-${key}`).textContent = '--:--';
-  }
-}
-
-/* ═══════════════════════════════════════════
-   COMPUTE END DATE
-═══════════════════════════════════════════ */
-function getEndDate(key) {
-  const m = getMachine(key);
-  const now = new Date();
-  const start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), m.startH, m.startM, 0, 0);
-  const totalMs = (m.h * 60 + m.m) * 60000;
-  return new Date(start.getTime() + totalMs);
-}
-
-/* ═══════════════════════════════════════════
+/* ═══════════════════════════
    UPDATE LOOP
-═══════════════════════════════════════════ */
-function updateAllMachines() {
-  for (const key of Object.keys(MACHINE_DEFS)) updateCard(key);
-}
-function updateCard(key) {
-  const m = getMachine(key);
-  const endDate = getEndDate(key);
-  const endStr = `${String(endDate.getHours()).padStart(2,'0')}:${String(endDate.getMinutes()).padStart(2,'0')}`;
-  const endEl = document.getElementById(`endVal-${key}`);
-  if (endEl) endEl.textContent = endStr;
-
-  const leftEl = document.getElementById(`leftVal-${key}`);
-  const ringEl = document.getElementById(`ring-${key}`);
-  const ringTimeEl = document.getElementById(`ringTime-${key}`);
-  const ringLabelEl = document.getElementById(`ringLabel-${key}`);
-  if (!leftEl || !ringEl) return;
-
-  if (!m.isRunning) {
-    leftEl.textContent = '--:--';
-    ringTimeEl.textContent = '--:--';
-    ringEl.style.strokeDashoffset = ringOffset(0);
+═══════════════════════════ */
+function updateAll(){ KEYS.forEach(updateCard); }
+function updateCard(key){
+  const m=getM(key);
+  const endDate=getEndDate(key);
+  const endStr=`${String(endDate.getHours()).padStart(2,'0')}:${String(endDate.getMinutes()).padStart(2,'0')}`;
+  const evEl=document.getElementById(`ev-${key}`);
+  if(evEl) evEl.textContent=endStr;
+  const lvEl=document.getElementById(`lv-${key}`);
+  const rtEl=document.getElementById(`rt-${key}`);
+  const rlEl=document.getElementById(`rl-${key}`);
+  if(!lvEl||!rtEl) return;
+  if(!m.isRunning){
+    lvEl.textContent='--:--'; rtEl.textContent='--:--';
+    setRing(key,0); return;
+  }
+  const leftMs=endDate.getTime()-Date.now();
+  const totalMs=(m.h*60+m.m)*60000;
+  if(leftMs<=0){
+    lvEl.textContent='00:00'; rtEl.textContent='00:00'; setRing(key,1);
+    if(m.signalEnabled&&!m.hasFinished) fireFinal(key);
     return;
   }
-
-  const now = Date.now();
-  const totalMs = (m.h * 60 + m.m) * 60000;
-  const leftMs = endDate.getTime() - now;
-
-  if (leftMs <= 0) {
-    leftEl.textContent = '00:00';
-    ringTimeEl.textContent = '00:00';
-    ringEl.style.strokeDashoffset = ringOffset(1);
-    if (m.signalEnabled && !m.hasFinished) fireFinalSignal(key);
-    return;
-  }
-
-  // Прогресс
-  const pct = 1 - (leftMs / totalMs);
-  ringEl.style.strokeDashoffset = ringOffset(pct);
-
-  // Отображение
-  if (leftMs < 60000) {
-    const sec = Math.ceil(leftMs / 1000);
-    const t = `${String(Math.floor(sec/60)).padStart(2,'0')}:${String(sec%60).padStart(2,'0')}`;
-    leftEl.textContent = t;
-    ringTimeEl.textContent = t;
-    if (ringLabelEl) ringLabelEl.textContent = 'секунды';
+  setRing(key,1-leftMs/totalMs);
+  if(leftMs<60000){
+    const s=Math.ceil(leftMs/1000);
+    const t=`${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
+    lvEl.textContent=t; rtEl.textContent=t;
+    if(rlEl)rlEl.textContent='секунды';
   } else {
-    const totalMin = Math.ceil(leftMs / 60000);
-    const lh = Math.floor(totalMin / 60);
-    const lm = totalMin % 60;
-    const t = `${String(lh).padStart(2,'0')}:${String(lm).padStart(2,'0')}`;
-    leftEl.textContent = t;
-    ringTimeEl.textContent = t;
-    if (ringLabelEl) ringLabelEl.textContent = 'осталось';
+    const tm=Math.ceil(leftMs/60000);
+    const t=`${String(Math.floor(tm/60)).padStart(2,'0')}:${String(tm%60).padStart(2,'0')}`;
+    lvEl.textContent=t; rtEl.textContent=t;
+    if(rlEl)rlEl.textContent='осталось';
   }
 }
 
-/* ═══════════════════════════════════════════
+/* ═══════════════════════════
+   START / STOP
+═══════════════════════════ */
+function handleSS(key){
+  const m=getM(key);
+  if(!m.isRunning){
+    m.isRunning=true; m.hasFinished=false;
+    const now=new Date(); m.startH=now.getHours(); m.startM=now.getMinutes();
+    const si=document.getElementById(`si-${key}`);
+    if(si) si.value=`${String(m.startH).padStart(2,'0')}:${String(m.startM).padStart(2,'0')}`;
+    saveS(); playTick();
+    scheduleServer(key); scheduleWatchdog(key);
+    document.getElementById(`card-${key}`)?.classList.add('running');
+    document.getElementById(`sb-${key}`).textContent='Остановить';
+    document.getElementById(`sb-${key}`).className='start-btn stop';
+    document.getElementById(`st-${key}`).textContent='Работает';
+    document.getElementById(`st-${key}`).className='mstatus on';
+  } else {
+    m.isRunning=false; saveS(); playStop();
+    cancelWatchdog(key);
+    document.getElementById(`card-${key}`)?.classList.remove('running');
+    document.getElementById(`sb-${key}`).textContent='Запустить';
+    document.getElementById(`sb-${key}`).className='start-btn go';
+    document.getElementById(`st-${key}`).textContent='Ожидание';
+    document.getElementById(`st-${key}`).className='mstatus';
+    document.getElementById(`rt-${key}`).textContent='--:--';
+    setRing(key,0);
+  }
+}
+
+/* ═══════════════════════════
    FINAL SIGNAL
-═══════════════════════════════════════════ */
-const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-function playNote(freq, t, dur=0.18, vol=0.3) {
-  const osc = audioCtx.createOscillator();
-  const gain = audioCtx.createGain();
-  osc.type = 'sine';
-  osc.frequency.setValueAtTime(freq, t);
-  gain.gain.setValueAtTime(vol, t);
-  gain.gain.exponentialRampToValueAtTime(0.001, t + dur);
-  osc.connect(gain).connect(audioCtx.destination);
-  osc.start(t); osc.stop(t + dur);
+═══════════════════════════ */
+const AudioCtx=new(window.AudioContext||window.webkitAudioContext)();
+function pNote(f,t,d=.18,v=.28){
+  const o=AudioCtx.createOscillator(),g=AudioCtx.createGain();
+  o.type='sine'; o.frequency.value=f;
+  g.gain.setValueAtTime(v,t); g.gain.exponentialRampToValueAtTime(.001,t+d);
+  o.connect(g).connect(AudioCtx.destination); o.start(t); o.stop(t+d);
 }
-function playMelody() {
-  if (audioCtx.state === 'suspended') audioCtx.resume();
-  const t = audioCtx.currentTime;
-  const notes = [659.25, 783.99, 1046.50];
-  [0,1,2,0.5,1.5,2.5].forEach((offset,i) => {
-    playNote(notes[i%3], t + offset * 0.28);
-  });
+function playMelody(){
+  if(AudioCtx.state==='suspended')AudioCtx.resume();
+  const t=AudioCtx.currentTime, n=[659.25,783.99,1046.5];
+  [0,1,2,.5,1.5,2.5].forEach((o,i)=>pNote(n[i%3],t+o*.28));
+}
+function playTick(){
+  if(AudioCtx.state==='suspended')AudioCtx.resume();
+  const o=AudioCtx.createOscillator(),g=AudioCtx.createGain();
+  o.frequency.value=880; g.gain.setValueAtTime(.07,AudioCtx.currentTime);
+  g.gain.exponentialRampToValueAtTime(.001,AudioCtx.currentTime+.09);
+  o.connect(g).connect(AudioCtx.destination); o.start(); o.stop(AudioCtx.currentTime+.09);
+}
+function playStop(){
+  if(AudioCtx.state==='suspended')AudioCtx.resume();
+  const o=AudioCtx.createOscillator(),g=AudioCtx.createGain();
+  o.type='triangle'; o.frequency.value=440;
+  g.gain.setValueAtTime(.09,AudioCtx.currentTime);
+  g.gain.exponentialRampToValueAtTime(.001,AudioCtx.currentTime+.18);
+  o.connect(g).connect(AudioCtx.destination); o.start(); o.stop(AudioCtx.currentTime+.18);
+}
+function addRipple(btn,e){
+  const r=document.createElement('div'); r.className='rip';
+  const rect=btn.getBoundingClientRect();
+  r.style.left=(e.clientX-rect.left)+'px'; r.style.top=(e.clientY-rect.top)+'px';
+  btn.appendChild(r); setTimeout(()=>r.remove(),500);
 }
 
-function fireFinalSignal(key) {
-  const m = getMachine(key);
-  if (m.hasFinished) return;
-  m.hasFinished = true;
-  m.isRunning = false;
-  saveState();
-
-  const names = {wash:'Стиральная машина', dry:'Сушильная машина', dish:'Посудомойка'};
-  const texts = {wash:'готова! 🫧', dry:'закончила! 💨', dish:'помыла! ✨'};
-  const message = `${names[key]} ${texts[key]}`;
-
+function fireFinal(key){
+  const m=getM(key);
+  if(m.hasFinished)return;
+  m.hasFinished=true; m.isRunning=false; saveS();
+  const names={wash:'Стиральная машина',dry:'Сушильная машина',dish:'Посудомойка'};
+  const texts={wash:'готова! 🫧',dry:'закончила! 💨',dish:'помыла! ✨'};
+  const msg=`${names[key]} ${texts[key]}`;
   playMelody();
-  if ('vibrate' in navigator) navigator.vibrate([600,200,600,200,600]);
-  showPushNotification('✅ LaundryAI', message, `laundry-${key}`);
-  sendTelegramNotification(message);
-
-  document.getElementById(`card-${key}`).classList.remove('running');
-  document.getElementById(`card-${key}`).classList.add('alarm');
-  setTimeout(() => document.getElementById(`card-${key}`)?.classList.remove('alarm'), 4000);
-  document.getElementById(`startBtn-${key}`).textContent = 'Запустить';
-  document.getElementById(`startBtn-${key}`).className = 'start-btn start';
-  document.getElementById(`status-${key}`).textContent = 'Готово ✓';
-  document.getElementById(`status-${key}`).className = 'machine-status active';
-
-  showToast(`✅ ${message}`);
-  addHistory(key, message);
+  if('vibrate'in navigator)navigator.vibrate([600,200,600,200,600]);
+  showPush('✅ LaundryAI',msg,`lai-${key}`);
+  sendTg(msg);
+  document.getElementById(`card-${key}`)?.classList.remove('running');
+  document.getElementById(`sb-${key}`).textContent='Запустить';
+  document.getElementById(`sb-${key}`).className='start-btn go';
+  document.getElementById(`st-${key}`).textContent='Готово ✓';
+  document.getElementById(`st-${key}`).className='mstatus on';
+  showToast('✅ '+msg);
+  addHist(key,msg);
+  showFinish(key);
 }
 
-/* ═══════════════════════════════════════════
-   HISTORY
-═══════════════════════════════════════════ */
-const ACCENT_COLORS = {wash:'var(--accent-wash)', dry:'var(--accent-dry)', dish:'var(--accent-dish)'};
-function addHistory(key, message) {
-  const pid = state.activeProfile;
-  if (!state.history) state.history = [];
-  const filtered = state.history.filter(h => h.pid === pid);
-  state.history.unshift({
-    pid, key, message,
-    time: new Date().toLocaleTimeString('ru', {hour:'2-digit', minute:'2-digit'}),
-    date: new Date().toLocaleDateString('ru', {day:'2-digit', month:'2-digit'})
-  });
-  // Максимум 30
-  state.history = state.history.slice(0, 30);
-  saveState();
-  renderHistory();
-}
-function renderHistory() {
-  const pid = state.activeProfile;
-  const list = document.getElementById('historyList');
-  const items = (state.history || []).filter(h => h.pid === pid);
-  if (!items.length) {
-    list.innerHTML = '<div class="history-empty">История пуста</div>';
-    return;
+/* ═══════════════════════════
+   FINISH SCREEN + CONFETTI
+═══════════════════════════ */
+function launchConfetti(){
+  const cv=document.getElementById('finishCanvas');
+  const cx=cv.getContext('2d');
+  cv.width=window.innerWidth; cv.height=window.innerHeight;
+  const cols=['#4f8fff','#ff6b35','#34c98a','#f8d45a','#e054ff','#fff'];
+  const p=Array.from({length:130},()=>({
+    x:Math.random()*cv.width, y:-20-Math.random()*180,
+    r:3+Math.random()*5, vy:2+Math.random()*4, vx:(Math.random()-.5)*3,
+    color:cols[Math.floor(Math.random()*cols.length)],
+    rot:Math.random()*6.28, rotV:(Math.random()-.5)*.2
+  }));
+  let alive=true;
+  function frame(){
+    cx.clearRect(0,0,cv.width,cv.height);
+    p.forEach(q=>{
+      cx.save(); cx.translate(q.x,q.y); cx.rotate(q.rot);
+      cx.fillStyle=q.color; cx.fillRect(-q.r,-q.r/2,q.r*2,q.r);
+      cx.restore();
+      q.y+=q.vy; q.x+=q.vx; q.rot+=q.rotV;
+    });
+    const still=p.filter(q=>q.y<cv.height+20);
+    if(still.length&&alive){p.length=0;p.push(...still);requestAnimationFrame(frame);}
+    else cx.clearRect(0,0,cv.width,cv.height);
   }
-  list.innerHTML = items.slice(0,10).map(h => `
-    <div class="history-item">
-      <div class="history-dot" style="background:${ACCENT_COLORS[h.key]}"></div>
-      <div class="history-text">${h.message}</div>
-      <div class="history-time">${h.date} ${h.time}</div>
+  requestAnimationFrame(frame);
+  return ()=>{alive=false};
+}
+let stopConfetti=null;
+function showFinish(key){
+  const fd=FINISH[key];
+  document.getElementById('finEmoji').textContent=fd.emoji;
+  document.getElementById('finTitle').textContent=fd.title;
+  document.getElementById('finSub').textContent=fd.sub;
+  document.getElementById('finishOv').style.setProperty('--fin-accent',fd.ac);
+  document.getElementById('finishOv').classList.add('show');
+  if(stopConfetti)stopConfetti();
+  stopConfetti=launchConfetti();
+}
+document.getElementById('finClose').onclick=()=>{
+  document.getElementById('finishOv').classList.remove('show');
+  if(stopConfetti){stopConfetti();stopConfetti=null;}
+};
+
+/* ═══════════════════════════
+   STATS
+═══════════════════════════ */
+function renderStats(){
+  const pid=S.activeProfile;
+  const h=(S.history||[]).filter(x=>x.pid===pid);
+  document.getElementById('stW').textContent=h.filter(x=>x.key==='wash').length;
+  document.getElementById('stD').textContent=h.filter(x=>x.key==='dry').length;
+  document.getElementById('stDi').textContent=h.filter(x=>x.key==='dish').length;
+  // this month
+  const now=new Date();
+  const thisM=h.filter(x=>{
+    try{const d=new Date(x.ts||0);return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();}
+    catch(e){return false;}
+  }).length;
+  document.getElementById('thisMonth').textContent=thisM||h.length;
+  // avg duration — estimate from machine defaults
+  const durs=KEYS.map(k=>getM(k)).map(m=>m.h*60+m.m);
+  const avg=Math.round(durs.reduce((a,b)=>a+b,0)/durs.length);
+  document.getElementById('avgTime').textContent=`${String(Math.floor(avg/60)).padStart(2,'0')}:${String(avg%60).padStart(2,'0')}`;
+  // bar chart — last 7 days
+  renderBarChart(h);
+}
+function renderBarChart(h){
+  const chart=document.getElementById('barChart');
+  const days=[];
+  for(let i=6;i>=0;i--){
+    const d=new Date(); d.setDate(d.getDate()-i);
+    const key=`${d.getDate()}.${d.getMonth()+1}`;
+    const count=h.filter(x=>{
+      try{const hd=new Date(x.ts||0);return hd.getDate()===d.getDate()&&hd.getMonth()===d.getMonth();}
+      catch(e){return false;}
+    }).length;
+    days.push({label:String(d.getDate()).padStart(2,'0'),count});
+  }
+  const max=Math.max(...days.map(d=>d.count),1);
+  chart.innerHTML=days.map(d=>`
+    <div class="bar-col">
+      <div class="bar" style="height:${Math.max(4,Math.round(d.count/max*72))}px;background:var(--accent-wash);opacity:${d.count?1:.2}"></div>
+      <div class="bar-lbl">${d.label}</div>
     </div>
   `).join('');
 }
 
-/* ═══════════════════════════════════════════
-   TOAST
-═══════════════════════════════════════════ */
-let toastTimer;
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
+/* ═══════════════════════════
+   HISTORY
+═══════════════════════════ */
+function addHist(key,msg){
+  if(!S.history)S.history=[];
+  S.history.unshift({pid:S.activeProfile,key,message:msg,
+    time:new Date().toLocaleTimeString('ru',{hour:'2-digit',minute:'2-digit'}),
+    date:new Date().toLocaleDateString('ru',{day:'2-digit',month:'2-digit'}),
+    ts:Date.now()});
+  S.history=S.history.slice(0,50); saveS();
+  renderHist(); renderStats();
+}
+function renderHist(){
+  const pid=S.activeProfile;
+  const el=document.getElementById('histList');
+  const items=(S.history||[]).filter(h=>h.pid===pid);
+  if(!items.length){el.innerHTML='<div class="hist-empty">История пуста</div>';return;}
+  el.innerHTML=items.slice(0,15).map(h=>`
+    <div class="hist-item">
+      <div class="hdot" style="background:${ACC[h.key]||'#888'}"></div>
+      <div class="htext">${h.message}</div>
+      <div class="htime">${h.date} ${h.time}</div>
+    </div>`).join('');
 }
 
-/* ═══════════════════════════════════════════
+/* ═══════════════════════════
+   TOAST
+═══════════════════════════ */
+let toastTmr;
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(toastTmr); toastTmr=setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+/* ═══════════════════════════
    PICKER
-═══════════════════════════════════════════ */
-function fillPicker() {
-  const hList = document.getElementById('hList');
-  const mList = document.getElementById('mList');
-  hList.innerHTML = '';
-  mList.innerHTML = '';
-  for (let i = 0; i < 10; i++) {
-    const li = document.createElement('li');
-    li.textContent = String(i).padStart(2,'0');
-    li.dataset.val = i;
-    hList.appendChild(li);
-  }
-  for (let i = 0; i < 60; i++) {
-    const li = document.createElement('li');
-    li.textContent = String(i).padStart(2,'0');
-    li.dataset.val = i;
-    mList.appendChild(li);
-  }
+═══════════════════════════ */
+function fillPicker(){
+  ['hList','mList'].forEach((id,idx)=>{
+    const ul=document.getElementById(id); ul.innerHTML='';
+    const max=idx===0?10:60;
+    for(let i=0;i<max;i++){
+      const li=document.createElement('li');
+      li.textContent=String(i).padStart(2,'0');
+      li.dataset.val=i; ul.appendChild(li);
+    }
+  });
 }
-function centerPicker(col, idx) {
-  col.scrollTop = idx * 40;
+function centerPicker(col,idx){col.scrollTop=idx*40;}
+function openPicker(key){
+  pickerCtx=key;
+  const m=getM(key); hSel=m.h; mSel=m.m;
+  const hc=document.getElementById('hCol'), mc=document.getElementById('mCol');
+  hc.querySelectorAll('li').forEach(l=>l.classList.toggle('sel',parseInt(l.dataset.val)===hSel));
+  mc.querySelectorAll('li').forEach(l=>l.classList.toggle('sel',parseInt(l.dataset.val)===mSel));
+  centerPicker(hc,hSel); centerPicker(mc,mSel);
+  document.getElementById('pickerOv').classList.add('open');
 }
-function openPicker(key, field) {
-  pickerContext = {key, field};
-  const m = getMachine(key);
-  hSel = m.h; mSel = m.m;
-  const hCol = document.getElementById('hCol');
-  const mCol = document.getElementById('mCol');
-  hCol.querySelectorAll('li').forEach(li => li.classList.toggle('sel', parseInt(li.dataset.val)===hSel));
-  mCol.querySelectorAll('li').forEach(li => li.classList.toggle('sel', parseInt(li.dataset.val)===mSel));
-  centerPicker(hCol, hSel);
-  centerPicker(mCol, mSel);
-  document.getElementById('pickerOverlay').classList.add('open');
-}
-['hCol','mCol'].forEach(id => {
-  const col = document.getElementById(id);
-  col.addEventListener('scroll', () => {
-    const idx = Math.round(col.scrollTop / 40);
-    const bounded = Math.max(0, Math.min(id==='hCol'?9:59, idx));
-    if (id === 'hCol') hSel = bounded;
-    else mSel = bounded;
-    col.querySelectorAll('li').forEach(li => li.classList.toggle('sel', parseInt(li.dataset.val)===bounded));
+['hCol','mCol'].forEach(id=>{
+  document.getElementById(id).addEventListener('scroll',function(){
+    const idx=Math.round(this.scrollTop/40);
+    const b=Math.max(0,Math.min(id==='hCol'?9:59,idx));
+    if(id==='hCol')hSel=b; else mSel=b;
+    this.querySelectorAll('li').forEach(l=>l.classList.toggle('sel',parseInt(l.dataset.val)===b));
   });
 });
-document.getElementById('pickerOk').addEventListener('click', () => {
-  if (!pickerContext) return;
-  const m = getMachine(pickerContext.key);
-  m.h = hSel; m.m = mSel;
-  document.getElementById(`durVal-${pickerContext.key}`).textContent =
-    `${String(hSel).padStart(2,'0')}:${String(mSel).padStart(2,'0')}`;
-  saveState();
-  document.getElementById('pickerOverlay').classList.remove('open');
-  updateCard(pickerContext.key);
-});
-document.getElementById('pickerOverlay').addEventListener('click', e => {
-  if (e.target === document.getElementById('pickerOverlay'))
-    document.getElementById('pickerOverlay').classList.remove('open');
-});
+document.getElementById('pickerOk').onclick=()=>{
+  if(!pickerCtx)return;
+  const m=getM(pickerCtx); m.h=hSel; m.m=mSel; saveS();
+  const dv=document.getElementById(`dv-${pickerCtx}`);
+  if(dv)dv.textContent=`${String(hSel).padStart(2,'0')}:${String(mSel).padStart(2,'0')}`;
+  document.getElementById('pickerOv').classList.remove('open');
+  updateCard(pickerCtx);
+};
+document.getElementById('pickerOv').onclick=e=>{
+  if(e.target===document.getElementById('pickerOv'))
+    document.getElementById('pickerOv').classList.remove('open');
+};
 
-/* ═══════════════════════════════════════════
-   SERVICE WORKER & NOTIFICATIONS
-═══════════════════════════════════════════ */
-let swReg = null;
-async function registerSW() {
-  if (!('serviceWorker' in navigator)) return;
-  try {
-    swReg = await navigator.serviceWorker.register('/sw.js', {scope:'/'});
-    if (swReg.installing) {
-      await new Promise(r => swReg.installing.addEventListener('statechange', function(){
-        if (this.state==='activated') r();
-      }));
-    }
-  } catch(e) { console.warn('SW:', e); }
-}
-async function requestNotifPerm() {
-  if (!('Notification' in window)) return;
-  if (Notification.permission === 'default') await Notification.requestPermission();
-}
-async function showPushNotification(title, body, tag) {
-  if (Notification.permission !== 'granted') return;
-  if (swReg?.active) {
-    swReg.active.postMessage({type:'NOTIFY', title, body, tag});
-  } else {
-    new Notification(title, {body, icon:'/icons/icon-192.png', tag});
-  }
-}
-function scheduleSwNotification(key) { /* SW уведомление через клиент */ }
-function cancelSwNotification(key) { /* нет таймеров в SW */ }
+/* ═══════════════════════════
+   NAVIGATION
+═══════════════════════════ */
+document.getElementById('navHome').onclick=()=>{
+  document.getElementById('pageMain').style.display='flex';
+  document.getElementById('pageStats').style.display='none';
+  document.getElementById('tabDots').style.display='flex';
+  document.getElementById('navHome').classList.add('active');
+  document.getElementById('navStats').classList.remove('active');
+};
+document.getElementById('navStats').onclick=()=>{
+  document.getElementById('pageMain').style.display='none';
+  document.getElementById('pageStats').style.display='block';
+  document.getElementById('tabDots').style.display='none';
+  document.getElementById('navStats').classList.add('active');
+  document.getElementById('navHome').classList.remove('active');
+  renderStats(); renderHist();
+};
 
-/* ═══════════════════════════════════════════
+/* ═══════════════════════════
+   SERVICE WORKER
+═══════════════════════════ */
+let swReg=null;
+async function regSW(){
+  if(!('serviceWorker'in navigator))return;
+  try{
+    swReg=await navigator.serviceWorker.register('/sw.js',{scope:'/'});
+    if(swReg.installing)await new Promise(r=>swReg.installing.addEventListener('statechange',function(){if(this.state==='activated')r()}));
+  }catch(e){console.warn('SW:',e);}
+}
+async function reqPerm(){
+  if(!('Notification'in window))return;
+  if(Notification.permission==='default')await Notification.requestPermission();
+}
+async function showPush(title,body,tag){
+  if(Notification.permission!=='granted')return;
+  if(swReg?.active)swReg.active.postMessage({type:'NOTIFY',title,body,tag});
+  else new Notification(title,{body,icon:'/icons/icon-192.png',tag});
+}
+
+/* ═══════════════════════════
    QSTASH / TELEGRAM
-═══════════════════════════════════════════ */
-const watchdogs = {};
-function scheduleServerNotification(key) {
-  cancelClientWatchdog(key);
-  const endDate = getEndDate(key);
-  if (!endDate) return;
-  const names = {wash:'Стиральная машина', dry:'Сушильная машина', dish:'Посудомойка'};
-  const texts = {wash:'готова! 🫧', dry:'закончила! 💨', dish:'помыла! ✨'};
-  const message = `${names[key]} ${texts[key]}`;
-
-  // QStash — надёжный серверный таймер
-  fetch('/api/schedule', {
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({endTime: endDate.toISOString(), message})
-  }).then(r => r.json()).then(d => {
-    if (d.success) console.log('QStash ✓', d.messageId);
-    else console.warn('QStash:', d.error);
-  }).catch(e => console.warn('schedule:', e));
-
-  // Watchdog — резервный (пока браузер жив)
-  watchdogs[key] = setInterval(async () => {
-    if (!getMachine(key).isRunning) { cancelClientWatchdog(key); return; }
-    if (endDate.getTime() - Date.now() <= 0) {
-      cancelClientWatchdog(key);
-      try {
-        await fetch('/api/notify', {
-          method:'POST',
-          headers:{'Content-Type':'application/json','x-internal-secret':'wash42'},
-          body: JSON.stringify({message})
-        });
-      } catch(e) {}
+═══════════════════════════ */
+const wdogs={};
+function scheduleServer(key){
+  cancelWatchdog(key);
+  const end=getEndDate(key);
+  const names={wash:'Стиральная машина',dry:'Сушильная машина',dish:'Посудомойка'};
+  const texts={wash:'готова! 🫧',dry:'закончила! 💨',dish:'помыла! ✨'};
+  const msg=`${names[key]} ${texts[key]}`;
+  fetch('/api/schedule',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({endTime:end.toISOString(),message:msg})})
+    .then(r=>r.json()).then(d=>d.success&&console.log('QStash ✓',d.messageId))
+    .catch(e=>console.warn(e));
+}
+function scheduleWatchdog(key){
+  const end=getEndDate(key);
+  const names={wash:'Стиральная машина',dry:'Сушильная машина',dish:'Посудомойка'};
+  const texts={wash:'готова! 🫧',dry:'закончила! 💨',dish:'помыла! ✨'};
+  const msg=`${names[key]} ${texts[key]}`;
+  wdogs[key]=setInterval(async()=>{
+    if(!getM(key).isRunning){cancelWatchdog(key);return;}
+    if(end.getTime()-Date.now()<=0){
+      cancelWatchdog(key);
+      try{await fetch('/api/notify',{method:'POST',
+        headers:{'Content-Type':'application/json','x-internal-secret':'wash42'},
+        body:JSON.stringify({message:msg})});}catch(e){}
     }
-  }, 5000);
+  },5000);
 }
-function cancelClientWatchdog(key) {
-  if (watchdogs[key]) { clearInterval(watchdogs[key]); delete watchdogs[key]; }
-}
-async function sendTelegramNotification(msg) {
-  try {
-    await fetch('/api/notify', {
-      method:'POST',
-      headers:{'Content-Type':'application/json','x-internal-secret':'wash42'},
-      body: JSON.stringify({message: msg})
-    });
-  } catch(e) {}
+function cancelWatchdog(key){if(wdogs[key]){clearInterval(wdogs[key]);delete wdogs[key];}}
+async function sendTg(msg){
+  try{await fetch('/api/notify',{method:'POST',
+    headers:{'Content-Type':'application/json','x-internal-secret':'wash42'},
+    body:JSON.stringify({message:msg})});}catch(e){}
 }
 
-/* ═══════════════════════════════════════════
+/* ═══════════════════════════
    INIT
-═══════════════════════════════════════════ */
+═══════════════════════════ */
 fillPicker();
 renderProfileBar();
-renderMachines();
-renderHistory();
-registerSW();
-requestNotifPerm();
-setInterval(updateAllMachines, 1000);
+buildSlides();
+regSW();
+reqPerm();
+setInterval(updateAll,1000);
 </script>
 </body>
 </html>
