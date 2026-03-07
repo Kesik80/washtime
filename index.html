@@ -152,7 +152,10 @@ async function sendTelegramNotification(messageText) {
   try {
     await fetch('/api/notify', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'x-internal-secret': 'wash42'
+      },
       body: JSON.stringify({ message: messageText })
     });
   } catch (e) {
@@ -276,7 +279,10 @@ document.addEventListener('click', async e => {
     try {
       const res = await fetch('/api/notify', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-internal-secret': 'wash42'
+        },
         body: JSON.stringify({ message: `${names[key]} ${texts[key]}` })
       });
       const data = await res.json();
