@@ -1,625 +1,1361 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="ru" data-theme="auto">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="apple-touch-icon" href="/icons/icon-192.png">
-<link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png">
-<link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512.png">
-<link rel="manifest" href="/icons/manifest.json">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="WashTime AI">
-<meta name="theme-color" content="#667eea">
-<title>WashTime AI</title>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="LaundryAI">
+<meta name="theme-color" content="#0a0a0f" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f0f0f5" media="(prefers-color-scheme: light)">
+<link rel="manifest" href="/icons/manifest.json">
+<link rel="apple-touch-icon" href="/icons/icon-192.png">
+<title>LaundryAI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-*{margin:0;padding:0;box-sizing:border-box}
-body{
-font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
-background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
-min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;
+:root {
+  --bg: #0a0a0f;
+  --bg2: #111118;
+  --bg3: #1a1a24;
+  --surface: rgba(255,255,255,0.04);
+  --surface2: rgba(255,255,255,0.08);
+  --border: rgba(255,255,255,0.08);
+  --border2: rgba(255,255,255,0.14);
+  --text: #f0f0f5;
+  --text2: rgba(240,240,245,0.55);
+  --text3: rgba(240,240,245,0.3);
+  --accent-wash: #4f8fff;
+  --accent-dry: #ff6b35;
+  --accent-dish: #34c98a;
+  --ring-size: 200px;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bot: env(safe-area-inset-bottom, 0px);
 }
-.container{
-background:white;border-radius:20px;box-shadow:0 10px 30px rgba(0,0,0,0.1);
-padding:20px 0;max-width:400px;width:100%;
+[data-theme="light"] {
+  --bg: #f0f0f7;
+  --bg2: #e8e8f0;
+  --bg3: #ffffff;
+  --surface: rgba(0,0,0,0.04);
+  --surface2: rgba(0,0,0,0.07);
+  --border: rgba(0,0,0,0.08);
+  --border2: rgba(0,0,0,0.13);
+  --text: #0a0a18;
+  --text2: rgba(10,10,24,0.55);
+  --text3: rgba(10,10,24,0.3);
 }
-h1{color:#333;margin:0 0 15px;text-align:center;font-size:22px}
-.tabs{display:flex;border-bottom:1px solid #eee}
-.tab{
-flex:1;padding:10px;text-align:center;background:none;border:none;
-color:#666;font-size:15px;cursor:pointer
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html { height:100%; }
+body {
+  font-family:'DM Sans',sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  min-height:100vh;
+  padding-top:calc(var(--safe-top) + 16px);
+  padding-bottom:calc(var(--safe-bot) + 90px);
+  padding-left:16px;
+  padding-right:16px;
+  transition:background .3s,color .3s;
+  overflow-x:hidden;
 }
-.tab.active{color:#667eea;font-weight:bold}
-.panels{padding:15px}
-.row{display:flex;justify-content:space-between;align-items:center;padding:8px 0}
-.label{font-size:14px;color:#444}
-.value{font-size:18px;font-weight:bold;color:#222;text-align:right}
-.end-row .value{color:#667eea}
-.left-row .value{color:#ff6b00}
-.durTime{
-background:none;border:none;font-size:18px;font-weight:bold;color:#222;
-text-align:right;cursor:pointer
+
+/* HEADER */
+.header {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:28px;
+  padding:0 4px;
 }
-.prog-select{width:60px;font-size:16px;text-align:center;border:1px solid #ddd;border-radius:4px}
-.check-row{padding-top:5px}
-.check-label{font-size:14px}
-.check-box{
-width:18px;height:18px;border:2px solid #667eea;border-radius:3px;
-background:white;cursor:pointer;position:relative
+.logo {
+  font-size:22px;
+  font-weight:600;
+  letter-spacing:-0.5px;
+  color:var(--text);
 }
-.check-box.checked{background:#667eea}
-.check-box.checked::after{
-content:'';position:absolute;left:4px;top:1px;width:5px;height:9px;
-border:solid white;border-width:0 2px 2px 0;transform:rotate(45deg);display:block
+.logo span { color:var(--accent-wash); }
+.header-actions { display:flex; gap:8px; align-items:center; }
+.icon-btn {
+  width:38px; height:38px;
+  background:var(--surface2);
+  border:1px solid var(--border);
+  border-radius:12px;
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer;
+  transition:background .2s, transform .1s;
+  color:var(--text2);
 }
-.scroll-box{
-position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);
-display:none;align-items:center;justify-content:center;z-index:1000
+.icon-btn:active { transform:scale(0.93); }
+.icon-btn svg { width:18px; height:18px; }
+
+/* PROFILE SELECTOR */
+.profile-bar {
+  display:flex; gap:8px; margin-bottom:24px;
+  overflow-x:auto; padding-bottom:4px;
+  -ms-overflow-style:none; scrollbar-width:none;
 }
-.scroll-panel{
-background:white;border-radius:12px;padding:15px;display:flex;gap:15px
+.profile-bar::-webkit-scrollbar { display:none; }
+.profile-chip {
+  flex-shrink:0;
+  padding:7px 16px;
+  border-radius:20px;
+  border:1px solid var(--border);
+  background:var(--surface);
+  font-size:13px;
+  font-weight:500;
+  color:var(--text2);
+  cursor:pointer;
+  transition:all .2s;
+  white-space:nowrap;
 }
-.scroll-col{
-height:180px;overflow-y:auto;width:70px;
--ms-overflow-style:none;scrollbar-width:none
+.profile-chip.active {
+  background:var(--accent-wash);
+  border-color:var(--accent-wash);
+  color:#fff;
 }
-.scroll-col::-webkit-scrollbar{display:none}
-.scroll-col ul{list-style:none;padding:0;margin:0}
-.scroll-col li{
-height:30px;display:flex;align-items:center;justify-content:center;
-font-size:18px;color:#555;cursor:pointer
+.profile-chip.add-chip {
+  background:none;
+  border-style:dashed;
+  color:var(--text3);
 }
-.scroll-col li.sel{color:#667eea;font-weight:bold}
-.ok-btn{
-display:block;width:100%;margin-top:10px;padding:8px;
-background:#667eea;color:white;border:none;border-radius:6px;font-size:15px;cursor:pointer
+
+/* MACHINE CARDS */
+.machines { display:flex; flex-direction:column; gap:16px; }
+.machine-card {
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-radius:24px;
+  padding:24px;
+  transition:all .3s;
+  position:relative;
+  overflow:hidden;
 }
-.startStopBtn{
-display:block;width:100%;margin-top:15px;padding:8px;
-background:#667eea;color:white;border:none;border-radius:6px;font-size:15px;font-weight:bold;cursor:pointer
+.machine-card::before {
+  content:'';
+  position:absolute;
+  top:0; left:0; right:0;
+  height:1px;
+  background:linear-gradient(90deg, transparent, var(--border2), transparent);
 }
-.startStopBtn.stop{background:#ff6b00}
-body.alarm{background:#ffebee!important}
+.machine-card.running {
+  border-color:var(--card-accent);
+  box-shadow:0 0 0 1px var(--card-accent), 0 8px 32px rgba(0,0,0,0.3);
+}
+.machine-card.wash { --card-accent: var(--accent-wash); }
+.machine-card.dry { --card-accent: var(--accent-dry); }
+.machine-card.dish { --card-accent: var(--accent-dish); }
+
+.card-top {
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  margin-bottom:20px;
+}
+.machine-info { flex:1; }
+.machine-icon {
+  width:44px; height:44px;
+  border-radius:14px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:22px;
+  margin-bottom:10px;
+}
+.machine-card.wash .machine-icon { background:rgba(79,143,255,0.12); }
+.machine-card.dry .machine-icon { background:rgba(255,107,53,0.12); }
+.machine-card.dish .machine-icon { background:rgba(52,201,138,0.12); }
+.machine-name {
+  font-size:17px;
+  font-weight:600;
+  margin-bottom:2px;
+}
+.machine-status {
+  font-size:12px;
+  color:var(--text3);
+  font-weight:500;
+  letter-spacing:0.3px;
+  text-transform:uppercase;
+}
+.machine-status.active { color:var(--card-accent); }
+
+/* PROGRESS RING */
+.ring-wrap {
+  width:var(--ring-size);
+  height:var(--ring-size);
+  position:relative;
+  flex-shrink:0;
+}
+.ring-svg {
+  width:100%; height:100%;
+  transform:rotate(-90deg);
+}
+.ring-track {
+  fill:none;
+  stroke:var(--border);
+  stroke-width:6;
+}
+.ring-progress {
+  fill:none;
+  stroke:var(--card-accent);
+  stroke-width:6;
+  stroke-linecap:round;
+  transition:stroke-dashoffset .8s ease;
+  filter:drop-shadow(0 0 6px var(--card-accent));
+}
+.ring-center {
+  position:absolute;
+  top:50%; left:50%;
+  transform:translate(-50%,-50%);
+  text-align:center;
+}
+.ring-time {
+  font-family:'DM Mono',monospace;
+  font-size:28px;
+  font-weight:500;
+  color:var(--text);
+  line-height:1;
+  margin-bottom:4px;
+}
+.ring-label {
+  font-size:11px;
+  color:var(--text3);
+  text-transform:uppercase;
+  letter-spacing:0.5px;
+}
+
+/* Центральный блок карточки */
+.card-center {
+  display:flex;
+  justify-content:center;
+  margin-bottom:20px;
+}
+
+/* SETTINGS ROW */
+.settings-row {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-bottom:16px;
+}
+.setting-box {
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:12px 14px;
+  cursor:pointer;
+  transition:background .2s;
+}
+.setting-box:active { background:var(--surface2); }
+.setting-box-label {
+  font-size:11px;
+  color:var(--text3);
+  text-transform:uppercase;
+  letter-spacing:0.3px;
+  margin-bottom:4px;
+}
+.setting-box-value {
+  font-family:'DM Mono',monospace;
+  font-size:16px;
+  font-weight:500;
+  color:var(--text);
+}
+.setting-box-value.accent { color:var(--card-accent); }
+
+/* START/STOP BUTTON */
+.start-btn {
+  width:100%;
+  padding:15px;
+  border:none;
+  border-radius:16px;
+  font-family:'DM Sans',sans-serif;
+  font-size:15px;
+  font-weight:600;
+  cursor:pointer;
+  transition:all .2s;
+  letter-spacing:0.3px;
+}
+.start-btn.start {
+  background:var(--card-accent);
+  color:#fff;
+  box-shadow:0 4px 20px rgba(0,0,0,0.3);
+}
+.start-btn.stop {
+  background:var(--surface2);
+  color:var(--text2);
+  border:1px solid var(--border2);
+}
+.start-btn:active { transform:scale(0.97); }
+
+/* ПРОГРАММА (посудомойка) */
+.prog-row {
+  display:flex; gap:6px;
+  margin-bottom:16px;
+  overflow-x:auto;
+  padding-bottom:2px;
+  -ms-overflow-style:none; scrollbar-width:none;
+}
+.prog-row::-webkit-scrollbar { display:none; }
+.prog-chip {
+  flex-shrink:0;
+  padding:6px 12px;
+  border-radius:10px;
+  border:1px solid var(--border);
+  background:var(--surface);
+  font-size:12px;
+  font-weight:500;
+  color:var(--text2);
+  cursor:pointer;
+  transition:all .15s;
+}
+.prog-chip.active {
+  background:rgba(52,201,138,0.15);
+  border-color:var(--accent-dish);
+  color:var(--accent-dish);
+}
+
+/* HISTORY PANEL */
+.section-title {
+  font-size:13px;
+  font-weight:600;
+  color:var(--text3);
+  text-transform:uppercase;
+  letter-spacing:0.5px;
+  margin:28px 4px 12px;
+}
+.history-list { display:flex; flex-direction:column; gap:8px; }
+.history-item {
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:12px 16px;
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-radius:14px;
+}
+.history-dot {
+  width:8px; height:8px;
+  border-radius:50%;
+  flex-shrink:0;
+}
+.history-text { flex:1; font-size:14px; color:var(--text2); }
+.history-time {
+  font-family:'DM Mono',monospace;
+  font-size:12px;
+  color:var(--text3);
+}
+.history-empty {
+  text-align:center;
+  padding:20px;
+  color:var(--text3);
+  font-size:14px;
+}
+
+/* BOTTOM NAV */
+.bottom-nav {
+  position:fixed;
+  bottom:0; left:0; right:0;
+  padding:12px 24px calc(var(--safe-bot) + 12px);
+  background:var(--bg);
+  border-top:1px solid var(--border);
+  display:flex;
+  justify-content:space-around;
+  backdrop-filter:blur(20px);
+  -webkit-backdrop-filter:blur(20px);
+}
+.nav-btn {
+  display:flex; flex-direction:column; align-items:center; gap:4px;
+  cursor:pointer;
+  color:var(--text3);
+  transition:color .2s;
+  background:none; border:none; font-family:'DM Sans',sans-serif;
+}
+.nav-btn.active { color:var(--accent-wash); }
+.nav-btn svg { width:22px; height:22px; }
+.nav-btn span { font-size:11px; font-weight:500; }
+
+/* PICKER OVERLAY */
+.overlay {
+  position:fixed; inset:0;
+  background:rgba(0,0,0,0.6);
+  backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
+  display:none;
+  align-items:flex-end;
+  justify-content:center;
+  z-index:100;
+  padding:0 8px 8px;
+}
+.overlay.open { display:flex; }
+.picker-sheet {
+  background:var(--bg3);
+  border:1px solid var(--border2);
+  border-radius:24px;
+  width:100%;
+  max-width:400px;
+  padding:20px;
+  animation:slideUp .3s cubic-bezier(.32,1,.23,1);
+}
+@keyframes slideUp {
+  from { transform:translateY(40px); opacity:0; }
+  to { transform:translateY(0); opacity:1; }
+}
+.sheet-handle {
+  width:36px; height:4px;
+  background:var(--border2);
+  border-radius:2px;
+  margin:0 auto 16px;
+}
+.sheet-title {
+  font-size:16px; font-weight:600;
+  margin-bottom:20px;
+  text-align:center;
+}
+.picker-cols {
+  display:flex; justify-content:center; gap:0; margin-bottom:16px;
+}
+.picker-col {
+  height:200px; overflow-y:scroll; width:80px;
+  -ms-overflow-style:none; scrollbar-width:none;
+  position:relative;
+}
+.picker-col::-webkit-scrollbar { display:none; }
+.picker-sep {
+  width:20px; display:flex; align-items:center; justify-content:center;
+  font-size:20px; font-weight:300; color:var(--text2);
+  padding-top:80px;
+}
+.picker-col ul { list-style:none; padding:80px 0; }
+.picker-col li {
+  height:40px; display:flex; align-items:center; justify-content:center;
+  font-family:'DM Mono',monospace;
+  font-size:22px; color:var(--text3); cursor:pointer;
+  transition:color .15s;
+}
+.picker-col li.sel {
+  color:var(--text);
+  font-weight:500;
+}
+.picker-line {
+  position:absolute;
+  top:50%; left:0; right:0;
+  height:40px; margin-top:-20px;
+  border-top:1px solid var(--border2);
+  border-bottom:1px solid var(--border2);
+  pointer-events:none;
+}
+.sheet-ok {
+  width:100%; padding:15px;
+  background:var(--accent-wash);
+  color:#fff; border:none;
+  border-radius:14px;
+  font-family:'DM Sans',sans-serif;
+  font-size:15px; font-weight:600;
+  cursor:pointer;
+  transition:opacity .15s;
+}
+.sheet-ok:active { opacity:0.85; }
+
+/* PROFILE MODAL */
+.profile-modal {
+  position:fixed; inset:0;
+  background:rgba(0,0,0,0.6);
+  backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:200;
+  padding:24px;
+}
+.profile-modal.open { display:flex; }
+.profile-sheet {
+  background:var(--bg3);
+  border:1px solid var(--border2);
+  border-radius:24px;
+  width:100%; max-width:360px;
+  padding:24px;
+  animation:slideUp .3s cubic-bezier(.32,1,.23,1);
+}
+.profile-list { display:flex; flex-direction:column; gap:8px; margin-bottom:16px; }
+.profile-item {
+  display:flex; align-items:center; gap:12px;
+  padding:12px 14px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:14px;
+  cursor:pointer;
+  transition:background .2s;
+}
+.profile-item.active-profile { border-color:var(--accent-wash); }
+.profile-avatar {
+  width:36px; height:36px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-size:18px;
+  background:var(--surface2);
+  flex-shrink:0;
+}
+.profile-name { font-size:15px; font-weight:500; flex:1; }
+.profile-del { color:var(--text3); cursor:pointer; padding:4px; }
+.add-profile-row {
+  display:flex; gap:8px;
+}
+.add-profile-input {
+  flex:1; padding:12px 14px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:12px;
+  color:var(--text);
+  font-family:'DM Sans',sans-serif;
+  font-size:14px;
+  outline:none;
+}
+.add-profile-input:focus { border-color:var(--accent-wash); }
+.add-profile-btn {
+  padding:12px 16px;
+  background:var(--accent-wash);
+  color:#fff; border:none;
+  border-radius:12px;
+  font-family:'DM Sans',sans-serif;
+  font-size:14px; font-weight:600;
+  cursor:pointer;
+}
+.modal-close {
+  display:block; width:100%; padding:12px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:12px;
+  color:var(--text2);
+  font-family:'DM Sans',sans-serif;
+  font-size:14px; cursor:pointer; margin-top:8px;
+}
+
+/* NOTIFICATION TOGGLE */
+.notif-row {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:10px 0;
+  border-top:1px solid var(--border);
+  margin-top:12px;
+}
+.notif-label { font-size:13px; color:var(--text2); }
+.toggle {
+  width:44px; height:26px;
+  background:var(--border2);
+  border-radius:13px;
+  position:relative;
+  cursor:pointer;
+  transition:background .2s;
+}
+.toggle.on { background:var(--card-accent); }
+.toggle-knob {
+  position:absolute;
+  top:3px; left:3px;
+  width:20px; height:20px;
+  background:#fff;
+  border-radius:50%;
+  transition:transform .2s;
+  box-shadow:0 1px 4px rgba(0,0,0,0.3);
+}
+.toggle.on .toggle-knob { transform:translateX(18px); }
+
+/* PAGE VIEWS */
+.page { display:none; }
+.page.active { display:block; }
+
+/* TIME INPUT */
+.time-input {
+  background:none; border:none;
+  font-family:'DM Mono',monospace;
+  font-size:16px; font-weight:500;
+  color:var(--text);
+  width:100%; cursor:pointer;
+  outline:none;
+}
+
+/* TOAST */
+.toast {
+  position:fixed;
+  top:calc(var(--safe-top) + 20px);
+  left:50%; transform:translateX(-50%) translateY(-80px);
+  background:var(--bg3);
+  border:1px solid var(--border2);
+  border-radius:14px;
+  padding:12px 20px;
+  font-size:14px; font-weight:500;
+  z-index:300;
+  transition:transform .3s cubic-bezier(.32,1,.23,1);
+  white-space:nowrap;
+  box-shadow:0 8px 32px rgba(0,0,0,0.4);
+}
+.toast.show { transform:translateX(-50%) translateY(0); }
+
+/* ALARM PULSE */
+@keyframes alarmPulse {
+  0%,100% { opacity:1; }
+  50% { opacity:0.4; }
+}
+.machine-card.alarm { animation:alarmPulse .8s ease infinite; }
+
+/* RESPONSIVE */
+@media(min-width:600px) {
+  body { max-width:420px; margin:0 auto; }
+}
 </style>
 </head>
 <body>
-<div class="container">
-<h1>WashTime AI</h1>
-<div class="tabs">
-<button class="tab active" data-machine="wash">Стиральная</button>
-<button class="tab" data-machine="dry">Сушильная</button>
-<button class="tab" data-machine="dish">Посудомойка</button>
-</div>
-<div class="panels" id="panels"></div>
-</div>
-<div class="scroll-box" id="scrollBox">
-<div>
-<div class="scroll-panel">
-<div class="scroll-col" id="hCol"><ul id="hList"></ul></div>
-<div class="scroll-col" id="mCol"><ul id="mList"></ul></div>
-</div>
-<button class="ok-btn" id="okBtn">Готово</button>
-</div>
-</div>
-<script>
-/* ---------- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ---------- */
-function timeNow() {
-  const now = new Date();
-  return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-}
 
-/* ---------- ДАННЫЕ МАШИН ---------- */
-const machines = {
-  wash: { h: 1, m: 42, isRunning: false, hasFinished: false, startTimeVal: timeNow() },
-  dry: { h: 1, m: 15, isRunning: false, hasFinished: false, startTimeVal: timeNow() },
+<div class="header">
+  <div class="logo">Laundry<span>AI</span></div>
+  <div class="header-actions">
+    <button class="icon-btn" id="themeBtn" title="Сменить тему">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/>
+        <line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/>
+        <line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+      </svg>
+    </button>
+    <button class="icon-btn" id="profileBtn" title="Профили">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+        <circle cx="9" cy="7" r="4"/>
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+      </svg>
+    </button>
+  </div>
+</div>
+
+<!-- PROFILE BAR -->
+<div class="profile-bar" id="profileBar"></div>
+
+<!-- PAGES -->
+<div class="page active" id="pageMain">
+  <!-- MACHINES -->
+  <div class="machines" id="machinesContainer"></div>
+
+  <!-- HISTORY -->
+  <div class="section-title">История</div>
+  <div class="history-list" id="historyList"></div>
+</div>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <button class="nav-btn active" id="navMain">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+      <polyline points="9 22 9 12 15 12 15 22"/>
+    </svg>
+    <span>Главная</span>
+  </button>
+</div>
+
+<!-- TIME PICKER OVERLAY -->
+<div class="overlay" id="pickerOverlay">
+  <div class="picker-sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" id="pickerTitle">Длительность</div>
+    <div class="picker-cols">
+      <div class="picker-col" id="hCol">
+        <div class="picker-line"></div>
+        <ul id="hList"></ul>
+      </div>
+      <div class="picker-sep">:</div>
+      <div class="picker-col" id="mCol">
+        <div class="picker-line"></div>
+        <ul id="mList"></ul>
+      </div>
+    </div>
+    <button class="sheet-ok" id="pickerOk">Готово</button>
+  </div>
+</div>
+
+<!-- PROFILE MODAL -->
+<div class="profile-modal" id="profileModal">
+  <div class="profile-sheet">
+    <div class="sheet-title">Профили</div>
+    <div class="profile-list" id="profileListEl"></div>
+    <div class="add-profile-row">
+      <input class="add-profile-input" id="newProfileName" placeholder="Имя профиля" maxlength="20">
+      <button class="add-profile-btn" id="addProfileBtn">+</button>
+    </div>
+    <button class="modal-close" id="profileModalClose">Закрыть</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+/* ═══════════════════════════════════════════
+   ДАННЫЕ
+═══════════════════════════════════════════ */
+const EMOJIS = ['👤','👨','👩','🧒','👴','👵','🧑'];
+const MACHINE_DEFS = {
+  wash: {
+    name:'Стиральная', icon:'🫧', cls:'wash', accent:'var(--accent-wash)',
+    defaultH:1, defaultM:42,
+    programs: null
+  },
+  dry: {
+    name:'Сушильная', icon:'💨', cls:'dry', accent:'var(--accent-dry)',
+    defaultH:1, defaultM:15,
+    programs: null
+  },
   dish: {
-    prog: 2,
-    progTimes: {1:'02:45',2:'02:00',3:'02:30',4:'00:55',5:'01:40',6:'00:10',7:'00:50'},
-    h: 2, m: 0, isRunning: false, hasFinished: false, startTimeVal: timeNow()
+    name:'Посудомойка', icon:'✨', cls:'dish', accent:'var(--accent-dish)',
+    defaultH:2, defaultM:0,
+    programs: {
+      1:{label:'Интенсив',h:2,m:45}, 2:{label:'Эко',h:2,m:0},
+      3:{label:'Авто',h:2,m:30},     4:{label:'Быстрая',h:0,m:55},
+      5:{label:'Тихая',h:1,m:40},    6:{label:'Ополаск.',h:0,m:10},
+      7:{label:'Нежная',h:0,m:50}
+    }
   }
 };
 
-/* ---------- SAMSUNG MELODY (ОДИН РАЗ) ---------- */
+/* ═══════════════════════════════════════════
+   STATE
+═══════════════════════════════════════════ */
+let state = loadState();
+let pickerContext = null; // {key, field}
+let hSel = 0, mSel = 0;
+
+function defaultState() {
+  return {
+    profiles: [{id:'default', name:'Я', emoji:'👤'}],
+    activeProfile: 'default',
+    machines: {
+      default: makeMachines()
+    },
+    history: [],
+    theme: 'auto',
+    signalEnabled: true
+  };
+}
+function makeMachines() {
+  const m = {};
+  for (const [key, def] of Object.entries(MACHINE_DEFS)) {
+    m[key] = {
+      h: def.defaultH, m: def.defaultM,
+      startH: new Date().getHours(),
+      startM: new Date().getMinutes(),
+      isRunning: false, hasFinished: false,
+      prog: 2, signalEnabled: true
+    };
+  }
+  return m;
+}
+function loadState() {
+  try {
+    const s = localStorage.getItem('laundry_state');
+    if (s) {
+      const parsed = JSON.parse(s);
+      // migrate: ensure all profiles have machines
+      for (const p of parsed.profiles) {
+        if (!parsed.machines[p.id]) parsed.machines[p.id] = makeMachines();
+      }
+      return parsed;
+    }
+  } catch(e) {}
+  return defaultState();
+}
+function saveState() {
+  try { localStorage.setItem('laundry_state', JSON.stringify(state)); } catch(e) {}
+}
+function getMachine(key) {
+  const pid = state.activeProfile;
+  if (!state.machines[pid]) state.machines[pid] = makeMachines();
+  return state.machines[pid][key];
+}
+
+/* ═══════════════════════════════════════════
+   THEME
+═══════════════════════════════════════════ */
+function applyTheme(t) {
+  if (t === 'auto') {
+    const dark = window.matchMedia('(prefers-color-scheme:dark)').matches;
+    document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+  } else {
+    document.documentElement.setAttribute('data-theme', t);
+  }
+}
+applyTheme(state.theme);
+window.matchMedia('(prefers-color-scheme:dark)').addEventListener('change', () => {
+  if (state.theme === 'auto') applyTheme('auto');
+});
+document.getElementById('themeBtn').addEventListener('click', () => {
+  const themes = ['auto','dark','light'];
+  const idx = themes.indexOf(state.theme);
+  state.theme = themes[(idx+1) % themes.length];
+  applyTheme(state.theme);
+  saveState();
+  showToast(state.theme === 'auto' ? '🌗 Авто тема' : state.theme === 'dark' ? '🌙 Тёмная тема' : '☀️ Светлая тема');
+});
+
+/* ═══════════════════════════════════════════
+   PROFILES
+═══════════════════════════════════════════ */
+function renderProfileBar() {
+  const bar = document.getElementById('profileBar');
+  bar.innerHTML = '';
+  for (const p of state.profiles) {
+    const chip = document.createElement('button');
+    chip.className = 'profile-chip' + (p.id === state.activeProfile ? ' active' : '');
+    chip.textContent = p.emoji + ' ' + p.name;
+    chip.addEventListener('click', () => {
+      state.activeProfile = p.id;
+      saveState();
+      renderProfileBar();
+      renderMachines();
+      renderHistory();
+    });
+    bar.appendChild(chip);
+  }
+}
+function renderProfileModal() {
+  const list = document.getElementById('profileListEl');
+  list.innerHTML = '';
+  for (const p of state.profiles) {
+    const item = document.createElement('div');
+    item.className = 'profile-item' + (p.id === state.activeProfile ? ' active-profile' : '');
+    item.innerHTML = `
+      <div class="profile-avatar">${p.emoji}</div>
+      <div class="profile-name">${p.name}</div>
+      ${state.profiles.length > 1 ? `<div class="profile-del" data-id="${p.id}">✕</div>` : ''}
+    `;
+    item.addEventListener('click', (e) => {
+      if (e.target.classList.contains('profile-del')) return;
+      state.activeProfile = p.id;
+      saveState();
+      renderProfileBar();
+      renderMachines();
+      renderHistory();
+    });
+    const del = item.querySelector('.profile-del');
+    if (del) del.addEventListener('click', () => {
+      if (state.activeProfile === p.id) state.activeProfile = state.profiles[0].id;
+      state.profiles = state.profiles.filter(x => x.id !== p.id);
+      delete state.machines[p.id];
+      saveState();
+      renderProfileModal();
+      renderProfileBar();
+      renderMachines();
+    });
+    list.appendChild(item);
+  }
+}
+document.getElementById('profileBtn').addEventListener('click', () => {
+  renderProfileModal();
+  document.getElementById('profileModal').classList.add('open');
+});
+document.getElementById('profileModalClose').addEventListener('click', () => {
+  document.getElementById('profileModal').classList.remove('open');
+});
+document.getElementById('addProfileBtn').addEventListener('click', () => {
+  const inp = document.getElementById('newProfileName');
+  const name = inp.value.trim();
+  if (!name) return;
+  const id = 'p_' + Date.now();
+  const emoji = EMOJIS[state.profiles.length % EMOJIS.length];
+  state.profiles.push({id, name, emoji});
+  state.machines[id] = makeMachines();
+  inp.value = '';
+  saveState();
+  renderProfileModal();
+  renderProfileBar();
+});
+
+/* ═══════════════════════════════════════════
+   RING HELPERS
+═══════════════════════════════════════════ */
+const RING_R = 88;
+const RING_C = 2 * Math.PI * RING_R;
+function ringOffset(pct) { return RING_C - (RING_C * Math.max(0, Math.min(1, pct))); }
+
+/* ═══════════════════════════════════════════
+   RENDER MACHINES
+═══════════════════════════════════════════ */
+function renderMachines() {
+  const container = document.getElementById('machinesContainer');
+  container.innerHTML = '';
+  for (const [key, def] of Object.entries(MACHINE_DEFS)) {
+    const m = getMachine(key);
+    const card = document.createElement('div');
+    card.className = `machine-card ${def.cls}` + (m.isRunning ? ' running' : '');
+    card.id = `card-${key}`;
+
+    const isDish = key === 'dish';
+    const durStr = `${String(m.h).padStart(2,'0')}:${String(m.m).padStart(2,'0')}`;
+    const startStr = `${String(m.startH).padStart(2,'0')}:${String(m.startM).padStart(2,'0')}`;
+
+    let progHtml = '';
+    if (isDish) {
+      const progs = def.programs;
+      progHtml = `<div class="prog-row">` +
+        Object.entries(progs).map(([p,pd]) =>
+          `<button class="prog-chip${m.prog==p?' active':''}" data-prog="${p}">${pd.label}</button>`
+        ).join('') + `</div>`;
+    }
+
+    card.innerHTML = `
+      <div class="card-top">
+        <div class="machine-info">
+          <div class="machine-icon">${def.icon}</div>
+          <div class="machine-name">${def.name}</div>
+          <div class="machine-status ${m.isRunning?'active':''}" id="status-${key}">
+            ${m.isRunning ? 'Работает' : 'Ожидание'}
+          </div>
+        </div>
+      </div>
+      <div class="card-center">
+        <div class="ring-wrap" style="--ring-size:190px">
+          <svg class="ring-svg" viewBox="0 0 200 200">
+            <circle class="ring-track" cx="100" cy="100" r="${RING_R}"/>
+            <circle class="ring-progress" id="ring-${key}" cx="100" cy="100" r="${RING_R}"
+              stroke-dasharray="${RING_C}"
+              stroke-dashoffset="${ringOffset(0)}"/>
+          </svg>
+          <div class="ring-center">
+            <div class="ring-time" id="ringTime-${key}">--:--</div>
+            <div class="ring-label" id="ringLabel-${key}">осталось</div>
+          </div>
+        </div>
+      </div>
+      ${progHtml}
+      <div class="settings-row">
+        <div class="setting-box" id="startBox-${key}">
+          <div class="setting-box-label">Старт</div>
+          <input type="time" class="time-input" id="startTime-${key}"
+            value="${startStr}">
+        </div>
+        <div class="setting-box" id="durBox-${key}">
+          <div class="setting-box-label">Длительность</div>
+          <div class="setting-box-value" id="durVal-${key}">${durStr}</div>
+        </div>
+      </div>
+      <div class="settings-row" style="grid-template-columns:1fr 1fr">
+        <div class="setting-box">
+          <div class="setting-box-label">Конец</div>
+          <div class="setting-box-value accent" id="endVal-${key}">--:--</div>
+        </div>
+        <div class="setting-box">
+          <div class="setting-box-label">Осталось</div>
+          <div class="setting-box-value" id="leftVal-${key}">--:--</div>
+        </div>
+      </div>
+      <div class="notif-row">
+        <span class="notif-label">Сигнал по окончанию</span>
+        <div class="toggle ${m.signalEnabled?'on':''}" id="toggle-${key}">
+          <div class="toggle-knob"></div>
+        </div>
+      </div>
+      <button class="start-btn ${m.isRunning?'stop':'start'} mt" id="startBtn-${key}" style="margin-top:14px">
+        ${m.isRunning ? 'Остановить' : 'Запустить'}
+      </button>
+    `;
+    container.appendChild(card);
+
+    // Программы
+    if (isDish) {
+      card.querySelectorAll('.prog-chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+          const p = parseInt(chip.dataset.prog);
+          const m2 = getMachine(key);
+          m2.prog = p;
+          m2.h = def.programs[p].h;
+          m2.m = def.programs[p].m;
+          saveState();
+          renderMachines();
+        });
+      });
+    }
+
+    // Время старта
+    document.getElementById(`startTime-${key}`).addEventListener('change', e => {
+      const [h,mm] = e.target.value.split(':').map(Number);
+      const m2 = getMachine(key);
+      m2.startH = h; m2.startM = mm;
+      saveState();
+    });
+
+    // Длительность — открыть picker
+    document.getElementById(`durBox-${key}`).addEventListener('click', () => {
+      openPicker(key, 'dur');
+    });
+
+    // Toggle сигнала
+    document.getElementById(`toggle-${key}`).addEventListener('click', () => {
+      const m2 = getMachine(key);
+      m2.signalEnabled = !m2.signalEnabled;
+      document.getElementById(`toggle-${key}`).classList.toggle('on', m2.signalEnabled);
+      saveState();
+    });
+
+    // Старт/Стоп
+    document.getElementById(`startBtn-${key}`).addEventListener('click', () => {
+      handleStartStop(key);
+    });
+  }
+  updateAllMachines();
+}
+
+/* ═══════════════════════════════════════════
+   START / STOP
+═══════════════════════════════════════════ */
+function handleStartStop(key) {
+  const m = getMachine(key);
+  if (!m.isRunning) {
+    m.isRunning = true;
+    m.hasFinished = false;
+    // Обновляем время старта на текущее
+    const now = new Date();
+    m.startH = now.getHours();
+    m.startM = now.getMinutes();
+    document.getElementById(`startTime-${key}`).value =
+      `${String(m.startH).padStart(2,'0')}:${String(m.startM).padStart(2,'0')}`;
+    saveState();
+    scheduleServerNotification(key);
+    scheduleSwNotification(key);
+    updateCard(key);
+    document.getElementById(`card-${key}`).classList.add('running');
+    document.getElementById(`startBtn-${key}`).textContent = 'Остановить';
+    document.getElementById(`startBtn-${key}`).className = 'start-btn stop';
+    document.getElementById(`status-${key}`).textContent = 'Работает';
+    document.getElementById(`status-${key}`).className = 'machine-status active';
+  } else {
+    m.isRunning = false;
+    cancelSwNotification(key);
+    saveState();
+    document.getElementById(`card-${key}`).classList.remove('running');
+    document.getElementById(`startBtn-${key}`).textContent = 'Запустить';
+    document.getElementById(`startBtn-${key}`).className = 'start-btn start';
+    document.getElementById(`status-${key}`).textContent = 'Ожидание';
+    document.getElementById(`status-${key}`).className = 'machine-status';
+    document.getElementById(`ringTime-${key}`).textContent = '--:--';
+    document.getElementById(`ring-${key}`).style.strokeDashoffset = ringOffset(0);
+    document.getElementById(`leftVal-${key}`).textContent = '--:--';
+  }
+}
+
+/* ═══════════════════════════════════════════
+   COMPUTE END DATE
+═══════════════════════════════════════════ */
+function getEndDate(key) {
+  const m = getMachine(key);
+  const now = new Date();
+  const start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), m.startH, m.startM, 0, 0);
+  const totalMs = (m.h * 60 + m.m) * 60000;
+  return new Date(start.getTime() + totalMs);
+}
+
+/* ═══════════════════════════════════════════
+   UPDATE LOOP
+═══════════════════════════════════════════ */
+function updateAllMachines() {
+  for (const key of Object.keys(MACHINE_DEFS)) updateCard(key);
+}
+function updateCard(key) {
+  const m = getMachine(key);
+  const endDate = getEndDate(key);
+  const endStr = `${String(endDate.getHours()).padStart(2,'0')}:${String(endDate.getMinutes()).padStart(2,'0')}`;
+  const endEl = document.getElementById(`endVal-${key}`);
+  if (endEl) endEl.textContent = endStr;
+
+  const leftEl = document.getElementById(`leftVal-${key}`);
+  const ringEl = document.getElementById(`ring-${key}`);
+  const ringTimeEl = document.getElementById(`ringTime-${key}`);
+  const ringLabelEl = document.getElementById(`ringLabel-${key}`);
+  if (!leftEl || !ringEl) return;
+
+  if (!m.isRunning) {
+    leftEl.textContent = '--:--';
+    ringTimeEl.textContent = '--:--';
+    ringEl.style.strokeDashoffset = ringOffset(0);
+    return;
+  }
+
+  const now = Date.now();
+  const totalMs = (m.h * 60 + m.m) * 60000;
+  const leftMs = endDate.getTime() - now;
+
+  if (leftMs <= 0) {
+    leftEl.textContent = '00:00';
+    ringTimeEl.textContent = '00:00';
+    ringEl.style.strokeDashoffset = ringOffset(1);
+    if (m.signalEnabled && !m.hasFinished) fireFinalSignal(key);
+    return;
+  }
+
+  // Прогресс
+  const pct = 1 - (leftMs / totalMs);
+  ringEl.style.strokeDashoffset = ringOffset(pct);
+
+  // Отображение
+  if (leftMs < 60000) {
+    const sec = Math.ceil(leftMs / 1000);
+    const t = `${String(Math.floor(sec/60)).padStart(2,'0')}:${String(sec%60).padStart(2,'0')}`;
+    leftEl.textContent = t;
+    ringTimeEl.textContent = t;
+    if (ringLabelEl) ringLabelEl.textContent = 'секунды';
+  } else {
+    const totalMin = Math.ceil(leftMs / 60000);
+    const lh = Math.floor(totalMin / 60);
+    const lm = totalMin % 60;
+    const t = `${String(lh).padStart(2,'0')}:${String(lm).padStart(2,'0')}`;
+    leftEl.textContent = t;
+    ringTimeEl.textContent = t;
+    if (ringLabelEl) ringLabelEl.textContent = 'осталось';
+  }
+}
+
+/* ═══════════════════════════════════════════
+   FINAL SIGNAL
+═══════════════════════════════════════════ */
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-function playNote(freq, startTime, duration = 0.15, volume = 0.25) {
+function playNote(freq, t, dur=0.18, vol=0.3) {
   const osc = audioCtx.createOscillator();
   const gain = audioCtx.createGain();
   osc.type = 'sine';
-  osc.frequency.setValueAtTime(freq, startTime);
-  gain.gain.setValueAtTime(volume, startTime);
-  gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+  osc.frequency.setValueAtTime(freq, t);
+  gain.gain.setValueAtTime(vol, t);
+  gain.gain.exponentialRampToValueAtTime(0.001, t + dur);
   osc.connect(gain).connect(audioCtx.destination);
-  osc.start(startTime);
-  osc.stop(startTime + duration);
+  osc.start(t); osc.stop(t + dur);
 }
-function samsungMelodyOnce() {
+function playMelody() {
   if (audioCtx.state === 'suspended') audioCtx.resume();
-  const now = audioCtx.currentTime;
-  const noteDur = 0.15;
-  const gap = 0.1;
-  const groupPause = 0.4;
+  const t = audioCtx.currentTime;
   const notes = [659.25, 783.99, 1046.50];
-  for (let i = 0; i < 3; i++) {
-    playNote(notes[i], now + i * (noteDur + gap), noteDur);
-  }
-  for (let i = 0; i < 3; i++) {
-    playNote(notes[i], now + groupPause + i * (noteDur + gap), noteDur);
-  }
+  [0,1,2,0.5,1.5,2.5].forEach((offset,i) => {
+    playNote(notes[i%3], t + offset * 0.28);
+  });
 }
 
-/* ---------- БЕЗОПАСНАЯ ОТПРАВКА В TELEGRAM ЧЕРЕЗ Vercel ---------- */
-async function sendTelegramNotification(messageText) {
-  try {
-    await fetch('/api/notify', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-internal-secret': 'wash42'
-      },
-      body: JSON.stringify({ message: messageText })
-    });
-  } catch (e) {
-    console.warn('Не удалось отправить уведомление:', e);
-  }
+function fireFinalSignal(key) {
+  const m = getMachine(key);
+  if (m.hasFinished) return;
+  m.hasFinished = true;
+  m.isRunning = false;
+  saveState();
+
+  const names = {wash:'Стиральная машина', dry:'Сушильная машина', dish:'Посудомойка'};
+  const texts = {wash:'готова! 🫧', dry:'закончила! 💨', dish:'помыла! ✨'};
+  const message = `${names[key]} ${texts[key]}`;
+
+  playMelody();
+  if ('vibrate' in navigator) navigator.vibrate([600,200,600,200,600]);
+  showPushNotification('✅ LaundryAI', message, `laundry-${key}`);
+  sendTelegramNotification(message);
+
+  document.getElementById(`card-${key}`).classList.remove('running');
+  document.getElementById(`card-${key}`).classList.add('alarm');
+  setTimeout(() => document.getElementById(`card-${key}`)?.classList.remove('alarm'), 4000);
+  document.getElementById(`startBtn-${key}`).textContent = 'Запустить';
+  document.getElementById(`startBtn-${key}`).className = 'start-btn start';
+  document.getElementById(`status-${key}`).textContent = 'Готово ✓';
+  document.getElementById(`status-${key}`).className = 'machine-status active';
+
+  showToast(`✅ ${message}`);
+  addHistory(key, message);
 }
 
-/* ---------- ЭЛЕМЕНТЫ DOM ---------- */
-const panels = document.getElementById('panels');
-const scrollBox = document.getElementById('scrollBox');
-const hList = document.getElementById('hList');
-const mList = document.getElementById('mList');
-const okBtn = document.getElementById('okBtn');
-let activeMachine = 'wash';
-let hSel = 1, mSel = 42;
-let signalEnabled = true;
+/* ═══════════════════════════════════════════
+   HISTORY
+═══════════════════════════════════════════ */
+const ACCENT_COLORS = {wash:'var(--accent-wash)', dry:'var(--accent-dry)', dish:'var(--accent-dish)'};
+function addHistory(key, message) {
+  const pid = state.activeProfile;
+  if (!state.history) state.history = [];
+  const filtered = state.history.filter(h => h.pid === pid);
+  state.history.unshift({
+    pid, key, message,
+    time: new Date().toLocaleTimeString('ru', {hour:'2-digit', minute:'2-digit'}),
+    date: new Date().toLocaleDateString('ru', {day:'2-digit', month:'2-digit'})
+  });
+  // Максимум 30
+  state.history = state.history.slice(0, 30);
+  saveState();
+  renderHistory();
+}
+function renderHistory() {
+  const pid = state.activeProfile;
+  const list = document.getElementById('historyList');
+  const items = (state.history || []).filter(h => h.pid === pid);
+  if (!items.length) {
+    list.innerHTML = '<div class="history-empty">История пуста</div>';
+    return;
+  }
+  list.innerHTML = items.slice(0,10).map(h => `
+    <div class="history-item">
+      <div class="history-dot" style="background:${ACCENT_COLORS[h.key]}"></div>
+      <div class="history-text">${h.message}</div>
+      <div class="history-time">${h.date} ${h.time}</div>
+    </div>
+  `).join('');
+}
 
-/* ---------- ЗАПОЛНЕНИЕ СПИСКОВ ВРЕМЕНИ ---------- */
-function fillLists() {
+/* ═══════════════════════════════════════════
+   TOAST
+═══════════════════════════════════════════ */
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+/* ═══════════════════════════════════════════
+   PICKER
+═══════════════════════════════════════════ */
+function fillPicker() {
+  const hList = document.getElementById('hList');
+  const mList = document.getElementById('mList');
   hList.innerHTML = '';
   mList.innerHTML = '';
   for (let i = 0; i < 10; i++) {
     const li = document.createElement('li');
-    li.textContent = String(i).padStart(2, '0');
+    li.textContent = String(i).padStart(2,'0');
     li.dataset.val = i;
     hList.appendChild(li);
   }
   for (let i = 0; i < 60; i++) {
     const li = document.createElement('li');
-    li.textContent = String(i).padStart(2, '0');
+    li.textContent = String(i).padStart(2,'0');
     li.dataset.val = i;
     mList.appendChild(li);
   }
 }
-
-/* ---------- РЕНДЕР Панели ---------- */
-function renderPanel(key) {
-  const m = machines[key];
-  const isDish = key === 'dish';
-  const durValue = isDish ? m.progTimes[m.prog] : `${String(m.h).padStart(2,'0')}:${String(m.m).padStart(2,'0')}`;
-  return `
-<div class="panel" id="panel-${key}" data-machine="${key}" style="display:${key===activeMachine?'block':'none'}">
-<div class="row">
-<span class="label">Время старта</span>
-<input type="time" class="value startTime" value="${m.startTimeVal}">
-</div>
-${isDish ? `
-<div class="row">
-<span class="label">Программа</span>
-<select class="prog-select">
-${[1,2,3,4,5,6,7].map(p => `<option value="${p}" ${p===m.prog?'selected':''}>${p}</option>`).join('')}
-</select>
-</div>` : ''}
-<div class="row">
-<span class="label">Длительность</span>
-<input type="text" class="value durTime" value="${durValue}" readonly>
-</div>
-<div class="row end-row">
-<span class="label">Конец:</span>
-<span class="value endShow">--:--</span>
-</div>
-<div class="row left-row">
-<span class="label">Осталось:</span>
-<span class="value leftShow">--:--</span>
-</div>
-<div class="row check-row">
-<span class="check-label">Сигнал по окончанию</span>
-<div class="check-box ${signalEnabled?'checked':''}"></div>
-</div>
-<button class="startStopBtn ${machines[key].isRunning ? 'stop' : ''}">
-${machines[key].isRunning ? 'Стоп' : 'Старт'}
-</button>
-<button class="testBtn" style="display:block;width:100%;margin-top:8px;padding:6px;background:#eee;border:none;border-radius:6px;font-size:13px;color:#666;cursor:pointer">
-Тест Telegram
-</button>
-</div>`;
+function centerPicker(col, idx) {
+  col.scrollTop = idx * 40;
 }
-function initPanels() {
-  Object.keys(machines).forEach(k => panels.insertAdjacentHTML('beforeend', renderPanel(k)));
+function openPicker(key, field) {
+  pickerContext = {key, field};
+  const m = getMachine(key);
+  hSel = m.h; mSel = m.m;
+  const hCol = document.getElementById('hCol');
+  const mCol = document.getElementById('mCol');
+  hCol.querySelectorAll('li').forEach(li => li.classList.toggle('sel', parseInt(li.dataset.val)===hSel));
+  mCol.querySelectorAll('li').forEach(li => li.classList.toggle('sel', parseInt(li.dataset.val)===mSel));
+  centerPicker(hCol, hSel);
+  centerPicker(mCol, mSel);
+  document.getElementById('pickerOverlay').classList.add('open');
 }
-
-/* ---------- ПЕРЕКЛЮЧЕНИЕ ВКЛАДОК ---------- */
-document.querySelectorAll('.tab').forEach(tab => {
-  tab.addEventListener('click', () => {
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    tab.classList.add('active');
-    activeMachine = tab.dataset.machine;
-    document.querySelectorAll('.panel').forEach(p => {
-      p.style.display = p.dataset.machine === activeMachine ? 'block' : 'none';
-    });
-    updateMachine(activeMachine);
+['hCol','mCol'].forEach(id => {
+  const col = document.getElementById(id);
+  col.addEventListener('scroll', () => {
+    const idx = Math.round(col.scrollTop / 40);
+    const bounded = Math.max(0, Math.min(id==='hCol'?9:59, idx));
+    if (id === 'hCol') hSel = bounded;
+    else mSel = bounded;
+    col.querySelectorAll('li').forEach(li => li.classList.toggle('sel', parseInt(li.dataset.val)===bounded));
   });
 });
-
-/* ---------- ОБРАБОТКА ФОКУСА НА ДЛИТЕЛЬНОСТИ ---------- */
-panels.addEventListener('focusin', e => {
-  if (e.target.classList.contains('durTime')) {
-    const panel = e.target.closest('.panel');
-    const key = panel.dataset.machine;
-    const m = machines[key];
-    hSel = m.h; mSel = m.m;
-    document.querySelectorAll('#hList li, #mList li').forEach(li => li.classList.remove('sel'));
-    const hItems = hList.querySelectorAll('li');
-    const mItems = mList.querySelectorAll('li');
-    if (hItems[hSel]) hItems[hSel].classList.add('sel');
-    if (mItems[mSel]) mItems[mSel].classList.add('sel');
-    centerItem(hCol, hSel);
-    centerItem(mCol, mSel);
-    scrollBox.style.display = 'flex';
-  }
-});
-
-/* ---------- ТЕСТ TELEGRAM ---------- */
-document.addEventListener('click', async e => {
-  if (e.target.classList.contains('testBtn')) {
-    const panel = e.target.closest('.panel');
-    const key = panel.dataset.machine;
-    const names = { wash: 'Стиральная машина', dry: 'Сушильная машина', dish: 'Посудомойка' };
-    const texts = { wash: 'достиралась!', dry: 'досушилась!', dish: 'домылась!' };
-    e.target.textContent = 'Отправляю...';
-    try {
-      const res = await fetch('/api/notify', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-internal-secret': 'wash42'
-        },
-        body: JSON.stringify({ message: `${names[key]} ${texts[key]}` })
-      });
-      const data = await res.json();
-      e.target.textContent = data.success ? '✅ Отправлено!' : '❌ Ошибка: ' + JSON.stringify(data);
-    } catch (err) {
-      e.target.textContent = '❌ ' + err.message;
-    }
-    setTimeout(() => e.target.textContent = 'Тест Telegram', 3000);
-  }
-});
-
-/* ---------- START / STOP ---------- */
-document.addEventListener('click', e => {
-  if (e.target.classList.contains('startStopBtn')) {
-    const panel = e.target.closest('.panel');
-    const key = panel.dataset.machine;
-    const m = machines[key];
-    if (!m.isRunning) {
-      m.hasFinished = false;
-    }
-    m.isRunning = !m.isRunning;
-    e.target.textContent = m.isRunning ? 'Стоп' : 'Старт';
-    e.target.classList.toggle('stop', m.isRunning);
-    updateMachine(key);
-
-    if (m.isRunning) {
-      scheduleSwNotification(key);        // SW таймер (пока страница жива)
-      scheduleServerNotification(key);    // серверный Telegram (надёжный fallback)
-    } else {
-      cancelSwNotification(key);
-    }
-  }
-});
-
-/* ---------- ИЗМЕНЕНИЕ ВРЕМЕНИ СТАРТА ИЛИ ПРОГРАММЫ ---------- */
-document.addEventListener('change', e => {
-  if (e.target.classList.contains('startTime')) {
-    const key = e.target.closest('.panel').dataset.machine;
-    machines[key].startTimeVal = e.target.value;
-    updateMachine(key);
-  }
-  if (e.target.classList.contains('prog-select')) {
-    const key = e.target.closest('.panel').dataset.machine;
-    machines[key].prog = +e.target.value;
-    const [h, mm] = machines[key].progTimes[machines[key].prog].split(':').map(Number);
-    machines[key].h = h;
-    machines[key].m = mm;
-    document.querySelector(`.panel[data-machine="${key}"] .durTime`).value = machines[key].progTimes[machines[key].prog];
-    updateMachine(key);
-  }
-});
-
-/* ---------- ЧЕКБОКС СИГНАЛА ---------- */
-document.addEventListener('click', e => {
-  if (e.target.classList.contains('check-box')) {
-    signalEnabled = !signalEnabled;
-    document.querySelectorAll('.check-box').forEach(cb => cb.classList.toggle('checked', signalEnabled));
-  }
-});
-
-/* ---------- СКРОЛЛ-ВЫБОР ВРЕМЕНИ ---------- */
-function centerItem(col, idx) {
-  const liH = 30;
-  col.scrollTop = idx * liH - 2 * liH;
-}
-[hList, mList].forEach(list => {
-  list.addEventListener('click', e => {
-    if (e.target.tagName !== 'LI') return;
-    list.querySelectorAll('li').forEach(li => li.classList.remove('sel'));
-    e.target.classList.add('sel');
-    const val = Number(e.target.dataset.val);
-    if (list === hList) hSel = val; else mSel = val;
-  });
-});
-function setupWheelScroll(col, max) {
-  col.addEventListener('wheel', e => {
-    e.preventDefault();
-    let next = (col.id === 'hCol' ? hSel : mSel) + (e.deltaY > 0 ? 1 : -1);
-    if (next < 0) next = max;
-    if (next > max) next = 0;
-    if (col.id === 'hCol') hSel = next; else mSel = next;
-    const list = col.querySelector('ul');
-    list.querySelectorAll('li').forEach(li => li.classList.remove('sel'));
-    list.children[next].classList.add('sel');
-    centerItem(col, next);
-  });
-}
-setupWheelScroll(hCol, 9);
-setupWheelScroll(mCol, 59);
-okBtn.addEventListener('click', () => {
-  const m = machines[activeMachine];
-  m.h = hSel;
-  m.m = mSel;
-  document.querySelector(`.panel[data-machine="${activeMachine}"] .durTime`).value =
+document.getElementById('pickerOk').addEventListener('click', () => {
+  if (!pickerContext) return;
+  const m = getMachine(pickerContext.key);
+  m.h = hSel; m.m = mSel;
+  document.getElementById(`durVal-${pickerContext.key}`).textContent =
     `${String(hSel).padStart(2,'0')}:${String(mSel).padStart(2,'0')}`;
-  scrollBox.style.display = 'none';
-  updateMachine(activeMachine);
+  saveState();
+  document.getElementById('pickerOverlay').classList.remove('open');
+  updateCard(pickerContext.key);
+});
+document.getElementById('pickerOverlay').addEventListener('click', e => {
+  if (e.target === document.getElementById('pickerOverlay'))
+    document.getElementById('pickerOverlay').classList.remove('open');
 });
 
-/* ---------- ОСНОВНАЯ ЛОГИКА ВРЕМЕНИ (ИСПРАВЛЕНА!) ---------- */
-function updateMachine(key) {
-  const m = machines[key];
-  const panel = document.querySelector(`.panel[data-machine="${key}"]`);
-  const startVal = m.startTimeVal;
-
-  // Валидация
-  if (!startVal || !/^\d{2}:\d{2}$/.test(startVal)) {
-    panel.querySelector('.endShow').textContent = '--:--';
-    panel.querySelector('.leftShow').textContent = '--:--';
-    return;
-  }
-
-  const [sh, sm] = startVal.split(':').map(Number);
-  if (isNaN(sh) || isNaN(sm) || sh < 0 || sh > 23 || sm < 0 || sm > 59) {
-    panel.querySelector('.endShow').textContent = '--:--';
-    panel.querySelector('.leftShow').textContent = '--:--';
-    return;
-  }
-
-  // Дата старта — всегда сегодня (пользователь сам ввёл время)
-  const now = new Date();
-  const startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), sh, sm, 0, 0);
-
-  // Время окончания
-  const totalMs = (m.h * 60 + m.m) * 60000;
-  const endDate = new Date(startDate.getTime() + totalMs);
-  const endStr = `${String(endDate.getHours()).padStart(2, '0')}:${String(endDate.getMinutes()).padStart(2, '0')}`;
-  panel.querySelector('.endShow').textContent = endStr;
-
-  // Если таймер не запущен
-  if (!m.isRunning) {
-    panel.querySelector('.leftShow').textContent = '--:--';
-    const btn = panel.querySelector('.startStopBtn');
-    if (btn) {
-      btn.textContent = 'Старт';
-      btn.classList.remove('stop');
-    }
-    return;
-  }
-
-  // Оставшееся время до реального окончания
-  const leftMs = endDate.getTime() - now.getTime();
-
-  // Завершение
-  if (leftMs <= 0) {
-    panel.querySelector('.leftShow').textContent = '00:00';
-    if (signalEnabled && !m.hasFinished) {
-      fireFinalSignal(key);
-    }
-    return;
-  }
-
-  // --- Отображение оставшегося времени ---
-  if (leftMs < 60000) {
-    // Менее минуты — секунды
-    const leftSec = Math.ceil(leftMs / 1000);
-    const lm = Math.floor(leftSec / 60);
-    const ls = leftSec % 60;
-    panel.querySelector('.leftShow').textContent = `${String(lm).padStart(2, '0')}:${String(ls).padStart(2, '0')}`;
-  } else {
-    // Больше минуты — часы и минуты (ограничено 99 часами)
-    const totalMinutes = Math.ceil(leftMs / 60000);
-    const lh = Math.floor(totalMinutes / 60);
-    const lm = totalMinutes % 60;
-    if (lh > 99) {
-      panel.querySelector('.leftShow').textContent = '99:59';
-    } else {
-      panel.querySelector('.leftShow').textContent = `${String(lh).padStart(2, '0')}:${String(lm).padStart(2, '0')}`;
-    }
-  }
-}
-
-/* ---------- ФИНАЛЬНЫЙ СИГНАЛ (ТОЛЬКО ОДИН РАЗ) ---------- */
-function fireFinalSignal(key) {
-  const m = machines[key];
-  if (m.hasFinished) return;
-  m.hasFinished = true;
-  m.isRunning = false;
-
-  // Звук
-  samsungMelodyOnce();
-
-  // Текст
-  const texts = { wash: 'достиралась!', dry: 'досушилась!', dish: 'домылась!' };
-  const names = { wash: 'Стиральная машина', dry: 'Сушильная машина', dish: 'Посудомойка' };
-  const message = `${names[key]} ${texts[key]}`;
-
-  // Уведомление + вибрация (работает на заблокированном экране через SW)
-  showPushNotification('✅ WashTime AI', message, `washtime-${key}`);
-
-  // Telegram
-  sendTelegramNotification(message);
-
-  // Обновление UI
-  const panel = document.querySelector(`.panel[data-machine="${key}"]`);
-  if (panel) {
-    panel.querySelector('.leftShow').textContent = '00:00';
-    const btn = panel.querySelector('.startStopBtn');
-    if (btn) {
-      btn.textContent = 'Старт';
-      btn.classList.remove('stop');
-    }
-  }
-
-  // Визуальный эффект
-  document.body.classList.add('alarm');
-  setTimeout(() => document.body.classList.remove('alarm'), 3000);
-}
-
-/* ---------- SERVICE WORKER ---------- */
-let swRegistration = null;
-
+/* ═══════════════════════════════════════════
+   SERVICE WORKER & NOTIFICATIONS
+═══════════════════════════════════════════ */
+let swReg = null;
 async function registerSW() {
   if (!('serviceWorker' in navigator)) return;
   try {
-    swRegistration = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
-    // Ждём пока SW станет активным
-    if (swRegistration.installing) {
-      await new Promise(resolve => {
-        swRegistration.installing.addEventListener('statechange', function() {
-          if (this.state === 'activated') resolve();
-        });
-      });
+    swReg = await navigator.serviceWorker.register('/sw.js', {scope:'/'});
+    if (swReg.installing) {
+      await new Promise(r => swReg.installing.addEventListener('statechange', function(){
+        if (this.state==='activated') r();
+      }));
     }
-    console.log('SW зарегистрирован и активен');
-  } catch (e) {
-    console.warn('SW не зарегистрирован:', e);
-  }
+  } catch(e) { console.warn('SW:', e); }
 }
-
-async function requestNotifyPermission() {
+async function requestNotifPerm() {
   if (!('Notification' in window)) return;
-  if (Notification.permission === 'default') {
-    await Notification.requestPermission();
+  if (Notification.permission === 'default') await Notification.requestPermission();
+}
+async function showPushNotification(title, body, tag) {
+  if (Notification.permission !== 'granted') return;
+  if (swReg?.active) {
+    swReg.active.postMessage({type:'NOTIFY', title, body, tag});
+  } else {
+    new Notification(title, {body, icon:'/icons/icon-192.png', tag});
   }
 }
+function scheduleSwNotification(key) { /* SW уведомление через клиент */ }
+function cancelSwNotification(key) { /* нет таймеров в SW */ }
 
-/* ---------- СЕРВЕРНОЕ РАСПИСАНИЕ TELEGRAM ---------- */
-async function scheduleServerNotification(key) {
-  const endDate = getEndDateForKey(key);
+/* ═══════════════════════════════════════════
+   QSTASH / TELEGRAM
+═══════════════════════════════════════════ */
+const watchdogs = {};
+function scheduleServerNotification(key) {
+  cancelClientWatchdog(key);
+  const endDate = getEndDate(key);
   if (!endDate) return;
-
-  const texts = { wash: 'достиралась!', dry: 'досушилась!', dish: 'домылась!' };
-  const names = { wash: 'Стиральная машина', dry: 'Сушильная машина', dish: 'Посудомойка' };
+  const names = {wash:'Стиральная машина', dry:'Сушильная машина', dish:'Посудомойка'};
+  const texts = {wash:'готова! 🫧', dry:'закончила! 💨', dish:'помыла! ✨'};
   const message = `${names[key]} ${texts[key]}`;
 
-  // QStash: Vercel мгновенно передаёт задачу в очередь и отвечает клиенту.
-  // QStash сам дождётся нужного времени и вызовет /api/notify.
-  // Работает даже если телефон заблокирован или браузер закрыт.
-  try {
-    const res = await fetch('/api/schedule', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        endTime: endDate.toISOString(),
-        message
-      })
-    });
-    const data = await res.json();
-    if (data.success) {
-      console.log('✅ QStash принял задачу, id:', data.messageId);
-    } else {
-      console.warn('QStash ошибка:', data.error);
+  // QStash — надёжный серверный таймер
+  fetch('/api/schedule', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({endTime: endDate.toISOString(), message})
+  }).then(r => r.json()).then(d => {
+    if (d.success) console.log('QStash ✓', d.messageId);
+    else console.warn('QStash:', d.error);
+  }).catch(e => console.warn('schedule:', e));
+
+  // Watchdog — резервный (пока браузер жив)
+  watchdogs[key] = setInterval(async () => {
+    if (!getMachine(key).isRunning) { cancelClientWatchdog(key); return; }
+    if (endDate.getTime() - Date.now() <= 0) {
+      cancelClientWatchdog(key);
+      try {
+        await fetch('/api/notify', {
+          method:'POST',
+          headers:{'Content-Type':'application/json','x-internal-secret':'wash42'},
+          body: JSON.stringify({message})
+        });
+      } catch(e) {}
     }
-  } catch (e) {
-    console.warn('Не удалось запланировать уведомление:', e);
-  }
+  }, 5000);
+}
+function cancelClientWatchdog(key) {
+  if (watchdogs[key]) { clearInterval(watchdogs[key]); delete watchdogs[key]; }
+}
+async function sendTelegramNotification(msg) {
+  try {
+    await fetch('/api/notify', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-internal-secret':'wash42'},
+      body: JSON.stringify({message: msg})
+    });
+  } catch(e) {}
 }
 
-/* ---------- ПЛАНИРОВАНИЕ УВЕДОМЛЕНИЯ ЧЕРЕЗ SW ---------- */
-function getEndDateForKey(key) {
-  const m = machines[key];
-  const startVal = m.startTimeVal;
-  if (!startVal) return null;
-  const [sh, sm] = startVal.split(':').map(Number);
-  const now = new Date();
-  const startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), sh, sm, 0, 0);
-  const totalMs = (m.h * 60 + m.m) * 60000;
-  return new Date(startDate.getTime() + totalMs);
-}
-
-function scheduleSwNotification(key) {
-  if (!swRegistration || !swRegistration.active) return;
-  if (Notification.permission !== 'granted') return;
-
-  const endDate = getEndDateForKey(key);
-  if (!endDate) return;
-
-  const delayMs = endDate.getTime() - Date.now();
-  if (delayMs <= 0) return;
-
-  const texts = { wash: 'достиралась!', dry: 'досушилась!', dish: 'домылась!' };
-  const names = { wash: 'Стиральная машина', dry: 'Сушильная машина', dish: 'Посудомойка' };
-  const body = `${names[key]} ${texts[key]}`;
-
-  swRegistration.active.postMessage({
-    type: 'SCHEDULE',
-    key,
-    title: '✅ WashTime AI',
-    body,
-    tag: `washtime-${key}`,
-    delayMs
-  });
-}
-
-function cancelSwNotification(key) {
-  if (!swRegistration || !swRegistration.active) return;
-  swRegistration.active.postMessage({ type: 'CANCEL', key });
-}
-
-/* ---------- ПОКАЗАТЬ УВЕДОМЛЕНИЕ НЕМЕДЛЕННО (страница активна) ---------- */
-async function showPushNotification(title, body, tag) {
-  if ('vibrate' in navigator) {
-    navigator.vibrate([500, 200, 500, 200, 500]);
-  }
-  if (Notification.permission !== 'granted') return;
-
-  if (swRegistration && swRegistration.active) {
-    swRegistration.active.postMessage({ type: 'NOTIFY', title, body, tag });
-    return;
-  }
-  new Notification(title, {
-    body,
-    icon: '/icons/icon-192.png',
-    vibrate: [500, 200, 500],
-    requireInteraction: true,
-    tag
-  });
-}
-
-/* ---------- ИНИЦИАЛИЗАЦИЯ ---------- */
+/* ═══════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════ */
+fillPicker();
+renderProfileBar();
+renderMachines();
+renderHistory();
 registerSW();
-requestNotifyPermission();
-fillLists();
-initPanels();
-document.querySelector('.tab').click();
-setInterval(() => Object.keys(machines).forEach(k => updateMachine(k)), 1000);
+requestNotifPerm();
+setInterval(updateAllMachines, 1000);
 </script>
 </body>
 </html>
