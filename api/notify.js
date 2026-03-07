@@ -1,4 +1,6 @@
-// api/notify.js
+// api/notify.js — отправляет Telegram
+// Вызывается либо напрямую (тест), либо автоматически через QStash
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Метод не разрешён' });
