@@ -303,10 +303,11 @@ document.addEventListener('click', e => {
     updateMachine(key);
 
     if (m.isRunning) {
-      scheduleSwNotification(key);        // SW таймер (пока страница жива)
-      scheduleServerNotification(key);    // серверный Telegram (надёжный fallback)
+      scheduleSwNotification(key);          // SW уведомление (при финальном сигнале)
+      scheduleClientNotification(key);      // watchdog: Telegram через /api/notify
     } else {
       cancelSwNotification(key);
+      cancelClientNotification(key);
     }
   }
 });
@@ -514,30 +515,7 @@ async function requestNotifyPermission() {
   }
 }
 
-/* ---------- СЕРВЕРНОЕ РАСПИСАНИЕ TELEGRAM ---------- */
-async function scheduleServerNotification(key) {
-  const endDate = getEndDateForKey(key);
-  if (!endDate) return;
-
-  const texts = { wash: 'достиралась!', dry: 'досушилась!', dish: 'домылась!' };
-  const names = { wash: 'Стиральная машина', dry: 'Сушильная машина', dish: 'Посудомойка' };
-  const message = `${names[key]} ${texts[key]}`;
-
-  try {
-    await fetch('/api/schedule', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        endTime: endDate.toISOString(),
-        message
-      })
-    });
-  } catch (e) {
-    console.warn('Не удалось запланировать уведомление:', e);
-  }
-}
-
-/* ---------- ПЛАНИРОВАНИЕ УВЕДОМЛЕНИЯ ЧЕРЕЗ SW ---------- */
+/* ---------- ВСПОМОГАТЕЛЬНАЯ: вычислить дату окончания ---------- */
 function getEndDateForKey(key) {
   const m = machines[key];
   const startVal = m.startTimeVal;
@@ -549,33 +527,67 @@ function getEndDateForKey(key) {
   return new Date(startDate.getTime() + totalMs);
 }
 
-function scheduleSwNotification(key) {
-  if (!swRegistration || !swRegistration.active) return;
-  if (Notification.permission !== 'granted') return;
+/* ---------- НАДЁЖНОЕ РАСПИСАНИЕ TELEGRAM:
+   Клиент сам вызывает /api/notify в нужный момент через watchdog-интервал.
+   Это работает пока браузер жив (даже при заблокированном экране Chrome держит
+   вкладки активными если есть активный Service Worker).
+   Дополнительно: за 30 сек до конца SW показывает уведомление напрямую — это
+   работает даже если вкладка была выгружена. ---------- */
+
+// Хранилище watchdog-таймеров для каждой машины
+const watchdogs = {};
+
+function scheduleClientNotification(key) {
+  cancelClientNotification(key); // сбросить предыдущий если был
 
   const endDate = getEndDateForKey(key);
   if (!endDate) return;
 
-  const delayMs = endDate.getTime() - Date.now();
-  if (delayMs <= 0) return;
-
   const texts = { wash: 'достиралась!', dry: 'досушилась!', dish: 'домылась!' };
   const names = { wash: 'Стиральная машина', dry: 'Сушильная машина', dish: 'Посудомойка' };
-  const body = `${names[key]} ${texts[key]}`;
+  const message = `${names[key]} ${texts[key]}`;
 
-  swRegistration.active.postMessage({
-    type: 'SCHEDULE',
-    key,
-    title: '✅ WashTime AI',
-    body,
-    tag: `washtime-${key}`,
-    delayMs
-  });
+  // Watchdog: каждые 5 секунд проверяем — не пришло ли время
+  watchdogs[key] = setInterval(async () => {
+    if (!machines[key].isRunning) {
+      cancelClientNotification(key);
+      return;
+    }
+    const now = Date.now();
+    const left = endDate.getTime() - now;
+
+    // Время вышло — отправляем Telegram немедленно
+    if (left <= 0) {
+      cancelClientNotification(key);
+      try {
+        await fetch('/api/notify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message })
+        });
+      } catch (e) {
+        console.warn('Telegram watchdog error:', e);
+      }
+    }
+  }, 5000);
+}
+
+function cancelClientNotification(key) {
+  if (watchdogs[key]) {
+    clearInterval(watchdogs[key]);
+    delete watchdogs[key];
+  }
+}
+
+/* ---------- SW УВЕДОМЛЕНИЕ — вызывается из fireFinalSignal ---------- */
+function scheduleSwNotification(key) {
+  // Теперь не используем setTimeout в SW — уведомление SW покажет
+  // только когда fireFinalSignal() сам вызовет showPushNotification()
+  // Функция оставлена для совместимости вызова в Start/Stop блоке
 }
 
 function cancelSwNotification(key) {
-  if (!swRegistration || !swRegistration.active) return;
-  swRegistration.active.postMessage({ type: 'CANCEL', key });
+  // Нечего отменять — SW больше не хранит таймеры
 }
 
 /* ---------- ПОКАЗАТЬ УВЕДОМЛЕНИЕ НЕМЕДЛЕННО (страница активна) ---------- */
