@@ -322,13 +322,47 @@ body{
 .plist{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
 .pitem{display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--surface);border:1px solid var(--border);border-radius:14px;cursor:pointer;transition:background .15s}
 .pitem.cur{border-color:var(--accent-wash)}
-.pavatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;background:var(--surface2);flex-shrink:0}
+.pavatar{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;background:var(--surface2);flex-shrink:0;overflow:hidden}
 .pname{font-size:15px;font-weight:500;flex:1}
 .pdel{color:var(--text3);padding:4px;cursor:pointer;font-size:16px}
 .padd{display:flex;gap:8px;margin-bottom:8px}
 .pinput{flex:1;padding:12px 14px;background:var(--surface);border:1px solid var(--border);border-radius:12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;outline:none}
 .pinput:focus{border-color:var(--accent-wash)}
 .pbtn{padding:12px 16px;background:var(--accent-wash);color:#fff;border:none;border-radius:12px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;cursor:pointer}
+.pavatarpick{
+  display:flex;align-items:center;gap:14px;
+  margin-bottom:14px;padding:12px 14px;
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:14px;
+}
+.pavatar-preview{
+  width:72px;height:72px;border-radius:50%;
+  background:var(--surface2);border:2px solid var(--border2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:36px;flex-shrink:0;overflow:hidden;
+}
+.pavatar-preview img{width:100%;height:100%;object-fit:cover}
+.pavatar-right{display:flex;flex-direction:column;gap:6px;flex:1}
+.pavatar-btn{
+  display:inline-block;padding:9px 14px;
+  background:var(--accent-wash);color:#fff;
+  border-radius:10px;font-size:13px;font-weight:500;
+  cursor:pointer;text-align:center;
+}
+.pavatar-clear{
+  background:none;border:none;
+  color:var(--text3);font-size:12px;cursor:pointer;
+  font-family:'DM Sans',sans-serif;text-align:left;padding:0;
+}
+.pquick{display:flex;gap:8px;margin-bottom:8px}
+.pqbtn{
+  flex:1;padding:10px;border-radius:12px;
+  border:2px solid var(--border);background:var(--surface);
+  color:var(--text2);font-family:'DM Sans',sans-serif;
+  font-size:14px;font-weight:500;cursor:pointer;transition:all .15s;
+}
+.pqbtn.active{border-color:var(--accent-wash);background:rgba(79,143,255,.15);color:var(--accent-wash)}
+.pqbtn:active{transform:scale(.97)}
 .pclose{display:block;width:100%;padding:12px;background:var(--surface);border:1px solid var(--border);border-radius:12px;color:var(--text2);font-family:'DM Sans',sans-serif;font-size:14px;cursor:pointer}
 
 /* ── FINISH OVERLAY ── */
@@ -422,6 +456,78 @@ body{
   font-size:15px;font-weight:600;cursor:pointer;
 }
 .set-save:active{opacity:.85}
+
+/* ── CROP MODAL ── */
+.crop-modal{
+  position:fixed;inset:0;z-index:800;
+  background:rgba(0,0,0,.85);backdrop-filter:blur(10px);
+  display:none;align-items:flex-end;justify-content:center;
+  padding:0 8px 8px;
+}
+.crop-modal.show{display:flex}
+.crop-sheet{
+  background:var(--bg3);border:1px solid var(--border2);
+  border-radius:24px;width:100%;max-width:420px;
+  padding:20px;animation:slideUp .3s cubic-bezier(.32,1,.23,1);
+}
+.crop-title{font-size:16px;font-weight:600;text-align:center;margin-bottom:16px}
+.crop-area{
+  display:flex;justify-content:center;
+  margin-bottom:16px;
+}
+.crop-circle-clip{
+  width:260px;height:260px;border-radius:50%;
+  overflow:hidden;border:3px solid var(--accent-wash);
+  position:relative;cursor:grab;background:#111;
+  touch-action:none;
+}
+.crop-circle-clip:active{cursor:grabbing}
+.crop-circle-clip img{
+  position:absolute;
+  transform-origin:0 0;
+  user-select:none;-webkit-user-select:none;
+  pointer-events:none;
+}
+.crop-controls{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.crop-lbl{font-size:12px;color:var(--text3);white-space:nowrap}
+.crop-range{
+  flex:1;-webkit-appearance:none;appearance:none;
+  height:4px;border-radius:2px;background:var(--border2);outline:none;
+}
+.crop-range::-webkit-slider-thumb{
+  -webkit-appearance:none;width:20px;height:20px;border-radius:50%;
+  background:var(--accent-wash);cursor:pointer;
+}
+.crop-hint{font-size:11px;color:var(--text3);text-align:center;margin-bottom:14px}
+.crop-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.crop-cancel{
+  padding:13px;background:var(--surface2);border:1px solid var(--border);
+  border-radius:12px;color:var(--text2);font-family:'DM Sans',sans-serif;
+  font-size:14px;cursor:pointer;
+}
+.crop-ok{
+  padding:13px;background:var(--accent-wash);border:none;
+  border-radius:12px;color:#fff;font-family:'DM Sans',sans-serif;
+  font-size:14px;font-weight:600;cursor:pointer;
+}
+
+/* ── LIGHTBOX ── */
+.lightbox{
+  position:fixed;inset:0;z-index:700;
+  background:rgba(0,0,0,.92);
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;
+  transition:opacity .25s;
+}
+.lightbox.show{opacity:1;pointer-events:all}
+.lightbox img{
+  max-width:90vw;max-height:85vh;
+  border-radius:16px;
+  box-shadow:0 8px 40px rgba(0,0,0,.6);
+  transform:scale(.85);
+  transition:transform .3s cubic-bezier(.32,1,.23,1);
+}
+.lightbox.show img{transform:scale(1)}
 
 /* ── TOAST ── */
 .toast{
@@ -585,8 +691,31 @@ body{
   <div class="pmsheet">
     <div class="stitle">Профили</div>
     <div class="plist" id="pList"></div>
+    <div class="pavatarpick">
+      <div class="pavatar-preview" id="pAvatarPreview"><svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
+  <circle cx="50" cy="50" r="50" fill="#4f8fff"/>
+  <!-- шея и плечи -->
+  <path d="M28 100 Q28 72 36 68 Q42 65 50 65 Q58 65 64 68 Q72 72 72 100 Z" fill="white" opacity="0.92"/>
+  <!-- голова -->
+  <path d="M34 44 Q34 22 50 22 Q66 22 66 44 Q66 58 50 60 Q34 58 34 44 Z" fill="white" opacity="0.92"/>
+  <!-- короткие волосы мужские — зубчики сверху -->
+  <path d="M34 38 Q34 20 50 18 Q66 20 66 38 Q63 28 58 26 Q54 23 50 23 Q46 23 42 26 Q37 28 34 38 Z" fill="#4f8fff" opacity="0.7"/>
+  <path d="M36 30 Q38 22 44 19 L43 26 Z" fill="white" opacity="0.5"/>
+  <path d="M42 19 Q50 15 58 19 L56 24 L50 21 L44 24 Z" fill="white" opacity="0.5"/>
+  <path d="M58 19 Q64 22 66 30 L63 26 Z" fill="white" opacity="0.5"/>
+</svg></div>
+      <div class="pavatar-right">
+        <label class="pavatar-btn" for="pAvatarInput">📷 Фото с телефона</label>
+        <input type="file" id="pAvatarInput" accept="image/*" style="display:none">
+        <button class="pavatar-clear" id="pAvatarClear">Убрать фото</button>
+      </div>
+    </div>
+    <div class="pquick">
+      <button class="pqbtn" data-e="👤" title="Мужчина" id="pqM">♂ Мужчина</button>
+      <button class="pqbtn" data-e="👤" title="Женщина" id="pqF">♀ Женщина</button>
+    </div>
     <div class="padd">
-      <input class="pinput" id="pNewName" placeholder="Имя профиля" maxlength="18">
+      <input class="pinput" id="pNewName" placeholder="Имя (необязательно)" maxlength="18">
       <button class="pbtn" id="pAddBtn">+</button>
     </div>
     <button class="pclose" id="pClose">Закрыть</button>
@@ -602,6 +731,30 @@ body{
   <button class="fin-close" id="finClose">Отлично! 🎉</button>
 </div>
 
+<!-- CROP MODAL -->
+<div class="crop-modal" id="cropModal">
+  <div class="crop-sheet">
+    <div class="crop-title">Настройте фото</div>
+    <div class="crop-area">
+      <div class="crop-circle-clip">
+        <img id="cropImg" src="" draggable="false">
+      </div>
+    </div>
+    <div class="crop-controls">
+      <span class="crop-lbl">Масштаб</span>
+      <input type="range" id="cropZoom" min="1" max="3" step="0.01" value="1" class="crop-range">
+    </div>
+    <div class="crop-hint">Перетащите фото для позиции</div>
+    <div class="crop-btns">
+      <button class="crop-cancel" id="cropCancel">Отмена</button>
+      <button class="crop-ok" id="cropOk">Готово</button>
+    </div>
+  </div>
+</div>
+
+<div class="lightbox" id="lightbox" onclick="this.classList.remove('show')">
+  <img id="lightboxImg" src="" alt="">
+</div>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -700,7 +853,25 @@ function renderProfileBar(){
   S.profiles.forEach(p=>{
     const c=document.createElement('button');
     c.className='pchip'+(p.id===S.activeProfile?' active':'');
-    c.textContent=p.emoji+' '+p.name;
+    if(p.avatar){
+      c.innerHTML=`<img src="${p.avatar}" style="width:20px;height:20px;border-radius:50%;object-fit:cover;margin-right:5px;vertical-align:middle"> ${p.name}`;
+    } else if(p.avatarSvg){
+      c.innerHTML=`<span style="display:inline-flex;width:20px;height:20px;border-radius:50%;overflow:hidden;margin-right:5px;vertical-align:middle">${p.avatarSvg}</span>${p.name}`;
+    } else {
+      if(p.emoji){c.textContent=p.emoji+' '+p.name;}
+      else{c.innerHTML=`<span style="display:inline-flex;width:20px;height:20px;border-radius:50%;overflow:hidden;margin-right:5px;vertical-align:middle"><svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
+  <circle cx="50" cy="50" r="50" fill="#4f8fff"/>
+  <!-- шея и плечи -->
+  <path d="M28 100 Q28 72 36 68 Q42 65 50 65 Q58 65 64 68 Q72 72 72 100 Z" fill="white" opacity="0.92"/>
+  <!-- голова -->
+  <path d="M34 44 Q34 22 50 22 Q66 22 66 44 Q66 58 50 60 Q34 58 34 44 Z" fill="white" opacity="0.92"/>
+  <!-- короткие волосы мужские — зубчики сверху -->
+  <path d="M34 38 Q34 20 50 18 Q66 20 66 38 Q63 28 58 26 Q54 23 50 23 Q46 23 42 26 Q37 28 34 38 Z" fill="#4f8fff" opacity="0.7"/>
+  <path d="M36 30 Q38 22 44 19 L43 26 Z" fill="white" opacity="0.5"/>
+  <path d="M42 19 Q50 15 58 19 L56 24 L50 21 L44 24 Z" fill="white" opacity="0.5"/>
+  <path d="M58 19 Q64 22 66 30 L63 26 Z" fill="white" opacity="0.5"/>
+</svg></span>${p.name}`;}
+    }
     c.onclick=()=>{S.activeProfile=p.id;saveS();renderProfileBar();buildSlides();renderStats();renderHist();};
     bar.appendChild(c);
   });
@@ -711,7 +882,12 @@ function renderPModal(){
   S.profiles.forEach(p=>{
     const d=document.createElement('div');
     d.className='pitem'+(p.id===S.activeProfile?' cur':'');
-    d.innerHTML=`<div class="pavatar">${p.emoji}</div><div class="pname">${p.name}</div>`+
+    let ava, clickAttr='';
+    if(p.avatar){ava=`<img src="${p.avatar}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;clickAttr=`onclick="openLightbox('${p.avatar}')" style="cursor:zoom-in"`;}
+    else if(p.avatarSvg){ava=p.avatarSvg;}
+    else if(p.emoji){ava=p.emoji;}
+    else{ava=`<img src='/svg/man.svg' style='width:100%;height:100%;border-radius:50%'>`;} 
+    d.innerHTML=`<div class="pavatar" ${clickAttr}>${ava}</div><div class="pname">${p.name}</div>`+
       (S.profiles.length>1?`<div class="pdel" data-id="${p.id}">✕</div>`:'');
     d.onclick=e=>{
       if(e.target.classList.contains('pdel'))return;
@@ -728,16 +904,153 @@ function renderPModal(){
     el.appendChild(d);
   });
 }
-document.getElementById('profileBtn').onclick=()=>{renderPModal();document.getElementById('pModal').classList.add('open')};
+document.getElementById('profileBtn').onclick=()=>{renderPModal();resetAvatarPicker();document.getElementById('pModal').classList.add('open')};
 document.getElementById('pClose').onclick=()=>document.getElementById('pModal').classList.remove('open');
+
+function openLightbox(src){
+  document.getElementById('lightboxImg').src=src;
+  document.getElementById('lightbox').classList.add('show');
+}
+
+// quick gender buttons — синие SVG аватары
+const MALE_HTML=`<img src='/svg/man.svg' style='width:100%;height:100%;border-radius:50%'>`;
+const FEMALE_HTML=`<img src='/svg/woman.svg' style='width:100%;height:100%;border-radius:50%'>`;
+
+document.getElementById('pqM').onclick=()=>{
+  selectedAvatar={type:'svg', val:MALE_HTML, gender:'m'};
+  const prev=document.getElementById('pAvatarPreview');
+  if(prev) prev.innerHTML=MALE_HTML;
+  document.getElementById('pqM').classList.add('active');
+  document.getElementById('pqF').classList.remove('active');
+  document.getElementById('pAvatarInput').value='';
+};
+document.getElementById('pqF').onclick=()=>{
+  selectedAvatar={type:'svg', val:FEMALE_HTML, gender:'f'};
+  const prev=document.getElementById('pAvatarPreview');
+  if(prev) prev.innerHTML=FEMALE_HTML;
+  document.getElementById('pqF').classList.add('active');
+  document.getElementById('pqM').classList.remove('active');
+  document.getElementById('pAvatarInput').value='';
+};
+// avatar picker
+let selectedAvatar = {type:'none'};
+function resetAvatarPicker(){
+  selectedAvatar={type:'none'};
+  const prev=document.getElementById('pAvatarPreview');
+  if(prev) prev.innerHTML=`<img src='/svg/man.svg' style='width:100%;height:100%;border-radius:50%'>`;
+  document.getElementById('pqM')?.classList.remove('active');
+  document.getElementById('pqF')?.classList.remove('active');
+}
+// ── CROPPER ──
+let cropState={imgSrc:'',scale:1,ox:0,oy:0,dragging:false,lastX:0,lastY:0};
+
+function openCropper(src){
+  cropState={imgSrc:src,scale:1,ox:0,oy:0,dragging:false,lastX:0,lastY:0};
+  const img=document.getElementById('cropImg');
+  img.src=src;
+  img.onload=()=>{
+    applyCropTransform();
+    document.getElementById('cropZoom').value=1;
+  };
+  document.getElementById('cropModal').classList.add('show');
+}
+
+function applyCropTransform(){
+  const clip=document.querySelector('.crop-circle-clip');
+  const img=document.getElementById('cropImg');
+  const cw=260, ch=260;
+  const nw=img.naturalWidth, nh=img.naturalHeight;
+  const base=Math.max(cw/nw, ch/nh); // fit to fill circle
+  const s=base*cropState.scale;
+  const iw=nw*s, ih=nh*s;
+  // clamp offset so image always covers circle
+  const maxOx=0, minOx=cw-iw;
+  const maxOy=0, minOy=ch-ih;
+  cropState.ox=Math.min(maxOx,Math.max(minOx,cropState.ox));
+  cropState.oy=Math.min(maxOy,Math.max(minOy,cropState.oy));
+  img.style.width=iw+'px';
+  img.style.height=ih+'px';
+  img.style.transform=`translate(${cropState.ox}px,${cropState.oy}px)`;
+}
+
+// drag
+const clip=document.querySelector('.crop-circle-clip');
+clip.addEventListener('pointerdown',e=>{
+  cropState.dragging=true;
+  cropState.lastX=e.clientX; cropState.lastY=e.clientY;
+  clip.setPointerCapture(e.pointerId);
+});
+clip.addEventListener('pointermove',e=>{
+  if(!cropState.dragging)return;
+  cropState.ox+=e.clientX-cropState.lastX;
+  cropState.oy+=e.clientY-cropState.lastY;
+  cropState.lastX=e.clientX; cropState.lastY=e.clientY;
+  applyCropTransform();
+});
+clip.addEventListener('pointerup',()=>{cropState.dragging=false;});
+
+// zoom
+document.getElementById('cropZoom').oninput=function(){
+  cropState.scale=parseFloat(this.value);
+  applyCropTransform();
+};
+
+// cancel
+document.getElementById('cropCancel').onclick=()=>{
+  document.getElementById('cropModal').classList.remove('show');
+  document.getElementById('pAvatarInput').value='';
+};
+
+// ok — render to canvas and export
+document.getElementById('cropOk').onclick=()=>{
+  const img=document.getElementById('cropImg');
+  const canvas=document.createElement('canvas');
+  canvas.width=260; canvas.height=260;
+  const ctx=canvas.getContext('2d');
+  ctx.beginPath();
+  ctx.arc(130,130,130,0,Math.PI*2);
+  ctx.clip();
+  const nw=img.naturalWidth, nh=img.naturalHeight;
+  const base=Math.max(260/nw,260/nh);
+  const s=base*cropState.scale;
+  ctx.drawImage(img, cropState.ox, cropState.oy, nw*s, nh*s);
+  const dataUrl=canvas.toDataURL('image/jpeg',0.85);
+  selectedAvatar={type:'img',val:dataUrl};
+  const prev=document.getElementById('pAvatarPreview');
+  prev.innerHTML=`<img src="${dataUrl}" onclick="openLightbox('${dataUrl}')" style="cursor:zoom-in">`;
+  document.getElementById('cropModal').classList.remove('show');
+};
+
+document.getElementById('pAvatarInput').onchange=function(){
+  const file=this.files[0]; if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>openCropper(e.target.result);
+  reader.readAsDataURL(file);
+};
+document.getElementById('pAvatarClear').onclick=()=>{
+  resetAvatarPicker();
+  document.getElementById('pAvatarInput').value='';
+};
 document.getElementById('pAddBtn').onclick=()=>{
   const inp=document.getElementById('pNewName');
-  const name=inp.value.trim();if(!name)return;
+  let name=inp.value.trim();
+  // если имя не введено — генерируем из эмодзи или "Профиль N"
+  if(!name){
+    if(selectedAvatar.type==='emoji' && selectedAvatar.val){
+      name=selectedAvatar.val;
+    } else {
+      name='Профиль '+(S.profiles.length+1);
+    }
+  }
   const id='p'+Date.now();
-  const emoji=EMOJIS[S.profiles.length%EMOJIS.length];
-  S.profiles.push({id,name,emoji});
-  S.machines[id]=mkMachines();inp.value='';saveS();
-  renderPModal();renderProfileBar();
+  S.profiles.push({id,name,
+    emoji: selectedAvatar.type==='emoji'?selectedAvatar.val:null,
+    avatar: selectedAvatar.type==='img'?selectedAvatar.val:null,
+    avatarSvg: selectedAvatar.type==='svg'?selectedAvatar.val:null
+  });
+  S.machines[id]=mkMachines();inp.value='';
+  resetAvatarPicker();
+  saveS();renderPModal();renderProfileBar();
 };
 
 /* ═══════════════════════════
