@@ -183,6 +183,8 @@ body{
 .prog-row{
   display:flex;gap:6px;margin-bottom:8px;
   overflow-x:auto;scrollbar-width:none;padding-bottom:2px;
+  touch-action:pan-x;
+  -webkit-overflow-scrolling:touch;
 }
 .prog-row::-webkit-scrollbar{display:none}
 .pchip-sm{
@@ -1119,6 +1121,13 @@ document.getElementById('pAddBtn').onclick=()=>{
 /* ═══════════════════════════
    SWIPE SLIDER
 ═══════════════════════════ */
+// Не перехватывать свайп на prog-row
+document.addEventListener('DOMContentLoaded',()=>{
+  document.querySelectorAll('.prog-row').forEach(row=>{
+    row.addEventListener('touchstart',e=>e.stopPropagation(),{passive:true});
+    row.addEventListener('touchmove', e=>e.stopPropagation(),{passive:true});
+  });
+});
 let touchStartX=0, touchStartY=0, dragging=false, dragDX=0;
 
 function buildSlides(){
