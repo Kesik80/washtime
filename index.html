@@ -880,17 +880,15 @@ function getM(key){
    THEME
 ═══════════════════════════ */
 function updateThemeColor(){
-  const dark = document.documentElement.classList.contains('dark');
+  const dark = document.documentElement.getAttribute('data-theme') === 'dark';
   const color = dark ? '#0a0a0f' : '#f0f0f7';
-  // удаляем и пересоздаём — форсирует обновление в PWA
   let meta = document.getElementById('themeColorMeta');
-  if(meta) meta.remove();
-  meta = document.createElement('meta');
-  meta.id = 'themeColorMeta';
-  meta.name = 'theme-color';
-  meta.content = color;
-  document.head.appendChild(meta);
+  if(meta) meta.content = color;
+  // Для Windows Phone
+  let ms = document.querySelector('meta[name="msapplication-TileColor"]');
+  if(ms) ms.content = color;
 }
+
 function applyTheme(t){
   if(t==='auto'){
     const dk=window.matchMedia('(prefers-color-scheme:dark)').matches;
