@@ -411,6 +411,53 @@ body{
 .wday-score{
   font-size:11px;font-weight:600;padding:3px 6px;border-radius:6px;
 }
+.wdetail-wrap{display:flex;flex-direction:column;gap:10px}
+
+.wperiods{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:0}
+.wperiod{
+  padding:8px 6px;
+  border-right:1px solid var(--border);
+}
+.wperiod:last-child{border-right:none}
+.wperiod-name{
+  font-size:10px;font-weight:600;color:var(--text3);
+  margin-bottom:5px;white-space:nowrap;
+}
+.wperiod-rows{display:flex;flex-direction:column;gap:4px}
+.wperiod-rows .wdd-row{font-size:11px;justify-content:space-between}
+.wperiod-rows .wdd-row span:last-child{font-size:11px}
+.wday-detail{
+  background:var(--surface);border-radius:14px;
+  overflow:hidden;border:1px solid var(--border);
+}
+.wday-detail.wday-today{border-color:var(--accent-wash) !important;background:rgba(79,143,255,.06) !important}
+.wdd-header{
+  display:flex;align-items:center;gap:10px;
+  padding:12px 14px 10px;border-bottom:1px solid var(--border);
+}
+.wdd-title{font-size:15px;font-weight:600;flex:1}
+.wdd-icon{font-size:24px}
+.wdd-score{
+  font-size:11px;font-weight:600;padding:4px 8px;border-radius:8px;
+}
+.wdd-score.good{background:rgba(52,201,138,.15);color:var(--accent-dish)}
+.wdd-score.mid{background:rgba(248,212,90,.15);color:#c8a800}
+.wdd-score.bad{background:rgba(255,107,53,.15);color:var(--accent-dry)}
+.wdd-body{padding:10px 14px;display:flex;flex-direction:column;gap:7px}
+.wdd-row{
+  display:flex;justify-content:space-between;align-items:center;
+  font-size:13px;
+}
+.wdd-row span:first-child{color:var(--text3)}
+.wdd-row span:last-child{font-weight:500;font-family:'DM Mono',monospace;font-size:13px}
+.wday-today{
+  border:1.5px solid var(--accent-wash) !important;
+  background:rgba(79,143,255,.08) !important;
+}
+.wday-extra{
+  font-size:10px;color:var(--text3);margin-bottom:2px;
+  white-space:nowrap;
+}
 .wday-score.good{background:rgba(52,201,138,.15);color:var(--accent-dish)}
 .wday-score.mid{background:rgba(248,212,90,.15);color:#c8a800}
 .wday-score.bad{background:rgba(255,107,53,.15);color:var(--accent-dry)}
@@ -623,6 +670,10 @@ body{
 
 <div id="pageStats" style="flex:1;overflow-y:auto;scrollbar-width:none;display:none">
   <div class="stats-page">
+    <div class="section-title">🌤 Прогноз сушки</div>
+    <div class="weather-card" id="weatherCard">
+      <div class="wload">Загрузка погоды…</div>
+    </div>
     <div class="section-title">Всего запусков</div>
     <div class="stats-grid">
       <div class="sstat"><div class="sstat-val" id="stW" style="color:var(--accent-wash)">0</div><div class="sstat-lbl">🫧 Стирок</div></div>
@@ -646,10 +697,6 @@ body{
     <div class="avg-row">
       <div class="avg-box"><div class="avg-box-lbl">⏱ Среднее</div><div class="avg-box-val" id="avgTime">—</div></div>
       <div class="avg-box"><div class="avg-box-lbl">📅 Запусков в месяц</div><div class="avg-box-val" id="thisMonth">0</div></div>
-    </div>
-    <div class="section-title">🌤 Прогноз сушки</div>
-    <div class="weather-card" id="weatherCard">
-      <div class="wload">Загрузка погоды…</div>
     </div>
     <div class="section-title">Активность за 7 дней</div>
     <div class="chart-wrap">
@@ -1121,13 +1168,13 @@ document.getElementById('pAddBtn').onclick=()=>{
 /* ═══════════════════════════
    SWIPE SLIDER
 ═══════════════════════════ */
-// Не перехватывать свайп на prog-row
-document.addEventListener('DOMContentLoaded',()=>{
-  document.querySelectorAll('.prog-row').forEach(row=>{
-    row.addEventListener('touchstart',e=>e.stopPropagation(),{passive:true});
-    row.addEventListener('touchmove', e=>e.stopPropagation(),{passive:true});
-  });
-});
+// Не перехватывать свайп на prog-row — делегируем на document
+document.addEventListener('touchstart', e=>{
+  if(e.target.closest('.prog-row')) e.stopPropagation();
+},{passive:true,capture:true});
+document.addEventListener('touchmove', e=>{
+  if(e.target.closest('.prog-row')) e.stopPropagation();
+},{passive:true,capture:true});
 let touchStartX=0, touchStartY=0, dragging=false, dragDX=0;
 
 function buildSlides(){
@@ -1714,7 +1761,7 @@ async function loadWeather(){
   const st=S.settings||{lat:51.47,lon:6.85,city:'Oberhausen'};
   const lat=st.lat||51.47, lon=st.lon||6.85;
   try{
-    const url=`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_sum,windspeed_10m_max&timezone=auto&forecast_days=5`;
+    const url=`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_sum,windspeed_10m_max&hourly=temperature_2m,relativehumidity_2m,surface_pressure,windspeed_10m&timezone=auto&forecast_days=2`;
     const r=await fetch(url);
     const d=await r.json();
     weatherCache=d; weatherCacheTime=Date.now();
@@ -1741,27 +1788,60 @@ function dryScore(code,rain,wind,tmax){
   if(rain>0.5||tmax<8||wind>40)return{s:'mid',t:'Сойдёт'};
   return{s:'good',t:'Отлично'};
 }
+function avgH(arr, from, to){
+  const sl=arr.slice(from,to).filter(v=>v!=null);
+  return sl.length?sl.reduce((a,b)=>a+b,0)/sl.length:null;
+}
 function renderWeather(d){
   const card=document.getElementById('weatherCard');
   const st=S.settings||{city:'Oberhausen'};
-  const days=['Сег','Завт','Послез','Чт','Пт','Сб','Вс','Пн','Вт','Ср'];
-  const now=new Date();
-  const html=d.daily.time.slice(0,5).map((t,i)=>{
+  const labels=['Сегодня','Завтра'];
+  const periods=[
+    {name:'Утро',  emoji:'🌅', from:6,  to:12},
+    {name:'День',  emoji:'☀️', from:12, to:18},
+    {name:'Вечер', emoji:'🌆', from:18, to:24},
+    {name:'Ночь',  emoji:'🌙', from:0,  to:6},
+  ];
+  const html=d.daily.time.slice(0,2).map((t,i)=>{
     const code=d.daily.weathercode[i];
     const tmax=d.daily.temperature_2m_max[i];
     const tmin=d.daily.temperature_2m_min[i];
     const rain=d.daily.precipitation_sum[i];
     const wind=d.daily.windspeed_10m_max[i];
     const sc=dryScore(code,rain,wind,tmax);
-    const dayName=i===0?'Сег':i===1?'Завт':new Date(t).toLocaleDateString('ru',{weekday:'short'});
-    return`<div class="wday">
-      <div class="wday-name">${dayName}</div>
-      <div class="wday-icon">${weatherIcon(code)}</div>
-      <div class="wday-temp">${Math.round(tmax)}°</div>
-      <div class="wday-score ${sc.s}">${sc.t}</div>
+    const hi=i*24;
+    const hum_h=d.hourly?.relativehumidity_2m||[];
+    const pres_h=d.hourly?.surface_pressure||[];
+    const temp_h=d.hourly?.temperature_2m||[];
+
+    const periodsHtml=periods.map(p=>{
+      const t2=avgH(temp_h,   hi+p.from, hi+p.to);
+      const hum=avgH(hum_h,   hi+p.from, hi+p.to);
+      const pres=avgH(pres_h,  hi+p.from, hi+p.to);
+      const wind_h=d.hourly?.windspeed_10m||[];
+      const windp=avgH(wind_h, hi+p.from, hi+p.to);
+      const windMs=windp!==null?Math.round(windp/3.6):null;
+      return`<div class="wperiod">
+        <div class="wperiod-name">${p.emoji} ${p.name}</div>
+        <div class="wperiod-rows">
+          ${t2!==null?`<div class="wdd-row"><span>🌡</span><span>${Math.round(t2)}°</span></div>`:''}
+          ${hum!==null?`<div class="wdd-row"><span>💧</span><span>${Math.round(hum)}%</span></div>`:''}
+          ${pres!==null?`<div class="wdd-row"><span>⏱</span><span>${Math.round(pres*0.750064)}</span></div>`:''}
+          ${windMs!==null?`<div class="wdd-row"><span>💨</span><span>${windMs}м/с</span></div>`:''}
+        </div>
+      </div>`;
+    }).join('');
+
+    return`<div class="wday-detail${i===0?' wday-today':''}">
+      <div class="wdd-header">
+        <div class="wdd-title">${labels[i]}</div>
+        <div class="wdd-icon">${weatherIcon(code)}</div>
+        <div class="wdd-score ${sc.s}">${sc.t} для сушки</div>
+      </div>
+      <div class="wperiods">${periodsHtml}</div>
     </div>`;
   }).join('');
-  card.innerHTML=`<div class="wlocation">📍 ${st.city}</div><div class="weather-row">${html}</div>`;
+  card.innerHTML=`<div class="wlocation">📍 ${st.city}</div><div class="wdetail-wrap">${html}</div>`;
 }
 
 /* ═══════════════════════════
