@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="LaundryAI">
-<meta id="themeColorMeta" name="theme-color" content="#f0f0f7">
+<meta id="themeColorMeta" name="theme-color" content="#0a0a0f">
 <meta name="theme-color" content="#0a0a0f" media="(prefers-color-scheme: dark)">
 <meta name="theme-color" content="#f0f0f7" media="(prefers-color-scheme: light)">
 <link rel="manifest" href="/icons/manifest.json">
@@ -569,6 +569,22 @@ body{
 }
 .toast.show{transform:translateX(-50%) translateY(0)}
 </style>
+<script>
+  // Сразу при загрузке — до рендера
+  (function(){
+    const s = localStorage.getItem('laiS2');
+    let theme = 'auto';
+    try { theme = JSON.parse(s).theme || 'auto'; } catch(e){}
+    const isDark = theme === 'dark' || (theme === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    const color = isDark ? '#0a0a0f' : '#f0f0f7';
+    document.querySelector('meta[id="themeColorMeta"]') && (document.querySelector('meta[id="themeColorMeta"]').content = color);
+    // Также через msapplication
+    const m = document.createElement('meta');
+    m.name = 'theme-color'; m.content = color;
+    // уже есть, просто применим класс заранее
+    if(isDark) document.documentElement.classList.add('dark');
+  })();
+</script>
 </head>
 <body>
 
@@ -885,6 +901,7 @@ document.getElementById('themeBtn').onclick=()=>{
   const ts=['auto','dark','light'];
   S.theme=ts[(ts.indexOf(S.theme)+1)%3];
   applyTheme(S.theme); saveS();
+  updateThemeColor();
   showToast(S.theme==='auto'?'🌗 Авто':S.theme==='dark'?'🌙 Тёмная':'☀️ Светлая');
 };
 
