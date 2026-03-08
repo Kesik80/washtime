@@ -7,8 +7,6 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="LaundryAI">
 <meta id="themeColorMeta" name="theme-color" content="#0a0a0f">
-<meta name="theme-color" content="#0a0a0f" media="(prefers-color-scheme: dark)">
-<meta name="theme-color" content="#f0f0f7" media="(prefers-color-scheme: light)">
 <link rel="manifest" href="/icons/manifest.json">
 <link rel="apple-touch-icon" href="/icons/icon-192.png">
 <title>LaundryAI</title>
@@ -884,8 +882,15 @@ function getM(key){
 ═══════════════════════════ */
 function updateThemeColor(){
   const dark = document.documentElement.classList.contains('dark');
-  const meta = document.getElementById('themeColorMeta');
-  if(meta) meta.content = dark ? '#0a0a0f' : '#f0f0f7';
+  const color = dark ? '#0a0a0f' : '#f0f0f7';
+  // удаляем и пересоздаём — форсирует обновление в PWA
+  let meta = document.getElementById('themeColorMeta');
+  if(meta) meta.remove();
+  meta = document.createElement('meta');
+  meta.id = 'themeColorMeta';
+  meta.name = 'theme-color';
+  meta.content = color;
+  document.head.appendChild(meta);
 }
 function applyTheme(t){
   if(t==='auto'){
