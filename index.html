@@ -578,9 +578,8 @@ body{
     document.querySelector('meta[id="themeColorMeta"]') && (document.querySelector('meta[id="themeColorMeta"]').content = color);
     // Также через msapplication
     const m = document.createElement('meta');
-    m.name = 'theme-color'; m.content = color;
-    // уже есть, просто применим класс заранее
-    if(isDark) document.documentElement.classList.add('dark');
+    m.name = 'msapplication-TileColor'; m.content = color;
+    document.head.appendChild(m);
   })();
 </script>
 </head>
