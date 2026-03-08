@@ -174,10 +174,68 @@ body{
 .slbl{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.3px;margin-bottom:4px}
 .sval{font-family:'DM Mono',monospace;font-size:15px;font-weight:500;color:var(--text)}
 .sval.ac{color:var(--card-accent)}
+/* ── TIME DRUM ── */
+.tdrum-overlay{
+  position:fixed;inset:0;z-index:800;
+  background:rgba(0,0,0,.6);backdrop-filter:blur(4px);
+  display:flex;align-items:flex-end;
+}
+.tdrum-sheet{
+  width:100%;background:var(--bg2);
+  border-radius:24px 24px 0 0;
+  padding:0 0 env(safe-area-inset-bottom,0px);
+}
+.tdrum-header{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:16px 20px 12px;
+  border-bottom:1px solid var(--border);
+}
+.tdrum-title{font-size:15px;font-weight:600}
+.tdrum-ok{
+  color:var(--accent-wash);font-size:15px;
+  font-weight:600;cursor:pointer;padding:4px 8px;
+}
+.tdrum-cancel{color:var(--text3);font-size:15px;cursor:pointer;padding:4px 8px}
+.tdrum-body{
+  display:flex;justify-content:center;align-items:center;
+  gap:0;padding:16px 0;position:relative;height:220px;
+}
+.tdrum-col{
+  flex:1;height:220px;overflow:hidden;position:relative;
+  cursor:grab;
+}
+.tdrum-sep{
+  font-size:28px;font-weight:700;color:var(--text);
+  padding:0 4px;line-height:1;align-self:center;margin-top:-4px;
+}
+.tdrum-list{
+  display:flex;flex-direction:column;
+  transition:transform .15s ease;
+}
+.tdrum-item{
+  height:44px;display:flex;align-items:center;justify-content:center;
+  font-family:'DM Mono',monospace;font-size:26px;font-weight:500;
+  color:var(--text2);transition:color .15s,font-size .15s;
+  flex-shrink:0;
+}
+.tdrum-item.active{color:var(--text);font-size:30px}
+.tdrum-mask-top,.tdrum-mask-bot{
+  position:absolute;left:0;right:0;height:78px;pointer-events:none;z-index:2;
+}
+.tdrum-mask-top{top:0;background:linear-gradient(to bottom,var(--bg2),transparent)}
+.tdrum-mask-bot{bottom:0;background:linear-gradient(to top,var(--bg2),transparent)}
+.tdrum-line{
+  position:absolute;left:10%;right:10%;
+  height:44px;top:50%;transform:translateY(-50%);
+  border-top:1.5px solid var(--border2);
+  border-bottom:1.5px solid var(--border2);
+  pointer-events:none;z-index:1;border-radius:8px;
+}
 .time-inp{
   background:none;border:none;font-family:'DM Mono',monospace;
   font-size:16px;font-weight:500;color:var(--text);width:100%;outline:none;cursor:pointer;
 }
+.time-trigger{cursor:pointer;user-select:none;display:block;}
 
 /* programs */
 .prog-row{
@@ -1224,7 +1282,7 @@ function buildCardHTML(key){
     <div class="srow">
       <div class="sbox" id="startBox-${key}">
         <div class="slbl">Старт</div>
-        <input type="time" class="time-inp" id="si-${key}" value="${startStr}">
+        <div class="time-inp time-trigger" id="si-${key}">${startStr}</div>
       </div>
       <div class="sbox" id="durBox-${key}">
         <div class="slbl">Длительность</div>
@@ -1258,10 +1316,7 @@ function bindCard(slide, key){
     });
   }
   // start time
-  slide.querySelector(`#si-${key}`).onchange=e=>{
-    const [h,mm]=e.target.value.split(':').map(Number);
-    const m=getM(key); m.startH=h; m.startM=mm; saveS();
-  };
+  slide.querySelector(`#si-${key}`).onclick=()=>openTimeDrum(key);
   // duration picker
   slide.querySelector(`#durBox-${key}`).onclick=()=>openPicker(key);
   // toggle
@@ -1921,6 +1976,204 @@ function showIOSGuide() {
   </div>`;
   document.body.appendChild(ov);
   ov.onclick = e => { if(e.target===ov) ov.remove(); };
+}
+
+/* ═══════════════════════════
+   TIME DRUM PICKER
+═══════════════════════════ */
+function openTimeDrum(key) {
+  const mk = getM(key);
+  let h = mk.startH || 0, m = mk.startM || 0;
+
+  const existing = document.getElementById('customTimePicker');
+  if (existing) existing.remove();
+
+  const isDark = document.documentElement.classList.contains('dark') || document.documentElement.getAttribute('data-theme')==='dark' || (document.documentElement.getAttribute('data-theme')==='auto' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  const bg     = isDark ? '#1e1e1e' : '#ffffff';
+  const bgFade = isDark ? 'rgba(30,30,30,' : 'rgba(255,255,255,';
+  const textCol= isDark ? '#e0e0e0' : '#222222';
+  const btnBg  = isDark ? '#2a2a2a' : '#f0f0f0';
+  const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent-wash').trim() || '#4f8fff';
+
+  const overlay = document.createElement('div');
+  overlay.id = 'customTimePicker';
+  overlay.style.cssText = `
+    position:fixed;inset:0;z-index:9999;
+    background:rgba(0,0,0,.5);
+    display:flex;align-items:center;justify-content:center;
+  `;
+
+  overlay.innerHTML = `
+    <div style="background:${bg};border-radius:20px;padding:24px;
+      box-shadow:0 8px 40px rgba(0,0,0,.5);width:280px;text-align:center;
+      font-family:'DM Sans',sans-serif;">
+      <div style="font-size:.8em;font-weight:700;color:${isDark?'#aaa':'#888'};letter-spacing:.08em;
+        margin-bottom:16px;text-transform:uppercase;">Время старта</div>
+
+      <div style="display:flex;align-items:center;justify-content:center;gap:4px;">
+        <div style="position:relative;width:80px;height:230px;overflow:hidden;">
+          <div style="position:absolute;inset:0;pointer-events:none;z-index:2;
+            background:linear-gradient(to bottom,${bgFade}.92) 0%,${bgFade}0) 28%,${bgFade}0) 72%,${bgFade}.92) 100%);"></div>
+          <div style="position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);
+            height:46px;border-top:2px solid ${accent};border-bottom:2px solid ${accent};
+            pointer-events:none;z-index:1;"></div>
+          <div id="tpHDrum" style="position:absolute;left:0;right:0;top:0;cursor:grab;touch-action:none;"></div>
+        </div>
+
+        <div style="font-size:2em;font-weight:700;color:${textCol};padding-bottom:4px;">:</div>
+
+        <div style="position:relative;width:80px;height:230px;overflow:hidden;">
+          <div style="position:absolute;inset:0;pointer-events:none;z-index:2;
+            background:linear-gradient(to bottom,${bgFade}.92) 0%,${bgFade}0) 28%,${bgFade}0) 72%,${bgFade}.92) 100%);"></div>
+          <div style="position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);
+            height:46px;border-top:2px solid ${accent};border-bottom:2px solid ${accent};
+            pointer-events:none;z-index:1;"></div>
+          <div id="tpMDrum" style="position:absolute;left:0;right:0;top:0;cursor:grab;touch-action:none;"></div>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:10px;margin-top:22px;">
+        <button id="tpCancel" style="flex:1;padding:12px;border:none;border-radius:50px;
+          background:${btnBg};color:${isDark?'#aaa':'#666'};font-size:1em;font-weight:600;cursor:pointer;
+          font-family:'DM Sans',sans-serif;">
+          Отмена
+        </button>
+        <button id="tpSave" style="flex:2;padding:12px;border:none;border-radius:50px;
+          background:${accent};color:#fff;font-size:1em;font-weight:700;cursor:pointer;
+          font-family:'DM Sans',sans-serif;">
+          Готово
+        </button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+
+  const ITEM_H = 46;
+
+  function makeDrum(el, count, current, onChange) {
+    for (let rep = 0; rep < 3; rep++) {
+      for (let i = 0; i < count; i++) {
+        const d = document.createElement('div');
+        d.style.cssText = `height:${ITEM_H}px;line-height:${ITEM_H}px;text-align:center;
+          font-size:1.9em;font-weight:700;color:${isDark?'#555':'#bbb'};user-select:none;transition:color .15s,font-size .15s;`;
+        d.textContent = String(i).padStart(2,'0');
+        el.appendChild(d);
+      }
+    }
+
+    let offset = -(count + current) * ITEM_H + (230/2 - ITEM_H/2);
+    el.style.transform = `translateY(${offset}px)`;
+
+    el.querySelectorAll('div').forEach((item, i) => {
+      const isSel = ((i % count) + count) % count === current;
+      item.style.color = isSel ? (isDark?'#fff':'#111') : (isDark?'#555':'#bbb');
+      item.style.fontSize = isSel ? '2em' : '1.9em';
+    });
+
+    function normalize() {
+      if (offset < -(count * 2 - 1) * ITEM_H + (230/2 - ITEM_H/2)) {
+        offset += count * ITEM_H;
+        el.style.transition = 'none';
+        el.style.transform = `translateY(${offset}px)`;
+      }
+      if (offset > -(1) * ITEM_H + (230/2 - ITEM_H/2)) {
+        offset -= count * ITEM_H;
+        el.style.transition = 'none';
+        el.style.transform = `translateY(${offset}px)`;
+      }
+    }
+
+    function snapToNearest(animate) {
+      const center = 230/2 - ITEM_H/2;
+      const raw = -offset + center;
+      const idx = Math.round(raw / ITEM_H);
+      const snapped = -(idx * ITEM_H) + center;
+      if (animate) el.style.transition = 'transform .15s cubic-bezier(.25,.46,.45,.94)';
+      offset = snapped;
+      el.style.transform = `translateY(${offset}px)`;
+      const val = ((idx % count) + count) % count;
+      onChange(val);
+      el.querySelectorAll('div').forEach((item, i) => {
+        const isSel = ((i % count) + count) % count === val;
+        item.style.color = isSel ? (isDark?'#fff':'#111') : (isDark?'#555':'#bbb');
+        item.style.fontSize = isSel ? '2em' : '1.9em';
+      });
+      setTimeout(normalize, 250);
+    }
+
+    let startY, startOffset, lastY, vel = 0, lastT, rafId;
+    el.addEventListener('touchstart', e => {
+      cancelAnimationFrame(rafId);
+      el.style.transition = 'none';
+      startY = lastY = e.touches[0].clientY;
+      startOffset = offset;
+      lastT = Date.now();
+      vel = 0;
+    }, {passive:true});
+
+    el.addEventListener('touchmove', e => {
+      const y = e.touches[0].clientY;
+      const now = Date.now();
+      vel = (y - lastY) / (now - lastT || 1);
+      lastY = y; lastT = now;
+      offset = startOffset + (y - startY);
+      el.style.transition = 'none';
+      el.style.transform = `translateY(${offset}px)`;
+    }, {passive:true});
+
+    el.addEventListener('touchend', () => {
+      if (Math.abs(vel) > 0.3) {
+        offset += vel * 280;
+        el.style.transition = 'none';
+        el.style.transform = `translateY(${offset}px)`;
+      }
+      snapToNearest(true);
+    });
+
+    let mouseDown = false;
+    el.addEventListener('mousedown', e => {
+      mouseDown = true;
+      el.style.transition = 'none';
+      startY = e.clientY;
+      startOffset = offset;
+      el.style.cursor = 'grabbing';
+    });
+    window.addEventListener('mousemove', e => {
+      if (!mouseDown) return;
+      offset = startOffset + (e.clientY - startY);
+      el.style.transform = `translateY(${offset}px)`;
+    });
+    window.addEventListener('mouseup', () => {
+      if (!mouseDown) return;
+      mouseDown = false;
+      el.style.cursor = 'grab';
+      snapToNearest(true);
+    });
+
+    el.addEventListener('wheel', e => {
+      e.preventDefault();
+      offset -= Math.sign(e.deltaY) * ITEM_H;
+      el.style.transition = 'none';
+      el.style.transform = `translateY(${offset}px)`;
+      clearTimeout(el._wt);
+      el._wt = setTimeout(() => snapToNearest(true), 150);
+    }, {passive:false});
+  }
+
+  makeDrum(overlay.querySelector('#tpHDrum'), 24, h, v => { h = v; });
+  makeDrum(overlay.querySelector('#tpMDrum'), 60, m, v => { m = v; });
+
+  overlay.querySelector('#tpSave').onclick = () => {
+    const mk2 = getM(key);
+    mk2.startH = h; mk2.startM = m; saveS();
+    const el = document.getElementById(`si-${key}`);
+    if (el) el.textContent = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+    renderCard(key);
+    overlay.remove();
+  };
+  overlay.querySelector('#tpCancel').onclick = () => overlay.remove();
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
 }
 
 /* ═══════════════════════════
