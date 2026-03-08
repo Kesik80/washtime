@@ -6,9 +6,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="LaundryAI">
-<meta id="themeColorMeta" name="theme-color" content="#0a0a0f">
+<meta id="themeColorMeta" name="theme-color" content="#f0f0f7">
 <meta name="theme-color" content="#0a0a0f" media="(prefers-color-scheme: dark)">
-<meta name="theme-color" content="#f0f0f5" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#f0f0f7" media="(prefers-color-scheme: light)">
 <link rel="manifest" href="/icons/manifest.json">
 <link rel="apple-touch-icon" href="/icons/icon-192.png">
 <title>LaundryAI</title>
@@ -869,7 +869,7 @@ function getM(key){
 function updateThemeColor(){
   const dark = document.documentElement.classList.contains('dark');
   const meta = document.getElementById('themeColorMeta');
-  if(meta) meta.content = dark ? '#0f0f14' : '#f5f5f7';
+  if(meta) meta.content = dark ? '#0a0a0f' : '#f0f0f7';
 }
 function applyTheme(t){
   if(t==='auto'){
@@ -1880,6 +1880,7 @@ fillPicker();
 renderProfileBar();
 buildSlides();
 regSW();
+updateThemeColor();
 reqPerm();
 setInterval(updateAll,1000);
 </script>
