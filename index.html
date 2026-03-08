@@ -529,6 +529,32 @@ body{
 }
 .lightbox.show img{transform:scale(1)}
 
+/* ── INSTALL BANNER ── */
+.install-banner{
+  position:fixed;bottom:80px;left:12px;right:12px;
+  background:var(--bg3);border:1px solid var(--border2);
+  border-radius:20px;padding:14px 16px;
+  display:none;align-items:center;gap:12px;
+  box-shadow:0 8px 32px rgba(0,0,0,.4);
+  z-index:500;animation:slideUp .4s cubic-bezier(.32,1,.23,1);
+}
+.install-banner.show{display:flex}
+.install-icon{font-size:32px;flex-shrink:0}
+.install-text{flex:1;min-width:0}
+.install-title{font-size:14px;font-weight:600;color:var(--text)}
+.install-sub{font-size:12px;color:var(--text3);margin-top:2px}
+.install-btn{
+  flex-shrink:0;padding:9px 16px;
+  background:var(--accent-wash);color:#fff;border:none;
+  border-radius:12px;font-family:'DM Sans',sans-serif;
+  font-size:13px;font-weight:600;cursor:pointer;
+}
+.install-close{
+  flex-shrink:0;width:28px;height:28px;
+  background:none;border:none;color:var(--text3);
+  font-size:14px;cursor:pointer;padding:0;
+}
+
 /* ── TOAST ── */
 .toast{
   position:fixed;top:calc(var(--safe-top)+16px);
@@ -754,6 +780,16 @@ body{
 
 <div class="lightbox" id="lightbox" onclick="this.classList.remove('show')">
   <img id="lightboxImg" src="" alt="">
+</div>
+<!-- INSTALL BANNER -->
+<div class="install-banner" id="installBanner">
+  <div class="install-icon">🫧</div>
+  <div class="install-text">
+    <div class="install-title">Установить WashTime</div>
+    <div class="install-sub" id="installSub">Добавить на главный экран</div>
+  </div>
+  <button class="install-btn" id="installBtn">Установить</button>
+  <button class="install-close" id="installClose">✕</button>
 </div>
 <div class="toast" id="toast"></div>
 
@@ -1690,6 +1726,85 @@ function renderWeather(d){
     </div>`;
   }).join('');
   card.innerHTML=`<div class="wlocation">📍 ${st.city}</div><div class="weather-row">${html}</div>`;
+}
+
+/* ═══════════════════════════
+   PWA INSTALL
+═══════════════════════════ */
+let deferredPrompt = null;
+const installBanner = document.getElementById('installBanner');
+const installBtn = document.getElementById('installBtn');
+const installClose = document.getElementById('installClose');
+const installSub = document.getElementById('installSub');
+
+const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+const isInStandalone = window.matchMedia('(display-mode: standalone)').matches
+  || window.navigator.standalone === true;
+
+if (!isInStandalone) {
+  if (isIOS) {
+    // iOS — показать инструкцию через 2 сек
+    const isSafari = /safari/i.test(navigator.userAgent) && !/chrome/i.test(navigator.userAgent);
+    if (isSafari) {
+      installSub.textContent = 'Нажмите  ↑  затем «На экран Домой»';
+      installBtn.textContent = 'Как?';
+      installBtn.onclick = () => showIOSGuide();
+      setTimeout(() => installBanner.classList.add('show'), 2000);
+    }
+  } else {
+    // Android/Desktop — ждём beforeinstallprompt
+    window.addEventListener('beforeinstallprompt', e => {
+      e.preventDefault();
+      deferredPrompt = e;
+      installSub.textContent = 'Работает офлайн · Быстрый доступ';
+      setTimeout(() => installBanner.classList.add('show'), 1500);
+    });
+    installBtn.onclick = async () => {
+      if (!deferredPrompt) return;
+      deferredPrompt.prompt();
+      const result = await deferredPrompt.userChoice;
+      deferredPrompt = null;
+      installBanner.classList.remove('show');
+    };
+  }
+}
+
+installClose.onclick = () => {
+  installBanner.classList.remove('show');
+  // не показывать снова 7 дней
+  localStorage.setItem('installDismissed', Date.now());
+};
+
+// Проверить не закрыл ли уже
+const dismissed = localStorage.getItem('installDismissed');
+if (dismissed && Date.now() - parseInt(dismissed) < 7*24*60*60*1000) {
+  installBanner.classList.remove('show');
+}
+
+// iOS инструкция
+function showIOSGuide() {
+  const ov = document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;z-index:900;background:rgba(0,0,0,.85);display:flex;align-items:flex-end;padding:16px';
+  ov.innerHTML=`<div style="background:var(--bg3);border-radius:24px;padding:24px;width:100%;border:1px solid var(--border2)">
+    <div style="font-size:18px;font-weight:700;margin-bottom:16px;text-align:center">Установка на iPhone</div>
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="width:36px;height:36px;background:var(--accent-wash);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">1</div>
+        <div style="font-size:14px;color:var(--text2)">Нажмите кнопку <strong>«Поделиться»</strong> (↑) внизу Safari</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="width:36px;height:36px;background:var(--accent-wash);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">2</div>
+        <div style="font-size:14px;color:var(--text2)">Выберите <strong>«На экран Домой»</strong></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="width:36px;height:36px;background:var(--accent-wash);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">3</div>
+        <div style="font-size:14px;color:var(--text2)">Нажмите <strong>«Добавить»</strong></div>
+      </div>
+    </div>
+    <button onclick="this.parentElement.parentElement.remove()" style="width:100%;margin-top:20px;padding:14px;background:var(--accent-wash);color:#fff;border:none;border-radius:14px;font-size:15px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer">Понятно</button>
+  </div>`;
+  document.body.appendChild(ov);
+  ov.onclick = e => { if(e.target===ov) ov.remove(); };
 }
 
 /* ═══════════════════════════
