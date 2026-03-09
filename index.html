@@ -1055,7 +1055,11 @@ function fbPushMachine(key){
     byProfile: pid,
     byName: profile.name||'?',
     byEmoji: profile.emoji||'👤',
-    byAvatar: profile.avatar||null
+    byAvatar: profile.avatar||null,
+    launchedByProfile: m.launchedByProfile||null,
+    launchedBy: m.launchedBy||null,
+    stoppedBy: m.stoppedBy||null,
+    stoppedAt: m.stoppedAt||null
   });
 }
 
@@ -1074,7 +1078,10 @@ function fbWatchMachine(key){
 
     // Применяем данные от другого пользователя
     m.isRunning = data.isRunning;
-    m.launchedBy = data.isRunning ? (data.byEmoji||'') + ' ' + (data.byName||'') : null;
+    m.launchedByProfile = data.launchedByProfile||data.byProfile||null;
+    m.launchedBy = data.launchedBy || (data.byEmoji||'')+' '+(data.byName||'');
+    m.stoppedBy = data.stoppedBy||null;
+    m.stoppedAt = data.stoppedAt||null;
     m.hasFinished = data.hasFinished;
     m.startH = data.startH;
     m.startM = data.startM;
@@ -1099,7 +1106,8 @@ function fbWatchMachine(key){
       cancelWatchdog(key);
       if(fromOther){
         const names = {wash:'стиральную',dry:'сушилку',dish:'посудомойку'};
-        showToast(`${data.byEmoji} ${data.byName} остановил(а) ${names[key]}`);
+        const who = m.stoppedBy || (data.byEmoji||'👤')+' '+(data.byName||'?');
+        showToast(`${who} остановил(а) ${names[key]}`);
       }
     }
   });
@@ -1486,7 +1494,8 @@ function buildCardHTML(key){
       <div>
         <div class="mname">${def.name}</div>
         <div class="mstatus${m.isRunning?' on':''}" id="st-${key}">${m.isRunning?'Работает':'Ожидание'}</div>
-        ${m.isRunning && m.launchedBy ? `<div style="font-size:11px;color:var(--text3);margin-top:2px">${m.launchedBy}</div>` : ''}
+        ${m.isRunning && m.launchedBy ? `<div style="font-size:11px;color:var(--text3);margin-top:3px">▶ ${m.launchedBy}</div>` : ''}
+        ${!m.isRunning && m.stoppedBy ? `<div style="font-size:11px;color:var(--text3);margin-top:3px">⏹ ${m.stoppedBy}${m.stoppedAt?' в '+m.stoppedAt:''}</div>` : ''}
       </div>
     </div>
     <div class="ring-wrap">
@@ -1671,10 +1680,67 @@ function updateCard(key){
 /* ═══════════════════════════
    START / STOP
 ═══════════════════════════ */
+function showConfirm(title, subtitle, onYes){
+  const existing=document.getElementById('confirmDialog');
+  if(existing) existing.remove();
+  const isDark=document.documentElement.getAttribute('data-theme')==='dark'||
+    (document.documentElement.getAttribute('data-theme')==='auto'&&window.matchMedia('(prefers-color-scheme: dark)').matches);
+  const overlay=document.createElement('div');
+  overlay.id='confirmDialog';
+  overlay.style.cssText='position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:20px;';
+  overlay.innerHTML=`
+    <div style="background:${isDark?'#1a1a24':'#fff'};border-radius:20px;padding:24px;
+      max-width:320px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.4);
+      font-family:'DM Sans',sans-serif;text-align:center;">
+      <div style="font-size:2em;margin-bottom:12px">⚠️</div>
+      <div style="font-size:15px;font-weight:600;color:${isDark?'#f0f0f5':'#0a0a18'};margin-bottom:8px">${title}</div>
+      <div style="font-size:13px;color:${isDark?'#888':'#666'};margin-bottom:24px">${subtitle}</div>
+      <div style="display:flex;gap:10px">
+        <button id="confirmNo" style="flex:1;padding:13px;border:none;border-radius:50px;
+          background:${isDark?'#2a2a35':'#f0f0f5'};color:${isDark?'#aaa':'#666'};
+          font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">
+          Нет
+        </button>
+        <button id="confirmYes" style="flex:1;padding:13px;border:none;border-radius:50px;
+          background:#ff4444;color:#fff;
+          font-size:14px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif">
+          Остановить
+        </button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  overlay.querySelector('#confirmNo').onclick=()=>overlay.remove();
+  overlay.querySelector('#confirmYes').onclick=()=>{ overlay.remove(); onYes(); };
+  overlay.addEventListener('click',e=>{if(e.target===overlay)overlay.remove();});
+}
+
+function doStop(key){
+  const m=getM(key);
+  const pid=S.activeProfile;
+  const profile=S.profiles.find(p=>p.id===pid)||{};
+  // Записать кто остановил
+  m.stoppedBy = (profile.emoji||'👤')+' '+(profile.name||'?');
+  m.stoppedAt = `${String(new Date().getHours()).padStart(2,'0')}:${String(new Date().getMinutes()).padStart(2,'0')}`;
+  m.isRunning=false; saveS(); fbPushMachine(key); playStop();
+  cancelWatchdog(key);
+  document.getElementById(`card-${key}`)?.classList.remove('running');
+  document.getElementById(`sb-${key}`).textContent='Запустить';
+  document.getElementById(`sb-${key}`).className='start-btn go';
+  document.getElementById(`st-${key}`).textContent='Ожидание';
+  document.getElementById(`st-${key}`).className='mstatus';
+  document.getElementById(`rt-${key}`).textContent='--:--';
+  setRing(key,0);
+}
+
 function handleSS(key){
   const m=getM(key);
   if(!m.isRunning){
+    const pid=S.activeProfile;
+    const profile=S.profiles.find(p=>p.id===pid)||{};
     m.isRunning=true; m.hasFinished=false;
+    m.launchedByProfile=pid;
+    m.launchedBy=(profile.emoji||'👤')+' '+(profile.name||'?');
+    m.stoppedBy=null; m.stoppedAt=null;
     const now=new Date(); m.startH=now.getHours(); m.startM=now.getMinutes();
     const si=document.getElementById(`si-${key}`);
     if(si) si.value=`${String(m.startH).padStart(2,'0')}:${String(m.startM).padStart(2,'0')}`;
@@ -1686,15 +1752,20 @@ function handleSS(key){
     document.getElementById(`st-${key}`).textContent='Работает';
     document.getElementById(`st-${key}`).className='mstatus on';
   } else {
-    m.isRunning=false; saveS(); fbPushMachine(key); playStop();
-    cancelWatchdog(key);
-    document.getElementById(`card-${key}`)?.classList.remove('running');
-    document.getElementById(`sb-${key}`).textContent='Запустить';
-    document.getElementById(`sb-${key}`).className='start-btn go';
-    document.getElementById(`st-${key}`).textContent='Ожидание';
-    document.getElementById(`st-${key}`).className='mstatus';
-    document.getElementById(`rt-${key}`).textContent='--:--';
-    setRing(key,0);
+    const pid=S.activeProfile;
+    const isOwner=!m.launchedByProfile || m.launchedByProfile===pid;
+    if(!isOwner){
+      // Показать диалог подтверждения
+      const names={wash:'стиральную',dry:'сушилку',dish:'посудомойку'};
+      const startStr=`${String(m.startH).padStart(2,'0')}:${String(m.startM).padStart(2,'0')}`;
+      showConfirm(
+        `${m.launchedBy||'Кто-то'} запустил(а) ${names[key]} в ${startStr}`,
+        'Вы уверены что хотите остановить?',
+        ()=>doStop(key)
+      );
+    } else {
+      doStop(key);
+    }
   }
 }
 
