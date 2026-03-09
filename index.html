@@ -1021,7 +1021,11 @@ function loadS(){
   }catch(e){}
   return defS();
 }
-function saveS(){try{localStorage.setItem('laiS2',JSON.stringify(S))}catch(e){}}
+function saveS(){
+  try{localStorage.setItem('laiS2',JSON.stringify(S))}catch(e){}
+  // Синхронизировать профили в Firebase
+  if(window.fbReady) fbPushMembers();
+}
 
 /* ═══════════════════════════
    FIREBASE SYNC
@@ -1050,7 +1054,8 @@ function fbPushMachine(key){
     updatedAt: Date.now(),
     byProfile: pid,
     byName: profile.name||'?',
-    byEmoji: profile.emoji||'👤'
+    byEmoji: profile.emoji||'👤',
+    byAvatar: profile.avatar||null
   });
 }
 
@@ -1069,6 +1074,7 @@ function fbWatchMachine(key){
 
     // Применяем данные от другого пользователя
     m.isRunning = data.isRunning;
+    m.launchedBy = data.isRunning ? (data.byEmoji||'') + ' ' + (data.byName||'') : null;
     m.hasFinished = data.hasFinished;
     m.startH = data.startH;
     m.startM = data.startM;
@@ -1128,9 +1134,49 @@ function initFbSync(){
   ['wash','dry','dish'].forEach(key => fbWatchMachine(key));
 }
 
+// Отправить свои профили в Firebase
+function fbPushMembers(){
+  if(!window.fbReady) return;
+  const deviceId = getDeviceId();
+  window.fbSet(`families/${FAMILY_ID}/members/${deviceId}`, {
+    deviceId,
+    profiles: S.profiles.map(p=>({
+      id: p.id,
+      name: p.name,
+      emoji: p.emoji||'👤',
+      avatar: p.avatar||null,
+      avatarSvg: p.avatarSvg||null
+    })),
+    activeProfile: S.activeProfile,
+    updatedAt: Date.now()
+  });
+}
+
+// Получить уникальный ID устройства
+function getDeviceId(){
+  let did = localStorage.getItem('washDeviceId');
+  if(!did){ did='dev_'+Math.random().toString(36).slice(2,10); localStorage.setItem('washDeviceId',did); }
+  return did;
+}
+
+// Слушать всех членов семьи
+let familyMembers = {}; // deviceId -> {profiles, activeProfile}
+function fbWatchMembers(){
+  if(!window.fbReady) return;
+  window.fbListen(`families/${FAMILY_ID}/members`, data=>{
+    if(!data) return;
+    const myDeviceId = getDeviceId();
+    familyMembers = {};
+    Object.entries(data).forEach(([did, member])=>{
+      if(did !== myDeviceId) familyMembers[did] = member;
+    });
+    renderProfileBar(); // перерисовать шапку с чужими профилями
+  });
+}
+
 // Ждём готовности Firebase
-if(window.fbReady){ initFbSync(); }
-else { window.addEventListener('fbReady', initFbSync); }
+if(window.fbReady){ initFbSync(); fbWatchMembers(); fbPushMembers(); }
+else { window.addEventListener('fbReady', ()=>{ initFbSync(); fbWatchMembers(); fbPushMembers(); }); }
 function getM(key){
   const pid=S.activeProfile;
   if(!S.machines[pid])S.machines[pid]=mkMachines();
@@ -1198,6 +1244,28 @@ function renderProfileBar(){
     }
     c.onclick=()=>{S.activeProfile=p.id;saveS();renderProfileBar();buildSlides();renderStats();renderHist();};
     bar.appendChild(c);
+  });
+
+
+  // Чужие профили из Firebase
+  Object.values(familyMembers||{}).forEach(member=>{
+    const activeP=(member.profiles||[]).find(p=>p.id===member.activeProfile)||(member.profiles||[])[0];
+    if(!activeP) return;
+    const sep=document.createElement('div');
+    sep.style.cssText='width:1px;background:var(--border);margin:4px 2px;flex-shrink:0;align-self:stretch';
+    bar.appendChild(sep);
+    const chip=document.createElement('div');
+    chip.className='pchip';
+    chip.style.cssText='opacity:0.75;cursor:default;border-style:dashed;pointer-events:none;';
+    if(activeP.avatar){
+      chip.innerHTML=`<img src="${activeP.avatar}" style="width:20px;height:20px;border-radius:50%;object-fit:cover;margin-right:5px;vertical-align:middle"> ${activeP.name}`;
+    } else {
+      chip.textContent=(activeP.emoji||'👤')+' '+activeP.name;
+    }
+    const dot=document.createElement('span');
+    dot.style.cssText='display:inline-block;width:6px;height:6px;border-radius:50%;background:#34c98a;margin-left:5px;vertical-align:middle';
+    chip.appendChild(dot);
+    bar.appendChild(chip);
   });
 }
 function renderPModal(){
@@ -1418,6 +1486,7 @@ function buildCardHTML(key){
       <div>
         <div class="mname">${def.name}</div>
         <div class="mstatus${m.isRunning?' on':''}" id="st-${key}">${m.isRunning?'Работает':'Ожидание'}</div>
+        ${m.isRunning && m.launchedBy ? `<div style="font-size:11px;color:var(--text3);margin-top:2px">${m.launchedBy}</div>` : ''}
       </div>
     </div>
     <div class="ring-wrap">
