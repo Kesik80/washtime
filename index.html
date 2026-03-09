@@ -689,6 +689,24 @@ body{
     document.head.appendChild(m);
   })();
 </script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, set, onValue, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+try {
+  const resp = await fetch('/api/firebase-config');
+  const firebaseConfig = await resp.json();
+  const fbApp = initializeApp(firebaseConfig);
+  const db = getDatabase(fbApp);
+  window.fbSet = (path, data) => set(ref(db, path), data);
+  window.fbListen = (path, cb) => onValue(ref(db, path), snap => cb(snap.val()));
+  window.fbServerTs = serverTimestamp;
+  window.fbReady = true;
+  window.dispatchEvent(new Event('fbReady'));
+} catch(e) {
+  console.warn('Firebase init failed:', e);
+}
+</script>
 </head>
 <body>
 
@@ -793,6 +811,33 @@ body{
 <!-- SETTINGS PAGE -->
 <div id="pageSettings" style="flex:1;overflow-y:auto;scrollbar-width:none;display:none">
   <div class="stats-page">
+    <div class="section-title">👨‍👩‍👧 Семья</div>
+    <div class="set-group">
+      <div class="set-row" style="flex-direction:column;align-items:flex-start;gap:4px;padding-bottom:12px;border-bottom:1px solid var(--border)">
+        <div style="font-size:13px;font-weight:600;color:var(--text)">Ваш код семьи</div>
+        <div style="font-size:12px;color:var(--text3)">Отправьте жене — она вставит его ниже</div>
+        <div style="display:flex;align-items:center;gap:8px;width:100%;margin-top:6px">
+          <code id="familyIdDisplay" style="flex:1;font-family:'DM Mono',monospace;font-size:12px;
+            color:var(--accent-wash);overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></code>
+          <button onclick="copyFamilyId()" style="flex-shrink:0;padding:7px 12px;
+            background:var(--surface2);color:var(--text);border:1px solid var(--border);
+            border-radius:10px;font-size:12px;font-weight:600;cursor:pointer;
+            font-family:'DM Sans',sans-serif">📋</button>
+        </div>
+      </div>
+      <div class="set-row" style="flex-direction:column;align-items:flex-start;gap:6px;padding-top:12px">
+        <div style="font-size:13px;font-weight:600;color:var(--text)">Войти в семью</div>
+        <div style="font-size:12px;color:var(--text3)">Вставьте код который прислал муж/жена</div>
+        <div style="display:flex;gap:8px;width:100%;margin-top:2px">
+          <input id="familyIdInput" placeholder="family_xxxxxxxx" class="set-inp"
+            style="flex:1;font-family:'DM Mono',monospace;font-size:12px">
+          <button onclick="joinFamily()" style="flex-shrink:0;padding:7px 14px;
+            background:var(--accent-dish);color:#fff;border:none;
+            border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;
+            font-family:'DM Sans',sans-serif">Войти</button>
+        </div>
+      </div>
+    </div>
     <div class="section-title">Местоположение</div>
     <div class="set-group">
       <div class="set-row">
@@ -977,6 +1022,96 @@ function loadS(){
   return defS();
 }
 function saveS(){try{localStorage.setItem('laiS2',JSON.stringify(S))}catch(e){}}
+
+/* ═══════════════════════════
+   FIREBASE SYNC
+═══════════════════════════ */
+function getFamilyId(){
+  let fid = localStorage.getItem('washFamilyId');
+  if(!fid){ fid='family_'+Math.random().toString(36).slice(2,10); localStorage.setItem('washFamilyId',fid); }
+  return fid;
+}
+const FAMILY_ID = getFamilyId();
+
+// Отправить состояние машинки в Firebase
+function fbPushMachine(key){
+  if(!window.fbReady) return;
+  const pid = S.activeProfile;
+  const m = getM(key);
+  const profile = S.profiles.find(p=>p.id===pid)||{};
+  window.fbSet(`families/${FAMILY_ID}/machines/${key}`, {
+    isRunning: m.isRunning||false,
+    hasFinished: m.hasFinished||false,
+    startH: m.startH||0,
+    startM: m.startM||0,
+    h: m.h||0,
+    m: m.m||0,
+    prog: m.prog||1,
+    updatedAt: Date.now(),
+    byProfile: pid,
+    byName: profile.name||'?',
+    byEmoji: profile.emoji||'👤'
+  });
+}
+
+// Слушать изменения машинки из Firebase
+function fbWatchMachine(key){
+  if(!window.fbReady) return;
+  window.fbListen(`families/${FAMILY_ID}/machines/${key}`, data=>{
+    if(!data) return;
+    const pid = S.activeProfile;
+    const m = getM(key);
+    // Если обновление от другого профиля — применить
+    if(data.byProfile && data.byProfile !== pid){
+      m.isRunning = data.isRunning;
+      m.hasFinished = data.hasFinished;
+      m.startH = data.startH;
+      m.startM = data.startM;
+      m.h = data.h;
+      m.m = data.m;
+      if(data.prog) m.prog = data.prog;
+      saveS();
+      renderCard(key);
+      // Показать кто запустил
+      if(data.isRunning){
+        showToast(`${data.byEmoji} ${data.byName} запустил(а) ${key==='wash'?'стиральную':key==='dry'?'сушилку':'посудомойку'}`);
+      }
+    }
+  });
+}
+
+// Копировать Family ID
+function copyFamilyId(){
+  navigator.clipboard?.writeText(FAMILY_ID).then(()=>showToast('Код скопирован!')).catch(()=>{
+    const el=document.getElementById('familyIdInput');
+    if(el){el.value=FAMILY_ID;el.select();}
+  });
+}
+
+// Войти в чужую семью
+function joinFamily(){
+  const input=document.getElementById('familyIdInput');
+  const newId=(input?.value||'').trim();
+  if(!newId||newId.length<5){showToast('Введите корректный код');return;}
+  localStorage.setItem('washFamilyId', newId);
+  showToast('✅ Подключено! Перезагрузите страницу');
+  setTimeout(()=>location.reload(), 1500);
+}
+
+// Показать Family ID в настройках
+function renderFamilyId(){
+  const el=document.getElementById('familyIdDisplay');
+  if(el) el.textContent=FAMILY_ID;
+}
+
+// Запустить прослушку для всех машин
+function initFbSync(){
+  ['wash','dry','dish'].forEach(key => fbWatchMachine(key));
+}
+
+// Ждём готовности Firebase
+if(window.fbReady){ initFbSync(); }
+else { window.addEventListener('fbReady', initFbSync); }
 function getM(key){
   const pid=S.activeProfile;
   if(!S.machines[pid])S.machines[pid]=mkMachines();
@@ -1455,7 +1590,7 @@ function handleSS(key){
     const now=new Date(); m.startH=now.getHours(); m.startM=now.getMinutes();
     const si=document.getElementById(`si-${key}`);
     if(si) si.value=`${String(m.startH).padStart(2,'0')}:${String(m.startM).padStart(2,'0')}`;
-    saveS(); playTick();
+    saveS(); fbPushMachine(key); playTick();
     scheduleServer(key); scheduleWatchdog(key);
     document.getElementById(`card-${key}`)?.classList.add('running');
     document.getElementById(`sb-${key}`).textContent='Остановить';
@@ -1463,7 +1598,7 @@ function handleSS(key){
     document.getElementById(`st-${key}`).textContent='Работает';
     document.getElementById(`st-${key}`).className='mstatus on';
   } else {
-    m.isRunning=false; saveS(); playStop();
+    m.isRunning=false; saveS(); fbPushMachine(key); playStop();
     cancelWatchdog(key);
     document.getElementById(`card-${key}`)?.classList.remove('running');
     document.getElementById(`sb-${key}`).textContent='Запустить';
@@ -1740,6 +1875,7 @@ function showPage(name){
   document.getElementById('pageMain').style.display=name==='home'?'flex':'none';
   document.getElementById('pageStats').style.display=name==='stats'?'block':'none';
   document.getElementById('pageSettings').style.display=name==='settings'?'block':'none';
+  if(name==='settings') renderFamilyId();
   document.getElementById('tabDots').style.display=name==='home'?'flex':'none';
   ['navHome','navStats','navSettings'].forEach(id=>
     document.getElementById(id).classList.toggle('active',id==='nav'+name.charAt(0).toUpperCase()+name.slice(1))
