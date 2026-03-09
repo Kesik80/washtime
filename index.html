@@ -1064,7 +1064,10 @@ function fbWatchMachine(key){
     const wasRunning = m.isRunning;
     const fromOther = data.byProfile && data.byProfile !== pid;
 
-    // Применяем данные всегда
+    // Игнорировать своё же событие (Firebase эхо)
+    if(!fromOther) return;
+
+    // Применяем данные от другого пользователя
     m.isRunning = data.isRunning;
     m.hasFinished = data.hasFinished;
     m.startH = data.startH;
@@ -1075,7 +1078,8 @@ function fbWatchMachine(key){
     saveS();
 
     // Обновить UI карточки полностью
-    const slide = document.querySelector(`[data-key="${key}"]`);
+    const cardEl = document.getElementById(`card-${key}`);
+    const slide = cardEl ? cardEl.closest('.card-slide') : null;
     if(slide){ slide.innerHTML = buildCardHTML(key); bindCard(slide, key); }
 
     // Управление watchdog
