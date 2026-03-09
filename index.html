@@ -1061,20 +1061,35 @@ function fbWatchMachine(key){
     if(!data) return;
     const pid = S.activeProfile;
     const m = getM(key);
-    // Если обновление от другого профиля — применить
-    if(data.byProfile && data.byProfile !== pid){
-      m.isRunning = data.isRunning;
-      m.hasFinished = data.hasFinished;
-      m.startH = data.startH;
-      m.startM = data.startM;
-      m.h = data.h;
-      m.m = data.m;
-      if(data.prog) m.prog = data.prog;
-      saveS();
-      renderCard(key);
-      // Показать кто запустил
-      if(data.isRunning){
-        showToast(`${data.byEmoji} ${data.byName} запустил(а) ${key==='wash'?'стиральную':key==='dry'?'сушилку':'посудомойку'}`);
+    const wasRunning = m.isRunning;
+    const fromOther = data.byProfile && data.byProfile !== pid;
+
+    // Применяем данные всегда
+    m.isRunning = data.isRunning;
+    m.hasFinished = data.hasFinished;
+    m.startH = data.startH;
+    m.startM = data.startM;
+    m.h = data.h;
+    m.m = data.m;
+    if(data.prog) m.prog = data.prog;
+    saveS();
+
+    // Обновить UI карточки полностью
+    const slide = document.querySelector(`[data-key="${key}"]`);
+    if(slide){ slide.innerHTML = buildCardHTML(key); bindCard(slide, key); }
+
+    // Управление watchdog
+    if(m.isRunning && !wasRunning){
+      scheduleWatchdog(key);
+      if(fromOther){
+        const names = {wash:'стиральную',dry:'сушилку',dish:'посудомойку'};
+        showToast(`${data.byEmoji} ${data.byName} запустил(а) ${names[key]}`);
+      }
+    } else if(!m.isRunning && wasRunning){
+      cancelWatchdog(key);
+      if(fromOther){
+        const names = {wash:'стиральную',dry:'сушилку',dish:'посудомойку'};
+        showToast(`${data.byEmoji} ${data.byName} остановил(а) ${names[key]}`);
       }
     }
   });
