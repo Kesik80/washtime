@@ -707,301 +707,314 @@ try {
   console.warn('Firebase init failed:', e);
 }
 </script>
+
 <script>
-const I18N = {
+/* lang.js — WashTime translations. ru / uk / de / en */
+var I18N = {
   ru: {
-    wash: 'Стиральная', dry: 'Сушильная', dish: 'Посудомойка',
-    running: t('running'), waiting: t('waiting'),
-    start: t('start'), duration: t('duration'), end: t('end'), remaining: t('remaining'),
-    signal: t('signal'),
-    btnStart: t('btnStart'), btnStop: t('btnStop'),
-    launchedBy: (who) => `▶ ${who}`,
-    stoppedBy: (who, at) => `⏹ ${who}${at ? ' в ' + at : ''}`,
-    msgStarted: (who, what) => `${who} запустил(а) ${what}`,
-    msgStopped: (who, what) => `${who} остановил(а) ${what}`,
-    washName: 'стиральную', dryName: 'сушилку', dishName: 'посудомойку',
-    confirmStop: (who, what, time) => `${who} запустил(а) ${what} в ${time}`,
+    wash:'Стиральная', dry:'Сушильная', dish:'Посудомойка',
+    running:'Работает', waiting:'Ожидание',
+    start:'Старт', duration:'Длительность', end:'Конец', remaining:'Осталось',
+    signal:'Сигнал по окончанию',
+    btnStart:'Запустить', btnStop:'Остановить',
+    launchedBy: function(who){ return '▶ ' + who; },
+    stoppedBy:  function(who, at){ return '⏹ ' + who + (at ? ' в ' + at : ''); },
+    msgStarted: function(who, what){ return who + ' запустил(а) ' + what; },
+    msgStopped: function(who, what){ return who + ' остановил(а) ' + what; },
+    washName:'стиральную', dryName:'сушилку', dishName:'посудомойку',
+    confirmStop:    function(who, what, time){ return who + ' запустил(а) ' + what + ' в ' + time; },
     confirmStopSub: 'Вы уверены что хотите остановить?',
-    confirmNo: 'Нет', confirmYes: t('btnStop'),
-    startTime: 'Время старта', cancel: 'Отмена', done: 'Готово',
-    profilesTitle: 'Профили', male: '♂ Мужчина', female: '♀ Женщина',
-    namePlaceholder: 'Имя (необязательно)', close: 'Закрыть', profileN: 'Профиль',
-    finishTitle: 'Готово!',
-    washDone: 'Стирка завершена', dryDone: 'Сушка завершена', dishDone: 'Посуда чистая!',
-    finishBtn: 'Отлично! 🎉',
-    washMsg: 'Стиральная машина готова! 🫧',
-    dryMsg: 'Сушильная машина закончила! 💨',
-    dishMsg: 'Посудомойка помыла! ✨',
-    navMachines: 'Машины', navStats: 'Статистика', navSettings: 'Настройки',
-    dryForecast: '🌤 Прогноз сушки', totalRuns: 'Всего запусков',
-    washes: '🫧 Стирок', dries: '💨 Сушек', dishes: '✨ Мытий',
-    thisMonth: 'За этот месяц', water: '💧 Вода', electricity: '⚡ Электричество',
-    avgTime: 'Среднее время', avgLabel: '⏱ Среднее', runsPerMonth: '📅 Запусков в месяц',
-    activity7: 'Активность за 7 дней', history: 'История', historyEmpty: 'История пуста',
-    weatherLoading: 'Загрузка погоды…', weatherError: 'Не удалось загрузить погоду',
-    today: 'Сегодня', tomorrow: 'Завтра',
-    morning: 'Утро', day: 'День', evening: 'Вечер', night: 'Ночь',
-    bad: 'Плохо', ok: 'Сойдёт', good: 'Отлично',
-    familyTitle: '👨‍👩‍👧 Семья', familyCode: 'Ваш код семьи',
-    familyCodeHint: 'Отправьте партнёру — он вставит его ниже',
-    familyCopy: '📋 Копировать', familyCopied: 'Код скопирован!',
-    familyJoinTitle: 'Войти в семью', familyJoinHint: 'Вставьте код от партнёра',
-    familyJoinPlaceholder: 'family_xxxxxxxx', familyJoinBtn: 'Войти',
-    familyLeaveTitle: 'Покинуть семью', familyLeaveHint: 'Создаст новый личный код',
-    familyLeaveBtn: 'Выйти', familyLeaveConfirm: 'Покинуть семью?',
-    familyLeaveConfirmSub: (who) => `${who} отключится от синхронизации. Остальные получат уведомление.`,
-    familyLeft: 'Вы покинули семью', familyJoined: '✅ Подключено! Перезагрузите страницу',
-    familyInvalidCode: 'Введите корректный код',
-    memberJoined: (who) => `${who} подключился(ась) к семье`,
-    memberLeft: (who) => `${who} покинул(а) семью`,
-    locationTitle: 'Местоположение', city: '🌍 Город', cityPlaceholder: 'Oberhausen',
-    geoBtn: '📍 Определить автоматически', geoSearching: '🔍 Ищу город…',
-    geoNotFound: '❌ Город не найден', geoError: '❌ Ошибка поиска',
-    geoUnavailable: 'Геолокация недоступна', geoSearching2: '📍 Определяю…',
-    myCity: 'Мой город', geoDone: '📍 Готово', geoNoAccess: 'Нет доступа к геолокации',
-    tariffsTitle: 'Тарифы', waterRate: '💧 Вода (€/л)', elRate: '⚡ Электричество (€/кВт·ч)',
-    save: 'Сохранить', saved: (city) => `✅ Сохранено: ${city}`,
-    aboutTitle: 'О приложении', dishData: 'Данные посудомойки', dishDataSub: 'из инструкции',
-    installTitle: 'Установить WashTime', installSub: 'Добавить на главный экран',
-    installBtn: 'Установить', installOffline: 'Работает офлайн · Быстрый доступ',
-    iosInstallTitle: 'Установка на iPhone',
-    iosStep1: 'Нажмите <strong>«Поделиться»</strong> (↑) внизу Safari',
-    iosStep2: 'Выберите <strong>«На экран Домой»</strong>',
-    iosStep3: 'Нажмите <strong>«Добавить»</strong>',
-    iosHow: 'Как?', iosUnderstood: 'Понятно',
-    themeAuto: '🌗 Авто', themeDark: '🌙 Тёмная', themeLight: '☀️ Светлая',
-    langTitle: '🌐 Язык',
-    photoBtn: '📷 Фото', removePhoto: 'Убрать фото',
-    cropTitle: 'Настройте фото', cropScale: 'Масштаб', cropHint: 'Перетащите для позиции',
+    confirmNo:'Нет', confirmYes:'Остановить',
+    startTime:'Время старта', cancel:'Отмена', done:'Готово',
+    profilesTitle:'Профили', male:'♂ Мужчина', female:'♀ Женщина',
+    namePlaceholder:'Имя (необязательно)', close:'Закрыть', profileN:'Профиль',
+    finishTitle:'Готово!',
+    washDone:'Стирка завершена', dryDone:'Сушка завершена', dishDone:'Посуда чистая!',
+    finishBtn:'Отлично! 🎉',
+    washMsg:'Стиральная машина готова! 🫧', dryMsg:'Сушильная машина закончила! 💨', dishMsg:'Посудомойка помыла! ✨',
+    navMachines:'Машины', navStats:'Статистика', navSettings:'Настройки',
+    dryForecast:'🌤 Прогноз сушки', totalRuns:'Всего запусков',
+    washes:'🫧 Стирок', dries:'💨 Сушек', dishes:'✨ Мытий',
+    thisMonth:'За этот месяц', water:'💧 Вода', electricity:'⚡ Электричество',
+    avgTime:'Среднее время', avgLabel:'⏱ Среднее', runsPerMonth:'📅 Запусков в месяц',
+    activity7:'Активность за 7 дней', history:'История', historyEmpty:'История пуста',
+    weatherLoading:'Загрузка погоды…', weatherError:'Не удалось загрузить погоду',
+    today:'Сегодня', tomorrow:'Завтра',
+    morning:'Утро', day:'День', evening:'Вечер', night:'Ночь',
+    bad:'Плохо', ok:'Сойдёт', good:'Отлично',
+    familyTitle:'👨‍👩‍👧 Семья', familyCode:'Ваш код семьи',
+    familyCodeHint:'Отправьте партнёру — он вставит его ниже',
+    familyCopy:'📋 Копировать', familyCopied:'Код скопирован!',
+    familyJoinTitle:'Войти в семью', familyJoinHint:'Вставьте код от партнёра',
+    familyJoinPlaceholder:'family_xxxxxxxx', familyJoinBtn:'Войти',
+    familyLeaveTitle:'Покинуть семью', familyLeaveHint:'Создаст новый личный код',
+    familyLeaveBtn:'Выйти', familyLeaveConfirm:'Покинуть семью?',
+    familyLeaveConfirmSub: function(who){ return who + ' отключится от синхронизации. Остальные получат уведомление.'; },
+    familyLeft:'Вы покинули семью', familyJoined:'✅ Подключено! Перезагрузите страницу',
+    familyInvalidCode:'Введите корректный код',
+    memberJoined: function(who){ return who + ' подключился(ась) к семье'; },
+    memberLeft:   function(who){ return who + ' покинул(а) семью'; },
+    locationTitle:'Местоположение', city:'🌍 Город', cityPlaceholder:'Oberhausen',
+    geoBtn:'📍 Определить автоматически', geoSearching:'🔍 Ищу город…',
+    geoNotFound:'❌ Город не найден', geoError:'❌ Ошибка поиска',
+    geoUnavailable:'Геолокация недоступна', geoSearching2:'📍 Определяю…',
+    myCity:'Мой город', geoDone:'📍 Готово', geoNoAccess:'Нет доступа к геолокации',
+    tariffsTitle:'Тарифы', waterRate:'💧 Вода (€/л)', elRate:'⚡ Электричество (€/кВт·ч)',
+    save:'Сохранить', saved: function(city){ return '✅ Сохранено: ' + city; },
+    aboutTitle:'О приложении', dishData:'Данные посудомойки', dishDataSub:'из инструкции',
+    installTitle:'Установить WashTime', installSub:'Добавить на главный экран',
+    installBtn:'Установить', installOffline:'Работает офлайн · Быстрый доступ',
+    iosInstallTitle:'Установка на iPhone',
+    iosStep1:'Нажмите <strong>«Поделиться»</strong> (↑) внизу Safari',
+    iosStep2:'Выберите <strong>«На экран Домой»</strong>',
+    iosStep3:'Нажмите <strong>«Добавить»</strong>',
+    iosHow:'Как?', iosUnderstood:'Понятно',
+    themeAuto:'🌗 Авто', themeDark:'🌙 Тёмная', themeLight:'☀️ Светлая',
+    langTitle:'🌐 Язык',
+    langLabel:'Язык интерфейса',
+    photoBtn:'📷 Фото', removePhoto:'Убрать фото',
+    cropTitle:'Настройте фото', cropScale:'Масштаб', cropHint:'Перетащите для позиции',
   },
 
   uk: {
-    wash: 'Пральна', dry: 'Сушарка', dish: 'Посудомийка',
-    running: 'Працює', waiting: 'Очікування',
-    start: t('start'), duration: 'Тривалість', end: 'Кінець', remaining: 'Залишилось',
-    signal: 'Сигнал по завершенню',
-    btnStart: 'Запустити', btnStop: 'Зупинити',
-    launchedBy: (who) => `▶ ${who}`,
-    stoppedBy: (who, at) => `⏹ ${who}${at ? ' о ' + at : ''}`,
-    msgStarted: (who, what) => `${who} запустив(ла) ${what}`,
-    msgStopped: (who, what) => `${who} зупинив(ла) ${what}`,
-    washName: 'пральну', dryName: 'сушарку', dishName: 'посудомийку',
-    confirmStop: (who, what, time) => `${who} запустив(ла) ${what} о ${time}`,
+    wash:'Пральна', dry:'Сушарка', dish:'Посудомийка',
+    running:'Працює', waiting:'Очікування',
+    start:'Старт', duration:'Тривалість', end:'Кінець', remaining:'Залишилось',
+    signal:'Сигнал по завершенню',
+    btnStart:'Запустити', btnStop:'Зупинити',
+    launchedBy: function(who){ return '▶ ' + who; },
+    stoppedBy:  function(who, at){ return '⏹ ' + who + (at ? ' о ' + at : ''); },
+    msgStarted: function(who, what){ return who + ' запустив(ла) ' + what; },
+    msgStopped: function(who, what){ return who + ' зупинив(ла) ' + what; },
+    washName:'пральну', dryName:'сушарку', dishName:'посудомийку',
+    confirmStop:    function(who, what, time){ return who + ' запустив(ла) ' + what + ' о ' + time; },
     confirmStopSub: 'Ви впевнені що хочете зупинити?',
-    confirmNo: 'Ні', confirmYes: 'Зупинити',
-    startTime: 'Час старту', cancel: 'Скасувати', done: 'Готово',
-    profilesTitle: 'Профілі', male: '♂ Чоловік', female: '♀ Жінка',
-    namePlaceholder: "Ім'я (необов'язково)", close: 'Закрити', profileN: 'Профіль',
-    finishTitle: 'Готово!',
-    washDone: 'Прання завершено', dryDone: 'Сушіння завершено', dishDone: 'Посуд чистий!',
-    finishBtn: 'Чудово! 🎉',
-    washMsg: 'Пральна машина готова! 🫧',
-    dryMsg: 'Сушарка закінчила! 💨',
-    dishMsg: 'Посудомийка помила! ✨',
-    navMachines: 'Машини', navStats: 'Статистика', navSettings: 'Налаштування',
-    dryForecast: '🌤 Прогноз сушіння', totalRuns: 'Всього запусків',
-    washes: '🫧 Прань', dries: '💨 Сушінь', dishes: '✨ Миттів',
-    thisMonth: 'За цей місяць', water: '💧 Вода', electricity: '⚡ Електрика',
-    avgTime: 'Середній час', avgLabel: '⏱ Середнє', runsPerMonth: '📅 Запусків на місяць',
-    activity7: 'Активність за 7 днів', history: 'Історія', historyEmpty: 'Історія порожня',
-    weatherLoading: 'Завантаження погоди…', weatherError: 'Не вдалося завантажити погоду',
-    today: 'Сьогодні', tomorrow: 'Завтра',
-    morning: 'Ранок', day: 'День', evening: 'Вечір', night: 'Ніч',
-    bad: 'Погано', ok: 'Зійде', good: 'Відмінно',
-    familyTitle: "👨‍👩‍👧 Сім'я", familyCode: "Ваш код сім'ї",
-    familyCodeHint: 'Надішліть партнеру — він вставить нижче',
-    familyCopy: '📋 Копіювати', familyCopied: 'Код скопійовано!',
-    familyJoinTitle: "Увійти до сім'ї", familyJoinHint: 'Вставте код від партнера',
-    familyJoinPlaceholder: 'family_xxxxxxxx', familyJoinBtn: 'Увійти',
-    familyLeaveTitle: "Покинути сім'ю", familyLeaveHint: 'Створить новий особистий код',
-    familyLeaveBtn: 'Вийти', familyLeaveConfirm: "Покинути сім'ю?",
-    familyLeaveConfirmSub: (who) => `${who} відключиться від синхронізації. Інші отримають повідомлення.`,
-    familyLeft: "Ви покинули сім'ю", familyJoined: '✅ Підключено! Перезавантажте сторінку',
-    familyInvalidCode: 'Введіть коректний код',
-    memberJoined: (who) => `${who} підключився(лась) до сім'ї`,
-    memberLeft: (who) => `${who} покинув(ла) сім'ю`,
-    locationTitle: 'Місцеположення', city: '🌍 Місто', cityPlaceholder: 'Oberhausen',
-    geoBtn: '📍 Визначити автоматично', geoSearching: '🔍 Шукаю місто…',
-    geoNotFound: '❌ Місто не знайдено', geoError: '❌ Помилка пошуку',
-    geoUnavailable: 'Геолокація недоступна', geoSearching2: '📍 Визначаю…',
-    myCity: 'Моє місто', geoDone: '📍 Готово', geoNoAccess: 'Немає доступу до геолокації',
-    tariffsTitle: 'Тарифи', waterRate: '💧 Вода (€/л)', elRate: '⚡ Електрика (€/кВт·г)',
-    save: 'Зберегти', saved: (city) => `✅ Збережено: ${city}`,
-    aboutTitle: 'Про застосунок', dishData: 'Дані посудомийки', dishDataSub: 'з інструкції',
-    installTitle: 'Встановити WashTime', installSub: 'Додати на головний екран',
-    installBtn: 'Встановити', installOffline: 'Працює офлайн · Швидкий доступ',
-    iosInstallTitle: 'Встановлення на iPhone',
-    iosStep1: 'Натисніть <strong>«Поділитись»</strong> (↑) внизу Safari',
-    iosStep2: 'Виберіть <strong>«На головний екран»</strong>',
-    iosStep3: "Натисніть <strong>«Додати»</strong>",
-    iosHow: 'Як?', iosUnderstood: 'Зрозуміло',
-    themeAuto: '🌗 Авто', themeDark: '🌙 Темна', themeLight: '☀️ Світла',
-    langTitle: '🌐 Мова',
-    photoBtn: '📷 Фото', removePhoto: 'Видалити фото',
-    cropTitle: 'Налаштуйте фото', cropScale: 'Масштаб', cropHint: 'Перетягніть для позиції',
+    confirmNo:'Ні', confirmYes:'Зупинити',
+    startTime:'Час старту', cancel:'Скасувати', done:'Готово',
+    profilesTitle:'Профілі', male:'♂ Чоловік', female:'♀ Жінка',
+    namePlaceholder:"Ім'я (необов'язково)", close:'Закрити', profileN:'Профіль',
+    finishTitle:'Готово!',
+    washDone:'Прання завершено', dryDone:'Сушіння завершено', dishDone:'Посуд чистий!',
+    finishBtn:'Чудово! 🎉',
+    washMsg:'Пральна машина готова! 🫧', dryMsg:'Сушарка закінчила! 💨', dishMsg:'Посудомийка помила! ✨',
+    navMachines:'Машини', navStats:'Статистика', navSettings:'Налаштування',
+    dryForecast:'🌤 Прогноз сушіння', totalRuns:'Всього запусків',
+    washes:'🫧 Прань', dries:'💨 Сушінь', dishes:'✨ Миттів',
+    thisMonth:'За цей місяць', water:'💧 Вода', electricity:'⚡ Електрика',
+    avgTime:'Середній час', avgLabel:'⏱ Середнє', runsPerMonth:'📅 Запусків на місяць',
+    activity7:'Активність за 7 днів', history:'Історія', historyEmpty:'Історія порожня',
+    weatherLoading:'Завантаження погоди…', weatherError:'Не вдалося завантажити погоду',
+    today:'Сьогодні', tomorrow:'Завтра',
+    morning:'Ранок', day:'День', evening:'Вечір', night:'Ніч',
+    bad:'Погано', ok:'Зійде', good:'Відмінно',
+    familyTitle:"👨‍👩‍👧 Сім'я", familyCode:"Ваш код сім'ї",
+    familyCodeHint:'Надішліть партнеру — він вставить нижче',
+    familyCopy:'📋 Копіювати', familyCopied:'Код скопійовано!',
+    familyJoinTitle:"Увійти до сім'ї", familyJoinHint:'Вставте код від партнера',
+    familyJoinPlaceholder:'family_xxxxxxxx', familyJoinBtn:'Увійти',
+    familyLeaveTitle:"Покинути сім'ю", familyLeaveHint:'Створить новий особистий код',
+    familyLeaveBtn:'Вийти', familyLeaveConfirm:"Покинути сім'ю?",
+    familyLeaveConfirmSub: function(who){ return who + " відключиться від синхронізації. Інші отримають повідомлення."; },
+    familyLeft:"Ви покинули сім'ю", familyJoined:'✅ Підключено! Перезавантажте сторінку',
+    familyInvalidCode:'Введіть коректний код',
+    memberJoined: function(who){ return who + " підключився(лась) до сім'ї"; },
+    memberLeft:   function(who){ return who + " покинув(ла) сім'ю"; },
+    locationTitle:'Місцеположення', city:'🌍 Місто', cityPlaceholder:'Oberhausen',
+    geoBtn:'📍 Визначити автоматично', geoSearching:'🔍 Шукаю місто…',
+    geoNotFound:'❌ Місто не знайдено', geoError:'❌ Помилка пошуку',
+    geoUnavailable:'Геолокація недоступна', geoSearching2:'📍 Визначаю…',
+    myCity:'Моє місто', geoDone:'📍 Готово', geoNoAccess:'Немає доступу до геолокації',
+    tariffsTitle:'Тарифи', waterRate:'💧 Вода (€/л)', elRate:'⚡ Електрика (€/кВт·г)',
+    save:'Зберегти', saved: function(city){ return '✅ Збережено: ' + city; },
+    aboutTitle:'Про застосунок', dishData:'Дані посудомийки', dishDataSub:'з інструкції',
+    installTitle:'Встановити WashTime', installSub:'Додати на головний екран',
+    installBtn:'Встановити', installOffline:'Працює офлайн · Швидкий доступ',
+    iosInstallTitle:'Встановлення на iPhone',
+    iosStep1:'Натисніть <strong>«Поділитись»</strong> (↑) внизу Safari',
+    iosStep2:'Виберіть <strong>«На головний екран»</strong>',
+    iosStep3:"Натисніть <strong>«Додати»</strong>",
+    iosHow:'Як?', iosUnderstood:'Зрозуміло',
+    themeAuto:'🌗 Авто', themeDark:'🌙 Темна', themeLight:'☀️ Світла',
+    langTitle:'🌐 Мова',
+    langLabel:'Мова інтерфейсу',
+    photoBtn:'📷 Фото', removePhoto:'Видалити фото',
+    cropTitle:'Налаштуйте фото', cropScale:'Масштаб', cropHint:'Перетягніть для позиції',
   },
 
   de: {
-    wash: 'Waschmaschine', dry: 'Trockner', dish: 'Spülmaschine',
-    running: 'Läuft', waiting: 'Wartet',
-    start: 'Start', duration: 'Dauer', end: 'Ende', remaining: 'Verbleibend',
-    signal: 'Signal bei Fertigstellung',
-    btnStart: 'Starten', btnStop: 'Stoppen',
-    launchedBy: (who) => `▶ ${who}`,
-    stoppedBy: (who, at) => `⏹ ${who}${at ? ' um ' + at : ''}`,
-    msgStarted: (who, what) => `${who} hat ${what} gestartet`,
-    msgStopped: (who, what) => `${who} hat ${what} gestoppt`,
-    washName: 'die Waschmaschine', dryName: 'den Trockner', dishName: 'die Spülmaschine',
-    confirmStop: (who, what, time) => `${who} hat ${what} um ${time} gestartet`,
+    wash:'Waschmaschine', dry:'Trockner', dish:'Spülmaschine',
+    running:'Läuft', waiting:'Wartet',
+    start:'Start', duration:'Dauer', end:'Ende', remaining:'Verbleibend',
+    signal:'Signal bei Fertigstellung',
+    btnStart:'Starten', btnStop:'Stoppen',
+    launchedBy: function(who){ return '▶ ' + who; },
+    stoppedBy:  function(who, at){ return '⏹ ' + who + (at ? ' um ' + at : ''); },
+    msgStarted: function(who, what){ return who + ' hat ' + what + ' gestartet'; },
+    msgStopped: function(who, what){ return who + ' hat ' + what + ' gestoppt'; },
+    washName:'die Waschmaschine', dryName:'den Trockner', dishName:'die Spülmaschine',
+    confirmStop:    function(who, what, time){ return who + ' hat ' + what + ' um ' + time + ' gestartet'; },
     confirmStopSub: 'Möchten Sie wirklich stoppen?',
-    confirmNo: 'Nein', confirmYes: 'Stoppen',
-    startTime: 'Startzeit', cancel: 'Abbrechen', done: 'Fertig',
-    profilesTitle: 'Profile', male: '♂ Mann', female: '♀ Frau',
-    namePlaceholder: 'Name (optional)', close: 'Schließen', profileN: 'Profil',
-    finishTitle: 'Fertig!',
-    washDone: 'Wäsche fertig', dryDone: 'Trocknen fertig', dishDone: 'Geschirr sauber!',
-    finishBtn: 'Super! 🎉',
-    washMsg: 'Waschmaschine fertig! 🫧',
-    dryMsg: 'Trockner fertig! 💨',
-    dishMsg: 'Spülmaschine fertig! ✨',
-    navMachines: 'Maschinen', navStats: 'Statistik', navSettings: 'Einstellungen',
-    dryForecast: '🌤 Trockenprognose', totalRuns: 'Starts gesamt',
-    washes: '🫧 Wäschen', dries: '💨 Trocknungen', dishes: '✨ Spülgänge',
-    thisMonth: 'Diesen Monat', water: '💧 Wasser', electricity: '⚡ Strom',
-    avgTime: 'Durchschnittszeit', avgLabel: '⏱ Schnitt', runsPerMonth: '📅 Starts/Monat',
-    activity7: 'Aktivität letzte 7 Tage', history: 'Verlauf', historyEmpty: 'Kein Verlauf',
-    weatherLoading: 'Wetter wird geladen…', weatherError: 'Wetter nicht verfügbar',
-    today: 'Heute', tomorrow: 'Morgen',
-    morning: 'Morgen', day: 'Tag', evening: 'Abend', night: 'Nacht',
-    bad: 'Schlecht', ok: 'Geht so', good: 'Sehr gut',
-    familyTitle: '👨‍👩‍👧 Familie', familyCode: 'Ihr Familiencode',
-    familyCodeHint: 'An Partner senden — er fügt ihn unten ein',
-    familyCopy: '📋 Kopieren', familyCopied: 'Code kopiert!',
-    familyJoinTitle: 'Familie beitreten', familyJoinHint: 'Code vom Partner einfügen',
-    familyJoinPlaceholder: 'family_xxxxxxxx', familyJoinBtn: 'Beitreten',
-    familyLeaveTitle: 'Familie verlassen', familyLeaveHint: 'Erstellt neuen persönlichen Code',
-    familyLeaveBtn: 'Verlassen', familyLeaveConfirm: 'Familie verlassen?',
-    familyLeaveConfirmSub: (who) => `${who} wird getrennt. Andere werden benachrichtigt.`,
-    familyLeft: 'Sie haben die Familie verlassen',
-    familyJoined: '✅ Verbunden! Seite neu laden',
-    familyInvalidCode: 'Bitte gültigen Code eingeben',
-    memberJoined: (who) => `${who} ist beigetreten`,
-    memberLeft: (who) => `${who} hat die Familie verlassen`,
-    locationTitle: 'Standort', city: '🌍 Stadt', cityPlaceholder: 'Oberhausen',
-    geoBtn: '📍 Automatisch bestimmen', geoSearching: '🔍 Suche Stadt…',
-    geoNotFound: '❌ Stadt nicht gefunden', geoError: '❌ Suchfehler',
-    geoUnavailable: 'Geolocation nicht verfügbar', geoSearching2: '📍 Bestimme…',
-    myCity: 'Meine Stadt', geoDone: '📍 Fertig', geoNoAccess: 'Kein Geolocation-Zugriff',
-    tariffsTitle: 'Tarife', waterRate: '💧 Wasser (€/l)', elRate: '⚡ Strom (€/kWh)',
-    save: 'Speichern', saved: (city) => `✅ Gespeichert: ${city}`,
-    aboutTitle: 'Über die App', dishData: 'Spülmaschinen-Daten', dishDataSub: 'aus Anleitung',
-    installTitle: 'WashTime installieren', installSub: 'Zum Startbildschirm hinzufügen',
-    installBtn: 'Installieren', installOffline: 'Offline verfügbar · Schneller Zugriff',
-    iosInstallTitle: 'Installation auf iPhone',
-    iosStep1: 'Tippen Sie auf <strong>«Teilen»</strong> (↑) in Safari',
-    iosStep2: 'Wählen Sie <strong>«Zum Home-Bildschirm»</strong>',
-    iosStep3: 'Tippen Sie auf <strong>«Hinzufügen»</strong>',
-    iosHow: 'Wie?', iosUnderstood: 'Verstanden',
-    themeAuto: '🌗 Auto', themeDark: '🌙 Dunkel', themeLight: '☀️ Hell',
-    langTitle: '🌐 Sprache',
-    photoBtn: '📷 Foto', removePhoto: 'Foto entfernen',
-    cropTitle: 'Foto anpassen', cropScale: 'Zoom', cropHint: 'Ziehen für Position',
+    confirmNo:'Nein', confirmYes:'Stoppen',
+    startTime:'Startzeit', cancel:'Abbrechen', done:'Fertig',
+    profilesTitle:'Profile', male:'♂ Mann', female:'♀ Frau',
+    namePlaceholder:'Name (optional)', close:'Schließen', profileN:'Profil',
+    finishTitle:'Fertig!',
+    washDone:'Wäsche fertig', dryDone:'Trocknen fertig', dishDone:'Geschirr sauber!',
+    finishBtn:'Super! 🎉',
+    washMsg:'Waschmaschine fertig! 🫧', dryMsg:'Trockner fertig! 💨', dishMsg:'Spülmaschine fertig! ✨',
+    navMachines:'Maschinen', navStats:'Statistik', navSettings:'Einstellungen',
+    dryForecast:'🌤 Trockenprognose', totalRuns:'Starts gesamt',
+    washes:'🫧 Wäschen', dries:'💨 Trocknungen', dishes:'✨ Spülgänge',
+    thisMonth:'Diesen Monat', water:'💧 Wasser', electricity:'⚡ Strom',
+    avgTime:'Durchschnittszeit', avgLabel:'⏱ Schnitt', runsPerMonth:'📅 Starts/Monat',
+    activity7:'Aktivität letzte 7 Tage', history:'Verlauf', historyEmpty:'Kein Verlauf',
+    weatherLoading:'Wetter wird geladen…', weatherError:'Wetter nicht verfügbar',
+    today:'Heute', tomorrow:'Morgen',
+    morning:'Morgen', day:'Tag', evening:'Abend', night:'Nacht',
+    bad:'Schlecht', ok:'Geht so', good:'Sehr gut',
+    familyTitle:'👨‍👩‍👧 Familie', familyCode:'Ihr Familiencode',
+    familyCodeHint:'An Partner senden — er fügt ihn unten ein',
+    familyCopy:'📋 Kopieren', familyCopied:'Code kopiert!',
+    familyJoinTitle:'Familie beitreten', familyJoinHint:'Code vom Partner einfügen',
+    familyJoinPlaceholder:'family_xxxxxxxx', familyJoinBtn:'Beitreten',
+    familyLeaveTitle:'Familie verlassen', familyLeaveHint:'Erstellt neuen persönlichen Code',
+    familyLeaveBtn:'Verlassen', familyLeaveConfirm:'Familie verlassen?',
+    familyLeaveConfirmSub: function(who){ return who + ' wird getrennt. Andere werden benachrichtigt.'; },
+    familyLeft:'Sie haben die Familie verlassen', familyJoined:'✅ Verbunden! Seite neu laden',
+    familyInvalidCode:'Bitte gültigen Code eingeben',
+    memberJoined: function(who){ return who + ' ist beigetreten'; },
+    memberLeft:   function(who){ return who + ' hat die Familie verlassen'; },
+    locationTitle:'Standort', city:'🌍 Stadt', cityPlaceholder:'Oberhausen',
+    geoBtn:'📍 Automatisch bestimmen', geoSearching:'🔍 Suche Stadt…',
+    geoNotFound:'❌ Stadt nicht gefunden', geoError:'❌ Suchfehler',
+    geoUnavailable:'Geolocation nicht verfügbar', geoSearching2:'📍 Bestimme…',
+    myCity:'Meine Stadt', geoDone:'📍 Fertig', geoNoAccess:'Kein Geolocation-Zugriff',
+    tariffsTitle:'Tarife', waterRate:'💧 Wasser (€/l)', elRate:'⚡ Strom (€/kWh)',
+    save:'Speichern', saved: function(city){ return '✅ Gespeichert: ' + city; },
+    aboutTitle:'Über die App', dishData:'Spülmaschinen-Daten', dishDataSub:'aus Anleitung',
+    installTitle:'WashTime installieren', installSub:'Zum Startbildschirm hinzufügen',
+    installBtn:'Installieren', installOffline:'Offline verfügbar · Schneller Zugriff',
+    iosInstallTitle:'Installation auf iPhone',
+    iosStep1:'Tippen Sie auf <strong>«Teilen»</strong> (↑) in Safari',
+    iosStep2:'Wählen Sie <strong>«Zum Home-Bildschirm»</strong>',
+    iosStep3:'Tippen Sie auf <strong>«Hinzufügen»</strong>',
+    iosHow:'Wie?', iosUnderstood:'Verstanden',
+    themeAuto:'🌗 Auto', themeDark:'🌙 Dunkel', themeLight:'☀️ Hell',
+    langTitle:'🌐 Sprache',
+    langLabel:'Sprache der Oberfläche',
+    photoBtn:'📷 Foto', removePhoto:'Foto entfernen',
+    cropTitle:'Foto anpassen', cropScale:'Zoom', cropHint:'Ziehen für Position',
   },
 
   en: {
-    wash: 'Washing Machine', dry: 'Dryer', dish: 'Dishwasher',
-    running: 'Running', waiting: 'Waiting',
-    start: 'Start', duration: 'Duration', end: 'End', remaining: 'Remaining',
-    signal: 'Signal on finish',
-    btnStart: 'Start', btnStop: 'Stop',
-    launchedBy: (who) => `▶ ${who}`,
-    stoppedBy: (who, at) => `⏹ ${who}${at ? ' at ' + at : ''}`,
-    msgStarted: (who, what) => `${who} started ${what}`,
-    msgStopped: (who, what) => `${who} stopped ${what}`,
-    washName: 'the washer', dryName: 'the dryer', dishName: 'the dishwasher',
-    confirmStop: (who, what, time) => `${who} started ${what} at ${time}`,
+    wash:'Washing Machine', dry:'Dryer', dish:'Dishwasher',
+    running:'Running', waiting:'Waiting',
+    start:'Start', duration:'Duration', end:'End', remaining:'Remaining',
+    signal:'Signal on finish',
+    btnStart:'Start', btnStop:'Stop',
+    launchedBy: function(who){ return '▶ ' + who; },
+    stoppedBy:  function(who, at){ return '⏹ ' + who + (at ? ' at ' + at : ''); },
+    msgStarted: function(who, what){ return who + ' started ' + what; },
+    msgStopped: function(who, what){ return who + ' stopped ' + what; },
+    washName:'the washer', dryName:'the dryer', dishName:'the dishwasher',
+    confirmStop:    function(who, what, time){ return who + ' started ' + what + ' at ' + time; },
     confirmStopSub: 'Are you sure you want to stop?',
-    confirmNo: 'No', confirmYes: 'Stop',
-    startTime: 'Start Time', cancel: 'Cancel', done: 'Done',
-    profilesTitle: 'Profiles', male: '♂ Male', female: '♀ Female',
-    namePlaceholder: 'Name (optional)', close: 'Close', profileN: 'Profile',
-    finishTitle: 'Done!',
-    washDone: 'Washing complete', dryDone: 'Drying complete', dishDone: 'Dishes clean!',
-    finishBtn: 'Great! 🎉',
-    washMsg: 'Washing machine done! 🫧',
-    dryMsg: 'Dryer done! 💨',
-    dishMsg: 'Dishwasher done! ✨',
-    navMachines: 'Machines', navStats: 'Statistics', navSettings: 'Settings',
-    dryForecast: '🌤 Drying Forecast', totalRuns: 'Total runs',
-    washes: '🫧 Washes', dries: '💨 Drying', dishes: '✨ Dishwashing',
-    thisMonth: 'This month', water: '💧 Water', electricity: '⚡ Electricity',
-    avgTime: 'Average time', avgLabel: '⏱ Average', runsPerMonth: '📅 Runs/month',
-    activity7: 'Activity last 7 days', history: 'History', historyEmpty: 'No history yet',
-    weatherLoading: 'Loading weather…', weatherError: 'Could not load weather',
-    today: 'Today', tomorrow: 'Tomorrow',
-    morning: 'Morning', day: 'Day', evening: 'Evening', night: 'Night',
-    bad: 'Bad', ok: 'Okay', good: 'Great',
-    familyTitle: '👨‍👩‍👧 Family', familyCode: 'Your family code',
-    familyCodeHint: 'Send to your partner — they paste it below',
-    familyCopy: '📋 Copy', familyCopied: 'Code copied!',
-    familyJoinTitle: 'Join family', familyJoinHint: 'Paste code from your partner',
-    familyJoinPlaceholder: 'family_xxxxxxxx', familyJoinBtn: 'Join',
-    familyLeaveTitle: 'Leave family', familyLeaveHint: 'Creates a new personal code',
-    familyLeaveBtn: 'Leave', familyLeaveConfirm: 'Leave family?',
-    familyLeaveConfirmSub: (who) => `${who} will disconnect. Others will be notified.`,
-    familyLeft: 'You left the family', familyJoined: '✅ Connected! Reload the page',
-    familyInvalidCode: 'Please enter a valid code',
-    memberJoined: (who) => `${who} joined the family`,
-    memberLeft: (who) => `${who} left the family`,
-    locationTitle: 'Location', city: '🌍 City', cityPlaceholder: 'Oberhausen',
-    geoBtn: '📍 Detect automatically', geoSearching: '🔍 Searching city…',
-    geoNotFound: '❌ City not found', geoError: '❌ Search error',
-    geoUnavailable: 'Geolocation unavailable', geoSearching2: '📍 Detecting…',
-    myCity: 'My city', geoDone: '📍 Done', geoNoAccess: 'No geolocation access',
-    tariffsTitle: 'Tariffs', waterRate: '💧 Water (€/l)', elRate: '⚡ Electricity (€/kWh)',
-    save: 'Save', saved: (city) => `✅ Saved: ${city}`,
-    aboutTitle: 'About', dishData: 'Dishwasher data', dishDataSub: 'from manual',
-    installTitle: 'Install WashTime', installSub: 'Add to home screen',
-    installBtn: 'Install', installOffline: 'Works offline · Quick access',
-    iosInstallTitle: 'Install on iPhone',
-    iosStep1: 'Tap <strong>«Share»</strong> (↑) at the bottom of Safari',
-    iosStep2: 'Select <strong>«Add to Home Screen»</strong>',
-    iosStep3: 'Tap <strong>«Add»</strong>',
-    iosHow: 'How?', iosUnderstood: 'Got it',
-    themeAuto: '🌗 Auto', themeDark: '🌙 Dark', themeLight: '☀️ Light',
-    langTitle: '🌐 Language',
-    photoBtn: '📷 Photo', removePhoto: 'Remove photo',
-    cropTitle: 'Adjust photo', cropScale: 'Scale', cropHint: 'Drag to position',
+    confirmNo:'No', confirmYes:'Stop',
+    startTime:'Start Time', cancel:'Cancel', done:'Done',
+    profilesTitle:'Profiles', male:'♂ Male', female:'♀ Female',
+    namePlaceholder:'Name (optional)', close:'Close', profileN:'Profile',
+    finishTitle:'Done!',
+    washDone:'Washing complete', dryDone:'Drying complete', dishDone:'Dishes clean!',
+    finishBtn:'Great! 🎉',
+    washMsg:'Washing machine done! 🫧', dryMsg:'Dryer done! 💨', dishMsg:'Dishwasher done! ✨',
+    navMachines:'Machines', navStats:'Statistics', navSettings:'Settings',
+    dryForecast:'🌤 Drying Forecast', totalRuns:'Total runs',
+    washes:'🫧 Washes', dries:'💨 Drying', dishes:'✨ Dishwashing',
+    thisMonth:'This month', water:'💧 Water', electricity:'⚡ Electricity',
+    avgTime:'Average time', avgLabel:'⏱ Average', runsPerMonth:'📅 Runs/month',
+    activity7:'Activity last 7 days', history:'History', historyEmpty:'No history yet',
+    weatherLoading:'Loading weather…', weatherError:'Could not load weather',
+    today:'Today', tomorrow:'Tomorrow',
+    morning:'Morning', day:'Day', evening:'Evening', night:'Night',
+    bad:'Bad', ok:'Okay', good:'Great',
+    familyTitle:'👨‍👩‍👧 Family', familyCode:'Your family code',
+    familyCodeHint:'Send to your partner — they paste it below',
+    familyCopy:'📋 Copy', familyCopied:'Code copied!',
+    familyJoinTitle:'Join family', familyJoinHint:'Paste code from your partner',
+    familyJoinPlaceholder:'family_xxxxxxxx', familyJoinBtn:'Join',
+    familyLeaveTitle:'Leave family', familyLeaveHint:'Creates a new personal code',
+    familyLeaveBtn:'Leave', familyLeaveConfirm:'Leave family?',
+    familyLeaveConfirmSub: function(who){ return who + ' will disconnect. Others will be notified.'; },
+    familyLeft:'You left the family', familyJoined:'✅ Connected! Reload the page',
+    familyInvalidCode:'Please enter a valid code',
+    memberJoined: function(who){ return who + ' joined the family'; },
+    memberLeft:   function(who){ return who + ' left the family'; },
+    locationTitle:'Location', city:'🌍 City', cityPlaceholder:'Oberhausen',
+    geoBtn:'📍 Detect automatically', geoSearching:'🔍 Searching city…',
+    geoNotFound:'❌ City not found', geoError:'❌ Search error',
+    geoUnavailable:'Geolocation unavailable', geoSearching2:'📍 Detecting…',
+    myCity:'My city', geoDone:'📍 Done', geoNoAccess:'No geolocation access',
+    tariffsTitle:'Tariffs', waterRate:'💧 Water (€/l)', elRate:'⚡ Electricity (€/kWh)',
+    save:'Save', saved: function(city){ return '✅ Saved: ' + city; },
+    aboutTitle:'About', dishData:'Dishwasher data', dishDataSub:'from manual',
+    installTitle:'Install WashTime', installSub:'Add to home screen',
+    installBtn:'Install', installOffline:'Works offline · Quick access',
+    iosInstallTitle:'Install on iPhone',
+    iosStep1:'Tap <strong>«Share»</strong> (↑) at the bottom of Safari',
+    iosStep2:'Select <strong>«Add to Home Screen»</strong>',
+    iosStep3:'Tap <strong>«Add»</strong>',
+    iosHow:'How?', iosUnderstood:'Got it',
+    themeAuto:'🌗 Auto', themeDark:'🌙 Dark', themeLight:'☀️ Light',
+    langTitle:'🌐 Language',
+    langLabel:'Interface language',
+    photoBtn:'📷 Photo', removePhoto:'Remove photo',
+    cropTitle:'Adjust photo', cropScale:'Scale', cropHint:'Drag to position',
   }
 };
 
 function detectLang() {
-  const saved = localStorage.getItem('washLang');
-  if (saved && I18N[saved]) return saved;
-  const sys = (navigator.language || 'ru').slice(0, 2).toLowerCase();
-  return I18N[sys] ? sys : 'ru';
+  // Системный язык телефона
+  var sys = (navigator.language || navigator.userLanguage || 'ru').slice(0, 2).toLowerCase();
+  var sysLang = I18N[sys] ? sys : 'ru';
+
+  // Пользователь явно выбрал язык вручную — уважаем выбор
+  var userPicked = localStorage.getItem('washLangManual');
+  if (userPicked && I18N[userPicked]) return userPicked;
+
+  // Иначе — системный язык
+  return sysLang;
 }
 
-let LANG = detectLang();
+var LANG = detectLang();
 
-function t(key, ...args) {
-  const val = (I18N[LANG] && I18N[LANG][key] !== undefined)
-    ? I18N[LANG][key]
-    : (I18N.ru[key] !== undefined ? I18N.ru[key] : key);
-  return typeof val === 'function' ? val(...args) : val;
+function t(key) {
+  var args = Array.prototype.slice.call(arguments, 1);
+  var dict = I18N[LANG] || I18N.ru;
+  var val = (dict[key] !== undefined) ? dict[key] : (I18N.ru[key] !== undefined ? I18N.ru[key] : key);
+  return typeof val === 'function' ? val.apply(null, args) : val;
+}
+
+
+function applyI18n() {
+  document.querySelectorAll('[data-i18n]').forEach(function(el) {
+    var key = el.getAttribute('data-i18n');
+    var val = t(key);
+    if (val && val !== key) el.textContent = val;
+  });
+  // Навбар — у span внутри button
+  var sel = document.getElementById('langSelect');
+  if (sel) sel.value = LANG;
 }
 
 function setLang(lang) {
   if (!I18N[lang]) return;
   LANG = lang;
-  localStorage.setItem('washLang', lang);
-  const sel = document.getElementById('langSelect');
-  if (sel) sel.value = lang;
+  localStorage.setItem('washLangManual', lang); // ручной выбор пользователя
+  applyI18n();
   if (typeof buildSlides === 'function') buildSlides();
   if (typeof renderStats === 'function') renderStats();
   if (typeof renderHist === 'function') renderHist();
   if (typeof renderProfileBar === 'function') renderProfileBar();
-  if (typeof renderSettingsPage === 'function') renderSettingsPage();
 }
 
 </script>
@@ -1044,17 +1057,17 @@ function setLang(lang) {
 
 <div id="pageStats" style="flex:1;overflow-y:auto;scrollbar-width:none;display:none">
   <div class="stats-page">
-    <div class="section-title">🌤 Прогноз сушки</div>
+    <div class="section-title" data-i18n="dryForecast">🌤 Прогноз сушки</div>
     <div class="weather-card" id="weatherCard">
       <div class="wload">Загрузка погоды…</div>
     </div>
-    <div class="section-title">Всего запусков</div>
+    <div class="section-title" data-i18n="totalRuns">Всего запусков</div>
     <div class="stats-grid">
-      <div class="sstat"><div class="sstat-val" id="stW" style="color:var(--accent-wash)">0</div><div class="sstat-lbl">🫧 Стирок</div></div>
-      <div class="sstat"><div class="sstat-val" id="stD" style="color:var(--accent-dry)">0</div><div class="sstat-lbl">💨 Сушек</div></div>
-      <div class="sstat"><div class="sstat-val" id="stDi" style="color:var(--accent-dish)">0</div><div class="sstat-lbl">✨ Мытий</div></div>
+      <div class="sstat"><div class="sstat-val" id="stW" style="color:var(--accent-wash)">0</div><div class="sstat-lbl" data-i18n="washes">🫧 Стирок</div></div>
+      <div class="sstat"><div class="sstat-val" id="stD" style="color:var(--accent-dry)">0</div><div class="sstat-lbl" data-i18n="dries">💨 Сушек</div></div>
+      <div class="sstat"><div class="sstat-val" id="stDi" style="color:var(--accent-dish)">0</div><div class="sstat-lbl" data-i18n="dishes">✨ Мытий</div></div>
     </div>
-    <div class="section-title">За этот месяц</div>
+    <div class="section-title" data-i18n="thisMonth">За этот месяц</div>
     <div class="avg-row">
       <div class="avg-box">
         <div class="avg-box-lbl">💧 Вода</div>
@@ -1067,16 +1080,16 @@ function setLang(lang) {
         <div class="res-cost" id="statKwhCost">~0€</div>
       </div>
     </div>
-    <div class="section-title">Среднее время</div>
+    <div class="section-title" data-i18n="avgTime">Среднее время</div>
     <div class="avg-row">
-      <div class="avg-box"><div class="avg-box-lbl">⏱ Среднее</div><div class="avg-box-val" id="avgTime">—</div></div>
-      <div class="avg-box"><div class="avg-box-lbl">📅 Запусков в месяц</div><div class="avg-box-val" id="thisMonth">0</div></div>
+      <div class="avg-box"><div class="avg-box-lbl" data-i18n="avgLabel">⏱ Среднее</div><div class="avg-box-val" id="avgTime">—</div></div>
+      <div class="avg-box"><div class="avg-box-lbl" data-i18n="runsPerMonth">📅 Запусков в месяц</div><div class="avg-box-val" id="thisMonth">0</div></div>
     </div>
-    <div class="section-title">Активность за 7 дней</div>
+    <div class="section-title" data-i18n="activity7">Активность за 7 дней</div>
     <div class="chart-wrap">
       <div class="bar-chart" id="barChart"></div>
     </div>
-    <div class="section-title">История</div>
+    <div class="section-title" data-i18n="history">История</div>
     <div class="hist-list" id="histList"></div>
   </div>
 </div>
@@ -1112,8 +1125,8 @@ function setLang(lang) {
     <div class="section-title">👨‍👩‍👧 Семья</div>
     <div class="set-group">
       <div class="set-row" style="flex-direction:column;align-items:flex-start;gap:4px;padding-bottom:12px;border-bottom:1px solid var(--border)">
-        <div style="font-size:13px;font-weight:600;color:var(--text)">Ваш код семьи</div>
-        <div style="font-size:12px;color:var(--text3)">Отправьте жене — она вставит его ниже</div>
+        <div style="font-size:13px;font-weight:600;color:var(--text)" data-i18n="familyCode">Ваш код семьи</div>
+        <div style="font-size:12px;color:var(--text3)" data-i18n="familyCodeHint">Отправьте жене — она вставит его ниже</div>
         <div style="display:flex;align-items:center;gap:8px;width:100%;margin-top:6px">
           <code id="familyIdDisplay" style="flex:1;font-family:'DM Mono',monospace;font-size:12px;
             color:var(--accent-wash);overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></code>
@@ -1124,52 +1137,65 @@ function setLang(lang) {
         </div>
       </div>
       <div class="set-row" style="flex-direction:column;align-items:flex-start;gap:6px;padding-top:12px;border-bottom:1px solid var(--border);padding-bottom:12px">
-        <div style="font-size:13px;font-weight:600;color:var(--text)">Войти в семью</div>
-        <div style="font-size:12px;color:var(--text3)">Вставьте код который прислал муж/жена</div>
+        <div style="font-size:13px;font-weight:600;color:var(--text)" data-i18n="familyJoinTitle">Войти в семью</div>
+        <div style="font-size:12px;color:var(--text3)" data-i18n="familyJoinHint">Вставьте код который прислал муж/жена</div>
         <div style="display:flex;gap:8px;width:100%;margin-top:2px">
           <input id="familyIdInput" placeholder="family_xxxxxxxx" class="set-inp"
             style="flex:1;font-family:'DM Mono',monospace;font-size:12px">
           <button onclick="joinFamily()" style="flex-shrink:0;padding:7px 14px;
             background:var(--accent-dish);color:#fff;border:none;
             border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;
-            font-family:'DM Sans',sans-serif">Войти</button>
+            font-family:'DM Sans',sans-serif" data-i18n="familyJoinBtn">Войти</button>
         </div>
       </div>
       <div id="leaveFamily-row" class="set-row" style="padding-top:12px">
         <div>
-          <div style="font-size:13px;font-weight:600;color:var(--text)">Покинуть семью</div>
-          <div style="font-size:12px;color:var(--text3);margin-top:2px">Создаст новый личный код</div>
+          <div style="font-size:13px;font-weight:600;color:var(--text)" data-i18n="familyLeaveTitle">Покинуть семью</div>
+          <div style="font-size:12px;color:var(--text3);margin-top:2px" data-i18n="familyLeaveHint">Создаст новый личный код</div>
         </div>
         <button onclick="leaveFamily()" style="flex-shrink:0;padding:7px 14px;
           background:transparent;color:#ff4444;border:1px solid #ff4444;
           border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;
-          font-family:'DM Sans',sans-serif">Выйти</button>
+          font-family:'DM Sans',sans-serif" data-i18n="familyLeaveBtn">Выйти</button>
       </div>
     </div>
-    <div class="section-title">Местоположение</div>
+    <div class="section-title" data-i18n="locationTitle">Местоположение</div>
     <div class="set-group">
       <div class="set-row">
-        <div class="set-lbl">🌍 Город</div>
+        <div class="set-lbl" data-i18n="city">🌍 Город</div>
         <input class="set-inp" id="setCityName" placeholder="Oberhausen" value="">
       </div>
       <button class="set-btn" id="setGeoBtn">📍 Определить автоматически</button>
     </div>
-    <div class="section-title">Тарифы</div>
+    <div class="section-title" data-i18n="tariffsTitle">Тарифы</div>
     <div class="set-group">
       <div class="set-row">
-        <div class="set-lbl">💧 Вода (€/л)</div>
+        <div class="set-lbl" data-i18n="waterRate">💧 Вода (€/л)</div>
         <input class="set-inp set-num" id="setWaterRate" type="number" step="0.01" placeholder="0.002">
       </div>
       <div class="set-row" style="border-top:1px solid var(--border)">
-        <div class="set-lbl">⚡ Электричество (€/кВт·ч)</div>
+        <div class="set-lbl" data-i18n="elRate">⚡ Электричество (€/кВт·ч)</div>
         <input class="set-inp set-num" id="setKwhRate" type="number" step="0.1" placeholder="0.30">
       </div>
     </div>
-    <button class="set-save" id="setSave">Сохранить</button>
-    <div class="section-title" style="margin-top:28px">О приложении</div>
+    <button class="set-save" id="setSave" data-i18n="save">Сохранить</button>
+    <div class="section-title" style="margin-top:28px">🌐 Язык / Language</div>
+    <div class="set-group">
+      <div class="set-row">
+        <div class="set-lbl" data-i18n="langLabel">Язык интерфейса</div>
+        <select id="langSelect" class="set-inp" style="width:auto;padding:6px 12px;cursor:pointer"
+          onchange="setLang(this.value)">
+          <option value="ru">🇷🇺 Русский</option>
+          <option value="uk">🇺🇦 Українська</option>
+          <option value="de">🇩🇪 Deutsch</option>
+          <option value="en">🇬🇧 English</option>
+        </select>
+      </div>
+    </div>
+    <div class="section-title" style="margin-top:28px" data-i18n="aboutTitle">О приложении</div>
     <div class="set-group">
       <div class="set-row"><div class="set-lbl">LaundryAI</div><div class="set-val">v2.0</div></div>
-      <div class="set-row" style="border-top:1px solid var(--border)"><div class="set-lbl">Данные посудомойки</div><div class="set-val" style="font-size:11px;color:var(--text3)">из инструкции</div></div>
+      <div class="set-row" style="border-top:1px solid var(--border)"><div class="set-lbl" data-i18n="dishData">Данные посудомойки</div><div class="set-val" style="font-size:11px;color:var(--text3)" data-i18n="dishDataSub">из инструкции</div></div>
     </div>
   </div>
 </div>
@@ -1191,7 +1217,7 @@ function setLang(lang) {
 <!-- PROFILE MODAL -->
 <div class="pmodal" id="pModal">
   <div class="pmsheet">
-    <div class="stitle">Профили</div>
+    <div class="stitle" data-i18n="profilesTitle">Профили</div>
     <div class="plist" id="pList"></div>
     <div class="pavatarpick">
       <div class="pavatar-preview" id="pAvatarPreview"><svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
@@ -1213,14 +1239,14 @@ function setLang(lang) {
       </div>
     </div>
     <div class="pquick">
-      <button class="pqbtn" data-e="👤" title="Мужчина" id="pqM">♂ Мужчина</button>
-      <button class="pqbtn" data-e="👤" title="Женщина" id="pqF">♀ Женщина</button>
+      <button class="pqbtn" data-e="👤" title="Мужчина" id="pqM" data-i18n="male">♂ Мужчина</button>
+      <button class="pqbtn" data-e="👤" title="Женщина" id="pqF" data-i18n="female">♀ Женщина</button>
     </div>
     <div class="padd">
       <input class="pinput" id="pNewName" placeholder="Имя (необязательно)" maxlength="18">
       <button class="pbtn" id="pAddBtn">+</button>
     </div>
-    <button class="pclose" id="pClose">Закрыть</button>
+    <button class="pclose" id="pClose" data-i18n="close">Закрыть</button>
   </div>
 </div>
 
@@ -1228,25 +1254,25 @@ function setLang(lang) {
 <canvas id="finishCanvas"></canvas>
 <div class="finish-ov" id="finishOv">
   <div class="fin-emoji" id="finEmoji">🫧</div>
-  <div class="fin-title" id="finTitle">Готово!</div>
-  <div class="fin-sub" id="finSub">Стирка завершена</div>
-  <button class="fin-close" id="finClose">Отлично! 🎉</button>
+  <div class="fin-title" id="finTitle" data-i18n="finishTitle">Готово!</div>
+  <div class="fin-sub" id="finSub" data-i18n="washDone">Стирка завершена</div>
+  <button class="fin-close" id="finClose" data-i18n="finishBtn">Отлично! 🎉</button>
 </div>
 
 <!-- CROP MODAL -->
 <div class="crop-modal" id="cropModal">
   <div class="crop-sheet">
-    <div class="crop-title">Настройте фото</div>
+    <div class="crop-title" data-i18n="cropTitle">Настройте фото</div>
     <div class="crop-area">
       <div class="crop-circle-clip">
         <img id="cropImg" src="" draggable="false">
       </div>
     </div>
     <div class="crop-controls">
-      <span class="crop-lbl">Масштаб</span>
+      <span class="crop-lbl" data-i18n="cropScale">Масштаб</span>
       <input type="range" id="cropZoom" min="1" max="3" step="0.01" value="1" class="crop-range">
     </div>
-    <div class="crop-hint">Перетащите фото для позиции</div>
+    <div class="crop-hint" data-i18n="cropHint">Перетащите фото для позиции</div>
     <div class="crop-btns">
       <button class="crop-cancel" id="cropCancel">Отмена</button>
       <button class="crop-ok" id="cropOk">Готово</button>
@@ -1261,10 +1287,10 @@ function setLang(lang) {
 <div class="install-banner" id="installBanner">
   <div class="install-icon">🫧</div>
   <div class="install-text">
-    <div class="install-title">Установить WashTime</div>
-    <div class="install-sub" id="installSub">Добавить на главный экран</div>
+    <div class="install-title" data-i18n="installTitle">Установить WashTime</div>
+    <div class="install-sub" id="installSub" data-i18n="installSub">Добавить на главный экран</div>
   </div>
-  <button class="install-btn" id="installBtn">Установить</button>
+  <button class="install-btn" id="installBtn" data-i18n="installBtn">Установить</button>
   <button class="install-close" id="installClose">✕</button>
 </div>
 <div class="toast" id="toast"></div>
@@ -1862,7 +1888,7 @@ function buildCardHTML(key){
         <div class="mname">${machineName}</div>
         <div class="mstatus${m.isRunning?' on':''}" id="st-${key}">${m.isRunning?t('running'):t('waiting')}</div>
         ${m.isRunning && m.launchedBy ? `<div style="font-size:11px;color:var(--text3);margin-top:3px">▶ ${m.launchedBy}</div>` : ''}
-        ${!m.isRunning && m.stoppedBy ? `<div style="font-size:11px;color:var(--text3);margin-top:3px">⏹ ${m.stoppedBy}${m.stoppedAt?' в '+m.stoppedAt:''}</div>` : ''}
+        ${!m.isRunning && m.stoppedBy ? `<div style="font-size:11px;color:var(--text3);margin-top:3px">⏹ ${m.stoppedBy}${m.stoppedAt?(LANG==='de'?' um ':LANG==='en'?' at ':LANG==='uk'?' о ':' в ')+m.stoppedAt:''}</div>` : ''}
       </div>
     </div>
     <div class="ring-wrap">
@@ -1873,27 +1899,27 @@ function buildCardHTML(key){
       </svg>
       <div class="ring-center">
         <div class="ring-time" id="rt-${key}">--:--</div>
-        <div class="ring-lbl" id="rl-${key}">осталось</div>
+        <div class="ring-lbl" id="rl-${key}">${t('remaining').toLowerCase()}</div>
         <div class="ring-temp" id="temp-${key}"></div>
       </div>
     </div>
     ${progHtml}
     <div class="srow">
       <div class="sbox" id="startBox-${key}">
-        <div class="slbl">Старт</div>
+        <div class="slbl">${t('start')}</div>
         <div class="time-inp time-trigger" id="si-${key}">${startStr}</div>
       </div>
       <div class="sbox" id="durBox-${key}">
-        <div class="slbl">Длительность</div>
+        <div class="slbl">${t('duration')}</div>
         <div class="sval" id="dv-${key}">${durStr}</div>
       </div>
     </div>
     <div class="srow">
-      <div class="sbox"><div class="slbl">Конец</div><div class="sval ac" id="ev-${key}">--:--</div></div>
-      <div class="sbox"><div class="slbl">Осталось</div><div class="sval" id="lv-${key}">--:--</div></div>
+      <div class="sbox"><div class="slbl">${t('end')}</div><div class="sval ac" id="ev-${key}">--:--</div></div>
+      <div class="sbox"><div class="slbl">${t('remaining')}</div><div class="sval" id="lv-${key}">--:--</div></div>
     </div>
     <div class="notif-row">
-      <span class="notif-lbl">Сигнал по окончанию</span>
+      <span class="notif-lbl">${t('signal')}</span>
       <div class="toggle${m.signalEnabled?' on':''}" id="tog-${key}"><div class="toggle-knob"></div></div>
     </div>
     <button class="start-btn${m.isRunning?' stop':' go'}" id="sb-${key}">
@@ -2035,7 +2061,7 @@ function updateCard(key){
     const s=Math.ceil(leftMs/1000);
     const t=`${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
     lvEl.textContent=t; rtEl.textContent=t;
-    if(rlEl)rlEl.textContent='секунды';
+    if(rlEl)rlEl.textContent=t('remaining').toLowerCase();
   } else {
     const tm=Math.ceil(leftMs/60000);
     const t=`${String(Math.floor(tm/60)).padStart(2,'0')}:${String(tm%60).padStart(2,'0')}`;
@@ -2188,7 +2214,7 @@ function fireFinal(key){
   document.getElementById(`card-${key}`)?.classList.remove('running');
   document.getElementById(`sb-${key}`).textContent=t('btnStart');
   document.getElementById(`sb-${key}`).className='start-btn go';
-  document.getElementById(`st-${key}`).textContent='Готово ✓';
+  document.getElementById(`st-${key}`).textContent=t('done')+' ✓';
   document.getElementById(`st-${key}`).className='mstatus on';
   showToast('✅ '+msg);
   addHist(key,msg);
@@ -2269,8 +2295,8 @@ function renderStats(){
   const welK=document.getElementById('statKwhVal');
   const welWC=document.getElementById('statWaterCost');
   const welKC=document.getElementById('statKwhCost');
-  if(welW) welW.textContent=totalW.toFixed(1)+'л';
-  if(welK) welK.textContent=totalK.toFixed(2)+'кВт';
+  if(welW) welW.textContent=totalW.toFixed(1)+(LANG==='de'?'l':LANG==='en'?'l':'л');
+  if(welK) welK.textContent=totalK.toFixed(2)+(LANG==='de'||LANG==='en'?'kWh':'кВт');
   if(welWC) welWC.textContent='~'+waterCost+'€';
   if(welKC) welKC.textContent='~'+kwhCost+'€';
   renderBarChart(h);
@@ -2320,13 +2346,13 @@ function renderHist(){
   const pid=S.activeProfile;
   const el=document.getElementById('histList');
   const items=(S.history||[]).filter(h=>h.pid===pid);
-  if(!items.length){el.innerHTML='<div class="hist-empty">История пуста</div>';return;}
+  if(!items.length){el.innerHTML='<div class="hist-empty">'+t('historyEmpty')+'</div>';return;}
   el.innerHTML=items.slice(0,15).map((h,i)=>`
     <div class="hist-item">
       <div class="hdot" style="background:${ACC[h.key]||'#888'}"></div>
       <div class="hinfo">
         <div class="htext">${h.message}</div>
-        <div class="hmeta">${h.date} ${h.time}${h.water?' · 💧'+h.water+'л':''}${h.kwh?' · ⚡'+h.kwh+'кВт·ч':''}</div>
+        <div class="hmeta">${h.date} ${h.time}${h.water?' · 💧'+h.water+(LANG==='de'||LANG==='en'?'l':'л'):''}${h.kwh?' · ⚡'+h.kwh+(LANG==='de'||LANG==='en'?'kWh':'кВт·ч'):''}</div>
       </div>
       ${i===0?`<button class="hrepeat" onclick="repeatLast('${h.key}')">↩</button>`:''}
     </div>`).join('');
@@ -2545,7 +2571,7 @@ function renderWeather(d){
           ${t2!==null?`<div class="wdd-row"><span>🌡</span><span>${Math.round(t2)}°</span></div>`:''}
           ${hum!==null?`<div class="wdd-row"><span>💧</span><span>${Math.round(hum)}%</span></div>`:''}
           ${pres!==null?`<div class="wdd-row"><span>⏱</span><span>${Math.round(pres*0.750064)}</span></div>`:''}
-          ${windMs!==null?`<div class="wdd-row"><span>💨</span><span>${windMs}м/с</span></div>`:''}
+          ${windMs!==null?`<div class="wdd-row"><span>💨</span><span>${windMs}${LANG==="de"||LANG==="en"?"m/s":"м/с"}</span></div>`:''}
         </div>
       </div>`;
     }).join('');
@@ -2554,7 +2580,7 @@ function renderWeather(d){
       <div class="wdd-header">
         <div class="wdd-title">${labels[i]}</div>
         <div class="wdd-icon">${weatherIcon(code)}</div>
-        <div class="wdd-score ${sc.s}">${sc.t} для сушки</div>
+        <div class="wdd-score ${sc.s}">${sc.t} ${LANG==='de'?'zum Trocknen':LANG==='en'?'for drying':LANG==='uk'?'для сушіння':'для сушки'}</div>
       </div>
       <div class="wperiods">${periodsHtml}</div>
     </div>`;
@@ -2901,9 +2927,14 @@ async function sendTg(msg){
 /* ═══════════════════════════
    INIT
 ═══════════════════════════ */
+// Очистить старый ключ washLang (миграция на washLangManual)
+if(localStorage.getItem('washLang') && !localStorage.getItem('washLangManual')){
+  localStorage.removeItem('washLang');
+}
 fillPicker();
 renderProfileBar();
 buildSlides();
+applyI18n();
 regSW();
 updateThemeColor();
 reqPerm();
