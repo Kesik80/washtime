@@ -1800,9 +1800,14 @@ function handleSS(key){
     m.launchedByProfile=pid;
     m.launchedBy=(profile.emoji||'👤')+' '+(profile.name||'?');
     m.stoppedBy=null; m.stoppedAt=null;
-    const now=new Date(); m.startH=now.getHours(); m.startM=now.getMinutes();
-    const si=document.getElementById(`si-${key}`);
-    if(si) si.textContent=`${String(m.startH).padStart(2,'0')}:${String(m.startM).padStart(2,'0')}`;
+    // Использовать заданное время старта, если оно не совпадает с текущим моментом
+    // (т.е. пользователь его выставил вручную)
+    const now=new Date();
+    const nowH=now.getHours(), nowM=now.getMinutes();
+    const manualSet = (m.startH !== undefined && m.startM !== undefined &&
+      !(m.startH===nowH && m.startM===nowM));
+    if(!manualSet){ m.startH=nowH; m.startM=nowM; }
+    // startH/startM уже заданы пикером — не перезаписываем
     saveS(); fbPushMachine(key); playTick();
     scheduleServer(key); scheduleWatchdog(key);
     // Перестроить карточку полностью
