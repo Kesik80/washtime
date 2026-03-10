@@ -825,7 +825,7 @@ try {
             font-family:'DM Sans',sans-serif">📋</button>
         </div>
       </div>
-      <div class="set-row" style="flex-direction:column;align-items:flex-start;gap:6px;padding-top:12px">
+      <div class="set-row" style="flex-direction:column;align-items:flex-start;gap:6px;padding-top:12px;border-bottom:1px solid var(--border);padding-bottom:12px">
         <div style="font-size:13px;font-weight:600;color:var(--text)">Войти в семью</div>
         <div style="font-size:12px;color:var(--text3)">Вставьте код который прислал муж/жена</div>
         <div style="display:flex;gap:8px;width:100%;margin-top:2px">
@@ -836,6 +836,16 @@ try {
             border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;
             font-family:'DM Sans',sans-serif">Войти</button>
         </div>
+      </div>
+      <div id="leaveFamily-row" class="set-row" style="padding-top:12px">
+        <div>
+          <div style="font-size:13px;font-weight:600;color:var(--text)">Покинуть семью</div>
+          <div style="font-size:12px;color:var(--text3);margin-top:2px">Создаст новый личный код</div>
+        </div>
+        <button onclick="leaveFamily()" style="flex-shrink:0;padding:7px 14px;
+          background:transparent;color:#ff4444;border:1px solid #ff4444;
+          border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;
+          font-family:'DM Sans',sans-serif">Выйти</button>
       </div>
     </div>
     <div class="section-title">Местоположение</div>
@@ -1052,10 +1062,12 @@ function fbPushMachine(key){
     m: m.m||0,
     prog: m.prog||1,
     updatedAt: Date.now(),
+    byDevice: getDeviceId(),        // уникальный ID устройства
     byProfile: pid,
     byName: profile.name||'?',
     byEmoji: profile.emoji||'👤',
     byAvatar: profile.avatar||null,
+    launchedByDevice: m.launchedByDevice||null,
     launchedByProfile: m.launchedByProfile||null,
     launchedBy: m.launchedBy||null,
     stoppedBy: m.stoppedBy||null,
@@ -1068,16 +1080,17 @@ function fbWatchMachine(key){
   if(!window.fbReady) return;
   window.fbListen(`families/${FAMILY_ID}/machines/${key}`, data=>{
     if(!data) return;
-    const pid = S.activeProfile;
     const m = getM(key);
     const wasRunning = m.isRunning;
-    const fromOther = data.byProfile && data.byProfile !== pid;
+    // Определяем "чужой" по deviceId — надёжно даже если имена профилей одинаковые
+    const fromOther = data.byDevice && data.byDevice !== getDeviceId();
 
-    // Игнорировать своё же событие (Firebase эхо)
+    // Игнорировать своё же эхо от Firebase
     if(!fromOther) return;
 
     // Применяем данные от другого пользователя
     m.isRunning = data.isRunning;
+    m.launchedByDevice = data.launchedByDevice||data.byDevice||null;
     m.launchedByProfile = data.launchedByProfile||data.byProfile||null;
     m.launchedBy = data.launchedBy || (data.byEmoji||'')+' '+(data.byName||'');
     m.stoppedBy = data.stoppedBy||null;
@@ -1119,6 +1132,37 @@ function copyFamilyId(){
     const el=document.getElementById('familyIdInput');
     if(el){el.value=FAMILY_ID;el.select();}
   });
+}
+
+// Покинуть семью
+function leaveFamily(){
+  const isDark=document.documentElement.getAttribute('data-theme')==='dark'||
+    (document.documentElement.getAttribute('data-theme')==='auto'&&window.matchMedia('(prefers-color-scheme: dark)').matches);
+  // Сначала уведомить других участников
+  const pid=S.activeProfile;
+  const profile=S.profiles.find(p=>p.id===pid)||{};
+  const who=(profile.emoji||'👤')+' '+(profile.name||'?');
+
+  showConfirm(
+    'Покинуть семью?',
+    `${who} отключится от синхронизации. Остальные получат уведомление.`,
+    ()=>{
+      // Отправить уведомление в Firebase перед выходом
+      if(window.fbReady){
+        const deviceId=getDeviceId();
+        window.fbSet(`families/${FAMILY_ID}/events/leave_${deviceId}`, {
+          who, deviceId, ts: Date.now()
+        });
+        // Удалить себя из members
+        window.fbSet(`families/${FAMILY_ID}/members/${deviceId}`, null);
+      }
+      // Создать новый личный ID
+      const newId='family_'+Math.random().toString(36).slice(2,10);
+      localStorage.setItem('washFamilyId', newId);
+      showToast('Вы покинули семью');
+      setTimeout(()=>location.reload(), 1500);
+    }
+  );
 }
 
 // Войти в чужую семью
@@ -1172,13 +1216,31 @@ let familyMembers = {}; // deviceId -> {profiles, activeProfile}
 function fbWatchMembers(){
   if(!window.fbReady) return;
   window.fbListen(`families/${FAMILY_ID}/members`, data=>{
-    if(!data) return;
     const myDeviceId = getDeviceId();
+    const prev = {...familyMembers};
     familyMembers = {};
-    Object.entries(data).forEach(([did, member])=>{
-      if(did !== myDeviceId) familyMembers[did] = member;
+    if(data){
+      Object.entries(data).forEach(([did, member])=>{
+        if(did !== myDeviceId) familyMembers[did] = member;
+      });
+    }
+    // Кто вышел — показать уведомление
+    Object.keys(prev).forEach(did=>{
+      if(!familyMembers[did]){
+        const m=prev[did];
+        const activeP=(m.profiles||[]).find(p=>p.id===m.activeProfile)||(m.profiles||[])[0];
+        if(activeP) showToast(`${activeP.emoji||'👤'} ${activeP.name} покинул(а) семью`);
+      }
     });
-    renderProfileBar(); // перерисовать шапку с чужими профилями
+    // Кто вошёл — показать уведомление
+    Object.keys(familyMembers).forEach(did=>{
+      if(!prev[did]){
+        const m=familyMembers[did];
+        const activeP=(m.profiles||[]).find(p=>p.id===m.activeProfile)||(m.profiles||[])[0];
+        if(activeP) showToast(`${activeP.emoji||'👤'} ${activeP.name} подключился(ась) к семье`);
+      }
+    });
+    renderProfileBar();
   });
 }
 
@@ -1738,6 +1800,7 @@ function handleSS(key){
     const pid=S.activeProfile;
     const profile=S.profiles.find(p=>p.id===pid)||{};
     m.isRunning=true; m.hasFinished=false;
+    m.launchedByDevice=getDeviceId();
     m.launchedByProfile=pid;
     m.launchedBy=(profile.emoji||'👤')+' '+(profile.name||'?');
     m.stoppedBy=null; m.stoppedAt=null;
@@ -1753,7 +1816,7 @@ function handleSS(key){
     document.getElementById(`st-${key}`).className='mstatus on';
   } else {
     const pid=S.activeProfile;
-    const isOwner=!m.launchedByProfile || m.launchedByProfile===pid;
+    const isOwner=!m.launchedByDevice || m.launchedByDevice===getDeviceId();
     if(!isOwner){
       // Показать диалог подтверждения
       const names={wash:'стиральную',dry:'сушилку',dish:'посудомойку'};
