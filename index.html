@@ -1110,7 +1110,7 @@ function fbWatchMachine(key){
 
     // Управление watchdog
     if(m.isRunning && !wasRunning){
-      scheduleWatchdog(key);
+      scheduleWatchdog(key); scheduleServer(key);
       if(fromOther){
         const names = {wash:'стиральную',dry:'сушилку',dish:'посудомойку'};
         showToast(`${data.byEmoji} ${data.byName} запустил(а) ${names[key]}`);
@@ -1780,18 +1780,14 @@ function doStop(key){
   const m=getM(key);
   const pid=S.activeProfile;
   const profile=S.profiles.find(p=>p.id===pid)||{};
-  // Записать кто остановил
   m.stoppedBy = (profile.emoji||'👤')+' '+(profile.name||'?');
   m.stoppedAt = `${String(new Date().getHours()).padStart(2,'0')}:${String(new Date().getMinutes()).padStart(2,'0')}`;
   m.isRunning=false; saveS(); fbPushMachine(key); playStop();
-  cancelWatchdog(key);
-  document.getElementById(`card-${key}`)?.classList.remove('running');
-  document.getElementById(`sb-${key}`).textContent='Запустить';
-  document.getElementById(`sb-${key}`).className='start-btn go';
-  document.getElementById(`st-${key}`).textContent='Ожидание';
-  document.getElementById(`st-${key}`).className='mstatus';
-  document.getElementById(`rt-${key}`).textContent='--:--';
-  setRing(key,0);
+  cancelWatchdog(key); setRing(key,0);
+  // Перестроить карточку полностью
+  const cardEl = document.getElementById(`card-${key}`);
+  const slide = cardEl ? cardEl.closest('.card-slide') : null;
+  if(slide){ slide.innerHTML = buildCardHTML(key); bindCard(slide, key); }
 }
 
 function handleSS(key){
@@ -1806,14 +1802,13 @@ function handleSS(key){
     m.stoppedBy=null; m.stoppedAt=null;
     const now=new Date(); m.startH=now.getHours(); m.startM=now.getMinutes();
     const si=document.getElementById(`si-${key}`);
-    if(si) si.value=`${String(m.startH).padStart(2,'0')}:${String(m.startM).padStart(2,'0')}`;
+    if(si) si.textContent=`${String(m.startH).padStart(2,'0')}:${String(m.startM).padStart(2,'0')}`;
     saveS(); fbPushMachine(key); playTick();
     scheduleServer(key); scheduleWatchdog(key);
-    document.getElementById(`card-${key}`)?.classList.add('running');
-    document.getElementById(`sb-${key}`).textContent='Остановить';
-    document.getElementById(`sb-${key}`).className='start-btn stop';
-    document.getElementById(`st-${key}`).textContent='Работает';
-    document.getElementById(`st-${key}`).className='mstatus on';
+    // Перестроить карточку полностью
+    const cardEl2 = document.getElementById(`card-${key}`);
+    const slide2 = cardEl2 ? cardEl2.closest('.card-slide') : null;
+    if(slide2){ slide2.innerHTML = buildCardHTML(key); bindCard(slide2, key); }
   } else {
     const pid=S.activeProfile;
     const isOwner=!m.launchedByDevice || m.launchedByDevice===getDeviceId();
@@ -2525,9 +2520,10 @@ function openTimeDrum(key) {
   overlay.querySelector('#tpSave').onclick = () => {
     const mk2 = getM(key);
     mk2.startH = h; mk2.startM = m; saveS();
-    const el = document.getElementById(`si-${key}`);
-    if (el) el.textContent = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
-    renderCard(key);
+    // Перестроить слайд целиком
+    const cardEl = document.getElementById(`card-${key}`);
+    const slide = cardEl ? cardEl.closest('.card-slide') : null;
+    if(slide){ slide.innerHTML = buildCardHTML(key); bindCard(slide, key); }
     overlay.remove();
   };
   overlay.querySelector('#tpCancel').onclick = () => overlay.remove();
