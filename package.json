@@ -1,0 +1,9 @@
+{
+  "name": "washtime",
+  "version": "2.0.0",
+  "private": true,
+  "dependencies": {
+    "@upstash/qstash": "^2.7.0",
+    "web-push": "^3.6.7"
+  }
+}
