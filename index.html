@@ -2283,8 +2283,15 @@ function fireFinal(key){
   const msg=`${names[key]} ${texts[key]}`;
   playMelody();
   if('vibrate'in navigator)navigator.vibrate([600,200,600,200,600]);
-  showPush('✅ LaundryAI',msg,`lai-${key}`);
-  sendTg(msg);
+  // Локальное уведомление через SW (только если браузер открыт)
+  const _mode = getNotifMode();
+  if(_mode === 'push' || _mode === 'both'){
+    showPush('✅ LaundryAI', msg, `lai-${key}`);
+  }
+  // Telegram — только если режим tg или both
+  if(_mode === 'tg' || _mode === 'both'){
+    sendTg(msg);
+  }
   document.getElementById(`card-${key}`)?.classList.remove('running');
   document.getElementById(`sb-${key}`).textContent=t('btnStart');
   document.getElementById(`sb-${key}`).className='start-btn go';
