@@ -673,6 +673,22 @@ body{
   transition:transform .3s cubic-bezier(.32,1,.23,1);
 }
 .toast.show{transform:translateX(-50%) translateY(0)}
+
+.mel-btn{
+  padding:7px 14px;border:1.5px solid var(--border2);border-radius:20px;
+  background:var(--bg3);color:var(--text2);font-size:13px;font-weight:600;
+  cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s;
+}
+.mel-btn.active{
+  border-color:var(--accent-wash);color:var(--accent-wash);background:rgba(79,143,255,.12);
+}
+
+.dry-tip{
+  margin:10px 0 12px;padding:11px 16px;border-radius:14px;
+  background:linear-gradient(135deg,rgba(52,201,138,.15),rgba(79,143,255,.1));
+  border:1px solid rgba(52,201,138,.3);
+  font-size:14px;color:var(--text);line-height:1.5;
+}
 </style>
 <script>
   // Сразу при загрузке — до рендера
@@ -772,6 +788,8 @@ var I18N = {
     themeAuto:'🌗 Авто', themeDark:'🌙 Тёмная', themeLight:'☀️ Светлая',
     langTitle:'🌐 Язык',
     langLabel:'Язык интерфейса',
+    melodyLabel:'Мелодия окончания',
+    melodyNames:['🎵 Классика','🔔 Дин-дон','🎺 Фанфары','🎶 Нежная','📳 Бип'],
     photoBtn:'📷 Фото', removePhoto:'Убрать фото',
     cropTitle:'Настройте фото', cropScale:'Масштаб', cropHint:'Перетащите для позиции',
   },
@@ -837,6 +855,8 @@ var I18N = {
     themeAuto:'🌗 Авто', themeDark:'🌙 Темна', themeLight:'☀️ Світла',
     langTitle:'🌐 Мова',
     langLabel:'Мова інтерфейсу',
+    melodyLabel:'Мелодія закінчення',
+    melodyNames:['🎵 Класика','🔔 Дзінь-дзінь','🎺 Фанфари','🎶 Ніжна','📳 Біп'],
     photoBtn:'📷 Фото', removePhoto:'Видалити фото',
     cropTitle:'Налаштуйте фото', cropScale:'Масштаб', cropHint:'Перетягніть для позиції',
   },
@@ -902,6 +922,8 @@ var I18N = {
     themeAuto:'🌗 Auto', themeDark:'🌙 Dunkel', themeLight:'☀️ Hell',
     langTitle:'🌐 Sprache',
     langLabel:'Sprache der Oberfläche',
+    melodyLabel:'Abschlussmelodie',
+    melodyNames:['🎵 Klassisch','🔔 Ding-Dong','🎺 Fanfare','🎶 Sanft','📳 Piep'],
     photoBtn:'📷 Foto', removePhoto:'Foto entfernen',
     cropTitle:'Foto anpassen', cropScale:'Zoom', cropHint:'Ziehen für Position',
   },
@@ -967,6 +989,8 @@ var I18N = {
     themeAuto:'🌗 Auto', themeDark:'🌙 Dark', themeLight:'☀️ Light',
     langTitle:'🌐 Language',
     langLabel:'Interface language',
+    melodyLabel:'Finish melody',
+    melodyNames:['🎵 Classic','🔔 Ding-dong','🎺 Fanfare','🎶 Gentle','📳 Beep'],
     photoBtn:'📷 Photo', removePhoto:'Remove photo',
     cropTitle:'Adjust photo', cropScale:'Scale', cropHint:'Drag to position',
   }
@@ -1179,6 +1203,31 @@ function setLang(lang) {
       </div>
     </div>
     <button class="set-save" id="setSave" data-i18n="save">Сохранить</button>
+    <div class="section-title" style="margin-top:28px" data-i18n="notifTitle">🔔 Уведомления</div>
+    <div class="set-group">
+      <div class="set-row" style="flex-wrap:wrap;gap:8px;padding:12px 14px">
+        <div class="set-lbl" style="width:100%;margin-bottom:6px" data-i18n="notifChannel">Канал уведомлений</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;width:100%">
+          <button onclick="setNotifMode('push')"   id="nm-push"   class="mel-btn">📱 Push</button>
+          <button onclick="setNotifMode('tg')"     id="nm-tg"     class="mel-btn">✈️ Telegram</button>
+          <button onclick="setNotifMode('both')"   id="nm-both"   class="mel-btn">📱+✈️ Оба</button>
+        </div>
+        <div id="pushStatus" style="width:100%;font-size:12px;color:var(--text3);margin-top:4px"></div>
+      </div>
+    </div>
+    <div class="section-title" style="margin-top:28px">🔔 Сигнал / Signal</div>
+    <div class="set-group">
+      <div class="set-row" style="flex-wrap:wrap;gap:8px;padding:12px 14px">
+        <div class="set-lbl" style="width:100%;margin-bottom:4px" data-i18n="melodyLabel">Мелодия окончания</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;width:100%">
+          <button onclick="saveMelody(0);previewMelody(0);updateMelodyUI()" id="mel0" class="mel-btn active">🎵 Классика</button>
+          <button onclick="saveMelody(1);previewMelody(1);updateMelodyUI()" id="mel1" class="mel-btn">🔔 Дин-дон</button>
+          <button onclick="saveMelody(2);previewMelody(2);updateMelodyUI()" id="mel2" class="mel-btn">🎺 Фанфары</button>
+          <button onclick="saveMelody(3);previewMelody(3);updateMelodyUI()" id="mel3" class="mel-btn">🎶 Нежная</button>
+          <button onclick="saveMelody(4);previewMelody(4);updateMelodyUI()" id="mel4" class="mel-btn">📳 Бип</button>
+        </div>
+      </div>
+    </div>
     <div class="section-title" style="margin-top:28px">🌐 Язык / Language</div>
     <div class="set-group">
       <div class="set-row">
@@ -2167,16 +2216,41 @@ function handleSS(key){
    FINAL SIGNAL
 ═══════════════════════════ */
 const AudioCtx=new(window.AudioContext||window.webkitAudioContext)();
-function pNote(f,t,d=.18,v=.28){
+function pNote(f,t,d,type){
+  d = d||0.18;
   const o=AudioCtx.createOscillator(),g=AudioCtx.createGain();
-  o.type='sine'; o.frequency.value=f;
-  g.gain.setValueAtTime(v,t); g.gain.exponentialRampToValueAtTime(.001,t+d);
-  o.connect(g).connect(AudioCtx.destination); o.start(t); o.stop(t+d);
+  o.type=type||'sine'; o.frequency.value=f;
+  g.gain.setValueAtTime(0.28,t); g.gain.exponentialRampToValueAtTime(0.001,t+(d||0.18));
+  o.connect(g).connect(AudioCtx.destination); o.start(t); o.stop(t+(d||0.18)+0.01);
 }
+// Мелодии финиша: 0=классика, 1=дин-дон, 2=фанфары, 3=нежная, 4=тихий бип
+var MELODY_ID = parseInt(localStorage.getItem('washMelody')||'0');
+
 function playMelody(){
-  if(AudioCtx.state==='suspended')AudioCtx.resume();
-  const t=AudioCtx.currentTime, n=[659.25,783.99,1046.5];
-  [0,1,2,.5,1.5,2.5].forEach((o,i)=>pNote(n[i%3],t+o*.28));
+  if(AudioCtx.state==='suspended') AudioCtx.resume();
+  var t = AudioCtx.currentTime;
+  var m = MELODY_ID;
+  if(m===0){ // Классика (оригинал)
+    var n=[659.25,783.99,1046.5];
+    [0,1,2,.5,1.5,2.5].forEach(function(o,i){ pNote(n[i%3],t+o*.28,0.12); });
+  } else if(m===1){ // Дин-дон
+    pNote(523.25,t,0.18); pNote(392,t+.22,0.18); pNote(440,t+.44,0.18); pNote(523.25,t+.7,0.25);
+  } else if(m===2){ // Фанфары
+    [523.25,659.25,783.99,1046.5,783.99,1046.5].forEach(function(f,i){ pNote(f,t+i*.15,0.10); });
+  } else if(m===3){ // Нежная
+    [523.25,587.33,659.25,698.46,783.99].forEach(function(f,i){ pNote(f,t+i*.2,0.07,'sine'); });
+  } else { // Тихий бип
+    pNote(880,t,0.06); pNote(880,t+.3,0.06);
+  }
+}
+
+function previewMelody(id){
+  MELODY_ID = id;
+  playMelody();
+}
+function saveMelody(id){
+  MELODY_ID = id;
+  localStorage.setItem('washMelody', id);
 }
 function playTick(){
   if(AudioCtx.state==='suspended')AudioCtx.resume();
@@ -2428,7 +2502,7 @@ function showPage(name){
   document.getElementById('pageMain').style.display=name==='home'?'flex':'none';
   document.getElementById('pageStats').style.display=name==='stats'?'block':'none';
   document.getElementById('pageSettings').style.display=name==='settings'?'block':'none';
-  if(name==='settings'){ renderFamilyId(); const sel=document.getElementById('langSelect'); if(sel) sel.value=LANG; }
+  if(name==='settings'){ renderFamilyId(); const sel=document.getElementById('langSelect'); if(sel) sel.value=LANG; updateMelodyUI(); updateNotifUI(); }
   document.getElementById('tabDots').style.display=name==='home'?'flex':'none';
   ['navHome','navStats','navSettings'].forEach(id=>
     document.getElementById(id).classList.toggle('active',id==='nav'+name.charAt(0).toUpperCase()+name.slice(1))
@@ -2505,7 +2579,7 @@ async function loadWeather(){
   const st=S.settings||{lat:51.47,lon:6.85,city:'Oberhausen'};
   const lat=st.lat||51.47, lon=st.lon||6.85;
   try{
-    const url=`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_sum,windspeed_10m_max&hourly=temperature_2m,relativehumidity_2m,surface_pressure,windspeed_10m&timezone=auto&forecast_days=2`;
+    const url=`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_sum,windspeed_10m_max&hourly=temperature_2m,relativehumidity_2m,surface_pressure,windspeed_10m,precipitation&timezone=auto&forecast_days=2`;
     const r=await fetch(url);
     const d=await r.json();
     weatherCache=d; weatherCacheTime=Date.now();
@@ -2585,7 +2659,56 @@ function renderWeather(d){
       <div class="wperiods">${periodsHtml}</div>
     </div>`;
   }).join('');
-  card.innerHTML=`<div class="wlocation">📍 ${st.city}</div><div class="wdetail-wrap">${html}</div>`;
+  // Умный совет — найти лучший период для сушки
+  var tip = getBestDryingTip(d);
+  var tipHtml = tip ? '<div class="dry-tip">'+tip+'</div>' : '';
+  card.innerHTML=`<div class="wlocation">📍 ${st.city}</div>${tipHtml}<div class="wdetail-wrap">${html}</div>`;
+}
+
+function getBestDryingTip(d){
+  if(!d||!d.hourly) return null;
+  var now = new Date();
+  var nowH = now.getHours();
+  var wind_h = d.hourly.windspeed_10m||[];
+  var hum_h  = d.hourly.relativehumidity_2m||[];
+  var temp_h = d.hourly.temperature_2m||[];
+  var prec_h = d.hourly.precipitation||d.hourly.rain||[];
+  // Найти лучший 2-часовой слот в ближайшие 24 часа
+  var best = null, bestScore = -1;
+  for(var i=nowH; i<nowH+24 && i<48; i++){
+    var wind = wind_h[i]||0;
+    var hum  = hum_h[i]||100;
+    var temp = temp_h[i]||0;
+    var prec = prec_h[i]||0;
+    // Балл: тепло + ветер + низкая влажность + нет дождя
+    if(prec > 0.1) continue;
+    var score = (temp/30)*30 + (1-hum/100)*40 + Math.min(wind/30,1)*30;
+    if(score > bestScore){
+      bestScore = score;
+      best = {h: i%24, score: score};
+    }
+  }
+  if(!best || bestScore < 30) return null;
+  var h = best.h;
+  var timeStr = String(h).padStart(2,'0')+':00';
+  var isNow = Math.abs(h - nowH) <= 1;
+  if(LANG==='de'){
+    return isNow
+      ? '💡 Jetzt ist ein guter Zeitpunkt zum Trocknen draußen!'
+      : '💡 Beste Zeit zum Draußen-Trocknen: <strong>'+timeStr+'</strong>';
+  } else if(LANG==='en'){
+    return isNow
+      ? '💡 Now is a great time to dry laundry outside!'
+      : '💡 Best time to dry outside: <strong>'+timeStr+'</strong>';
+  } else if(LANG==='uk'){
+    return isNow
+      ? '💡 Зараз добрий час для сушіння на вулиці!'
+      : '💡 Найкращий час для сушіння: <strong>'+timeStr+'</strong>';
+  } else {
+    return isNow
+      ? '💡 Сейчас хорошее время для сушки на улице!'
+      : '💡 Лучшее время для сушки: <strong>'+timeStr+'</strong>';
+  }
 }
 
 /* ═══════════════════════════
@@ -2888,19 +3011,138 @@ async function showPush(title,body,tag){
 }
 
 /* ═══════════════════════════
+   WEB PUSH
+═══════════════════════════ */
+var VAPID_PUBLIC_KEY = ''; // загружается с сервера через /api/vapid-config // заменить после получения из Firebase
+var pushSubscription = null;
+
+function urlBase64ToUint8Array(base64String){
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const rawData = atob(base64);
+  return Uint8Array.from([...rawData].map(c => c.charCodeAt(0)));
+}
+
+async function subscribePush(){
+  if(!swReg) return null;
+  try{
+    const existing = await swReg.pushManager.getSubscription();
+    if(existing){ pushSubscription = existing; return existing; }
+    const sub = await swReg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+    });
+    pushSubscription = sub;
+    // Отправить подписку на сервер
+    await fetch('/api/push-subscribe', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        subscription: sub,
+        deviceId: localStorage.getItem('washDeviceId')||'unknown'
+      })
+    });
+    return sub;
+  } catch(e){
+    console.warn('Push subscribe error:', e);
+    return null;
+  }
+}
+
+async function sendWebPush(title, body){
+  if(!pushSubscription) return;
+  try{
+    await fetch('/api/push-send', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json','x-internal-secret':'wash42'},
+      body: JSON.stringify({title, body, deviceId: localStorage.getItem('washDeviceId')||'unknown'})
+    });
+  } catch(e){ console.warn('Push send error:', e); }
+}
+
+function getNotifMode(){ return localStorage.getItem('washNotifMode')||'push'; }
+
+function setNotifMode(mode){
+  localStorage.setItem('washNotifMode', mode);
+  updateNotifUI();
+  if(mode === 'push' || mode === 'both'){
+    initPush();
+  }
+}
+
+function updateNotifUI(){
+  const mode = getNotifMode();
+  ['push','tg','both'].forEach(function(m){
+    const btn = document.getElementById('nm-'+m);
+    if(btn) btn.classList.toggle('active', m === mode);
+  });
+  const st = document.getElementById('pushStatus');
+  if(!st) return;
+  if(mode === 'tg'){
+    st.textContent = ''; return;
+  }
+  if(!('PushManager' in window)){
+    st.textContent = '⚠️ Push-уведомления не поддерживаются в этом браузере';
+    return;
+  }
+  Notification.requestPermission().then(function(perm){
+    if(perm === 'granted'){
+      st.style.color = '#34c98a';
+      st.textContent = '✓ Push-уведомления разрешены';
+    } else if(perm === 'denied'){
+      st.style.color = '#ff4444';
+      st.textContent = '✗ Push заблокированы. Разрешите в настройках браузера';
+    } else {
+      st.style.color = 'var(--text3)';
+      st.textContent = 'Нажмите "Разрешить" когда браузер спросит';
+    }
+  });
+}
+
+async function initPush(){
+  if(!('PushManager' in window)) return;
+  // Загрузить публичный VAPID ключ с сервера
+  if(!VAPID_PUBLIC_KEY){
+    try{
+      const r = await fetch('/api/vapid-config');
+      const d = await r.json();
+      VAPID_PUBLIC_KEY = d.publicKey || '';
+    } catch(e){ console.warn('vapid-config fetch failed:', e); return; }
+  }
+  if(!VAPID_PUBLIC_KEY) return;
+  const perm = await Notification.requestPermission();
+  if(perm === 'granted'){
+    await subscribePush();
+    updateNotifUI();
+  }
+}
+
+/* ═══════════════════════════
    QSTASH / TELEGRAM
 ═══════════════════════════ */
 const wdogs={};
 function scheduleServer(key){
   cancelWatchdog(key);
   const end=getEndDate(key);
-  const names={wash:t('washMsg').split('!')[0],dry:'Сушильная машина',dish:'Посудомойка'};
-  const texts={wash:'готова! 🫧',dry:'закончила! 💨',dish:'помыла! ✨'};
-  const msg=`${names[key]} ${texts[key]}`;
-  fetch('/api/schedule',{method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({endTime:end.toISOString(),message:msg})})
-    .then(r=>r.json()).then(d=>d.success&&console.log('QStash ✓',d.messageId))
-    .catch(e=>console.warn(e));
+  const msg=t(key==='wash'?'washMsg':key==='dry'?'dryMsg':'dishMsg');
+  const mode = getNotifMode();
+  // Telegram (через QStash)
+  if(mode === 'tg' || mode === 'both'){
+    fetch('/api/schedule',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({endTime:end.toISOString(),message:msg})})
+      .then(r=>r.json()).then(d=>d.success&&console.log('QStash ✓',d.messageId))
+      .catch(e=>console.warn(e));
+  }
+  // Web Push (через /api/push-send с задержкой)
+  if((mode === 'push' || mode === 'both') && VAPID_PUBLIC_KEY !== 'VAPID_KEY_PLACEHOLDER'){
+    const delayMs = end.getTime() - Date.now();
+    if(delayMs > 0 && delayMs < 6*60*60*1000){ // не более 6 часов
+      fetch('/api/push-schedule',{method:'POST',headers:{'Content-Type':'application/json','x-internal-secret':'wash42'},
+        body:JSON.stringify({endTime:end.toISOString(),title:'WashTime',body:msg,
+          deviceId:localStorage.getItem('washDeviceId')||'unknown'})})
+        .catch(e=>console.warn('Push schedule:',e));
+    }
+  }
 }
 function scheduleWatchdog(key){
   const end=getEndDate(key);
@@ -2931,11 +3173,26 @@ async function sendTg(msg){
 if(localStorage.getItem('washLang') && !localStorage.getItem('washLangManual')){
   localStorage.removeItem('washLang');
 }
+function updateMelodyUI(){
+  var names = (I18N[LANG]&&I18N[LANG].melodyNames)||['🎵 Классика','🔔 Дин-дон','🎺 Фанфары','🎶 Нежная','📳 Бип'];
+  [0,1,2,3,4].forEach(function(i){
+    var btn = document.getElementById('mel'+i);
+    if(btn){
+      btn.classList.toggle('active', i===MELODY_ID);
+      btn.textContent = names[i];
+    }
+  });
+}
+
 fillPicker();
 renderProfileBar();
 buildSlides();
 applyI18n();
-regSW();
+regSW().then(function(){
+  // После регистрации SW — инициализировать Push если нужно
+  const mode = getNotifMode();
+  if(mode === 'push' || mode === 'both') initPush();
+});
 updateThemeColor();
 reqPerm();
 setInterval(updateAll,1000);

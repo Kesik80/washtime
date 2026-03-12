@@ -13,8 +13,19 @@
       }
     },
     {
+      "src": "/lang.js",
+      "dest": "/lang.js",
+      "headers": {
+        "Content-Type": "application/javascript"
+      }
+    },
+    {
       "src": "/icons/(.*)",
       "dest": "/icons/$1"
+    },
+    {
+      "src": "/svg/(.*)",
+      "dest": "/svg/$1"
     },
     {
       "src": "/",
