@@ -2280,6 +2280,7 @@ function fireFinal(key, withSignal){
   const m=getM(key);
   if(m.hasFinished)return;
   m.hasFinished=true; m.isRunning=false; saveS();
+  fbPushMachine(key); // сохранить финиш в Firebase
   const msg=t(key==='wash'?'washMsg':key==='dry'?'dryMsg':'dishMsg');
   // Сигнал только если включён
   if(withSignal !== false){
