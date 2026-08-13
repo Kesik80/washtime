@@ -2110,13 +2110,13 @@ function updateCard(key){
   setRing(key,1-leftMs/totalMs);
   if(leftMs<60000){
     const s=Math.ceil(leftMs/1000);
-    const t=`${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
-    lvEl.textContent=t; rtEl.textContent=t;
+    const tstr=`${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
+    lvEl.textContent=tstr; rtEl.textContent=tstr;
     if(rlEl)rlEl.textContent=t('remaining').toLowerCase();
   } else {
     const tm=Math.ceil(leftMs/60000);
-    const t=`${String(Math.floor(tm/60)).padStart(2,'0')}:${String(tm%60).padStart(2,'0')}`;
-    lvEl.textContent=t; rtEl.textContent=t;
+    const tstr=`${String(Math.floor(tm/60)).padStart(2,'0')}:${String(tm%60).padStart(2,'0')}`;
+    lvEl.textContent=tstr; rtEl.textContent=tstr;
     if(rlEl)rlEl.textContent=t('remaining').toLowerCase();
   }
 }
@@ -3225,6 +3225,5 @@ updateThemeColor();
 reqPerm();
 setInterval(updateAll,1000);
 </script>
-<script src="console.js"></script>
 </body>
 </html>
