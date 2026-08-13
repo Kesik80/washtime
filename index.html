@@ -3037,15 +3037,21 @@ function urlBase64ToUint8Array(base64String){
 async function subscribePush(){
   if(!swReg) return null;
   try{
-    const existing = await swReg.pushManager.getSubscription();
-    if(existing){ pushSubscription = existing; return existing; }
-    const sub = await swReg.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
-    });
+    // Подписка в браузере может уже быть, но на сервере её может не быть:
+    // сервер ищет по deviceId, а deviceId живёт в localStorage и теряется
+    // при очистке данных. Поэтому отправляем на сервер ВСЕГДА, а не только
+    // при первом создании — раньше здесь был ранний return и подписка
+    // никогда не доезжала до Firebase.
+    let sub = await swReg.pushManager.getSubscription();
+    if(!sub){
+      sub = await swReg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+      });
+    }
     pushSubscription = sub;
-    // Отправить подписку на сервер
-    await fetch('/api/push-subscribe', {
+
+    const resp = await fetch('/api/push-subscribe', {
       method: 'POST',
       headers: {'Content-Type':'application/json'},
       body: JSON.stringify({
@@ -3053,9 +3059,16 @@ async function subscribePush(){
         deviceId: localStorage.getItem('washDeviceId')||'unknown'
       })
     });
+    if(!resp.ok){
+      console.warn('Push subscribe: сервер не принял подписку', resp.status);
+      pushSubscription = null;
+      return null;
+    }
+    console.log('Push ✓ подписка сохранена на сервере');
     return sub;
   } catch(e){
     console.warn('Push subscribe error:', e);
+    pushSubscription = null;
     return null;
   }
 }
@@ -3145,7 +3158,11 @@ function scheduleServer(key){
       .catch(e=>console.warn(e));
   }
   // Web Push (через /api/push-send с задержкой)
-  if((mode === 'push' || mode === 'both') && VAPID_PUBLIC_KEY !== 'VAPID_KEY_PLACEHOLDER'){
+  // Раньше здесь стояла проверка VAPID_PUBLIC_KEY !== 'VAPID_KEY_PLACEHOLDER'.
+  // Такой строки в коде давно нет, поэтому условие было всегда истинным:
+  // push планировался даже без ключа и без подписки, а /api/push-send
+  // молча отвечал 404 «No subscription found».
+  if((mode === 'push' || mode === 'both') && VAPID_PUBLIC_KEY && pushSubscription){
     const delayMs = end.getTime() - Date.now();
     if(delayMs > 0 && delayMs < 6*60*60*1000){ // не более 6 часов
       fetch('/api/push-schedule',{method:'POST',headers:{'Content-Type':'application/json','x-internal-secret':'wash42'},
