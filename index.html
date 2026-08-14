@@ -168,8 +168,44 @@ body{
 .sbox{
   background:var(--surface);border:1px solid var(--border);
   border-radius:12px;padding:9px 12px;cursor:pointer;
-  transition:background .15s;
+  transition:background .15s;position:relative;
 }
+.now-btn{
+  position:absolute;top:50%;right:6px;transform:translateY(-50%);
+  width:38px;height:38px;border:none;border-radius:50%;
+  background:transparent;color:var(--card-accent);
+  display:flex;align-items:center;justify-content:center;
+  font-size:28px;line-height:1;cursor:pointer;padding:0;
+  transition:opacity .15s,transform .1s;
+}
+.now-btn:active{opacity:.55;transform:translateY(-50%) scale(.88)}
+
+/* ── CONFIRM DIALOG ── */
+.cfm-ov{
+  position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.55);
+  display:flex;align-items:center;justify-content:center;padding:24px;
+  opacity:0;transition:opacity .18s;
+}
+.cfm-ov.open{opacity:1}
+.cfm-box{
+  width:100%;max-width:320px;background:var(--bg3);
+  border:1px solid var(--border);border-radius:20px;padding:22px;
+  box-shadow:0 12px 48px rgba(0,0,0,.55);
+  transform:scale(.94);transition:transform .18s;
+}
+.cfm-ov.open .cfm-box{transform:scale(1)}
+.cfm-icon{font-size:30px;text-align:center;margin-bottom:10px}
+.cfm-title{font-size:17px;font-weight:600;color:var(--text);text-align:center;margin-bottom:6px}
+.cfm-text{font-size:13px;color:var(--text2);text-align:center;line-height:1.45;margin-bottom:20px}
+.cfm-btns{display:flex;gap:10px}
+.cfm-btn{
+  flex:1;padding:13px;border:none;border-radius:50px;cursor:pointer;
+  font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;
+  transition:opacity .15s;
+}
+.cfm-btn:active{opacity:.7}
+.cfm-no{background:var(--surface2);color:var(--text2)}
+.cfm-yes{background:#e5484d;color:#fff;font-weight:700}
 .sbox:active{background:var(--surface2)}
 .slbl{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.3px;margin-bottom:4px}
 .sval{font-family:'DM Mono',monospace;font-size:15px;font-weight:500;color:var(--text)}
@@ -729,6 +765,34 @@ try {
 var I18N = {
   ru: {
     wash:'Стиральная', dry:'Сушильная', dish:'Посудомойка',
+    nowBtn:'Сейчас', dataTitle:'Данные', resetStats:'Сбросить статистику',
+    delBtn:'Удалить', resetTitle:'Сбросить статистику?',
+    machinesTitle:'Машины на экране', visHint:'Запущенная машина показывается всегда',
+    exitHint:'Нажмите «назад» ещё раз для выхода',
+    notifTitle:'🔔 Уведомления', notifChannel:'Канал уведомлений',
+    pushHowTitle:'Как разрешить уведомления', pushHowTap:'Нажмите, чтобы узнать как →',
+    pushHowBrowser:'1. Нажмите на значок 🔒 или ⓘ слева от адреса\n2. Откройте «Настройки сайта» или «Разрешения»\n3. Найдите «Уведомления» и выберите «Разрешить»\n4. Обновите страницу',
+    pushHowPwa:'1. Откройте настройки Android\n2. Приложения → LaundryAI → Уведомления\n3. Включите уведомления\n4. Перезапустите приложение',
+    okWord:'Понятно',
+    pushAsk:'Нажмите «Разрешить», когда браузер спросит',
+    finWashT:'Стирка готова!', finWashS:'Пора вешать бельё',
+    finDryT:'Сушка готова!', finDryS:'Бельё высохло',
+    finDishT:'Посуда чистая!', finDishS:'Можно доставать',
+    familyTitle:'👨‍👩‍👧 Семья', signalTitle:'🔔 Сигнал', melodyClassic:'🎵 Классика',
+    melodyDing:'🔔 Дин-дон', melodyFanfare:'🎺 Фанфары', melodySoft:'🎶 Нежная', melodyBeep:'📳 Бип', notifBoth:'📱+✈️ Оба',
+    weatherLoading:'Загрузка погоды…',
+    photoFromPhone:'📷 Фото с телефона', removePhoto:'Убрать фото', guestWord:'чужой', savedWord:'✅ Сохранено:',
+    unitL:'л', unitKwh:'кВт·ч', unitKw:'кВт', unitMs:'м/с',
+    installHint:'Работает офлайн · Быстрый доступ', installHow:'Как?',
+    installIos:'Нажмите  ↑  затем «На экран Домой»',
+    pushUnsupported:'⚠️ Push-уведомления не поддерживаются в этом браузере',
+    pushAllowed:'✓ Push-уведомления разрешены', pushBlocked:'✗ Push заблокированы. Разрешите в настройках браузера',
+    allowWord:'Разрешить',
+    progEco:'Эко', progNormal:'Обычная', progIntensive:'Интенсив', progQuick:'Быстрая',
+    progDisinfect:'Дезинфек.', progPre:'Предв.', progSelfClean:'Самоочист.',
+    visLast:'Хотя бы одна машина должна остаться',
+    resetStatsSub:'история текущего профиля', resetConfirm:'Будет удалена вся история профиля', records:'записей', resetIrrev:'Действие необратимо.',
+    resetDone:'Статистика сброшена',
     running:'Работает', waiting:'Ожидание',
     start:'Старт', duration:'Длительность', end:'Конец', remaining:'Осталось',
     signal:'Сигнал по окончанию',
@@ -796,6 +860,34 @@ var I18N = {
 
   uk: {
     wash:'Пральна', dry:'Сушарка', dish:'Посудомийка',
+    nowBtn:'Зараз', dataTitle:'Дані', resetStats:'Скинути статистику',
+    delBtn:'Видалити', resetTitle:'Скинути статистику?',
+    machinesTitle:'Машини на екрані', visHint:'Запущена машина показується завжди',
+    exitHint:'Натисніть «назад» ще раз для виходу',
+    notifTitle:'🔔 Сповіщення', notifChannel:'Канал сповіщень',
+    pushHowTitle:'Як дозволити сповіщення', pushHowTap:'Натисніть, щоб дізнатися як →',
+    pushHowBrowser:'1. Натисніть на значок 🔒 або ⓘ ліворуч від адреси\n2. Відкрийте «Налаштування сайту» або «Дозволи»\n3. Знайдіть «Сповіщення» і виберіть «Дозволити»\n4. Оновіть сторінку',
+    pushHowPwa:'1. Відкрийте налаштування Android\n2. Додатки → LaundryAI → Сповіщення\n3. Увімкніть сповіщення\n4. Перезапустіть додаток',
+    okWord:'Зрозуміло',
+    pushAsk:'Натисніть «Дозволити», коли браузер запитає',
+    finWashT:'Прання готове!', finWashS:'Час вішати білизну',
+    finDryT:'Сушіння готове!', finDryS:'Білизна висохла',
+    finDishT:'Посуд чистий!', finDishS:'Можна діставати',
+    familyTitle:'👨‍👩‍👧 Родина', signalTitle:'🔔 Сигнал', melodyClassic:'🎵 Класика',
+    melodyDing:'🔔 Дін-дон', melodyFanfare:'🎺 Фанфари', melodySoft:'🎶 Ніжна', melodyBeep:'📳 Біп', notifBoth:'📱+✈️ Обидва',
+    weatherLoading:'Завантаження погоди…',
+    photoFromPhone:'📷 Фото з телефона', removePhoto:'Прибрати фото', guestWord:'чужий', savedWord:'✅ Збережено:',
+    unitL:'л', unitKwh:'кВт·год', unitKw:'кВт', unitMs:'м/с',
+    installHint:'Працює офлайн · Швидкий доступ', installHow:'Як?',
+    installIos:'Натисніть  ↑  потім «На екран Домівки»',
+    pushUnsupported:'⚠️ Push-сповіщення не підтримуються в цьому браузері',
+    pushAllowed:'✓ Push-сповіщення дозволені', pushBlocked:'✗ Push заблоковані. Дозвольте в налаштуваннях браузера',
+    allowWord:'Дозволити',
+    progEco:'Еко', progNormal:'Звичайна', progIntensive:'Інтенсив', progQuick:'Швидка',
+    progDisinfect:'Дезінфек.', progPre:'Попер.', progSelfClean:'Самоочищ.',
+    visLast:'Хоча б одна машина має залишитися',
+    resetStatsSub:'історія поточного профілю', resetConfirm:'Буде видалено всю історію профілю', records:'записів', resetIrrev:'Дію неможливо скасувати.',
+    resetDone:'Статистику скинуто',
     running:'Працює', waiting:'Очікування',
     start:'Старт', duration:'Тривалість', end:'Кінець', remaining:'Залишилось',
     signal:'Сигнал по завершенню',
@@ -863,6 +955,34 @@ var I18N = {
 
   de: {
     wash:'Waschmaschine', dry:'Trockner', dish:'Spülmaschine',
+    nowBtn:'Jetzt', dataTitle:'Daten', resetStats:'Statistik zurücksetzen',
+    delBtn:'Löschen', resetTitle:'Statistik zurücksetzen?',
+    machinesTitle:'Geräte auf dem Bildschirm', visHint:'Ein laufendes Gerät wird immer angezeigt',
+    exitHint:'Zum Beenden erneut „Zurück“ drücken',
+    notifTitle:'🔔 Benachrichtigungen', notifChannel:'Benachrichtigungskanal',
+    pushHowTitle:'Benachrichtigungen erlauben', pushHowTap:'Tippen für eine Anleitung →',
+    pushHowBrowser:'1. Tippe auf 🔒 oder ⓘ links neben der Adresse\n2. Öffne „Website-Einstellungen“ bzw. „Berechtigungen“\n3. Wähle bei „Benachrichtigungen“ die Option „Zulassen“\n4. Lade die Seite neu',
+    pushHowPwa:'1. Öffne die Android-Einstellungen\n2. Apps → LaundryAI → Benachrichtigungen\n3. Benachrichtigungen aktivieren\n4. App neu starten',
+    okWord:'Verstanden',
+    pushAsk:'Tippe auf „Erlauben“, wenn der Browser fragt',
+    finWashT:'Wäsche fertig!', finWashS:'Zeit zum Aufhängen',
+    finDryT:'Trocknen fertig!', finDryS:'Die Wäsche ist trocken',
+    finDishT:'Geschirr sauber!', finDishS:'Kann ausgeräumt werden',
+    familyTitle:'👨‍👩‍👧 Familie', signalTitle:'🔔 Signal', melodyClassic:'🎵 Klassisch',
+    melodyDing:'🔔 Ding-Dong', melodyFanfare:'🎺 Fanfare', melodySoft:'🎶 Sanft', melodyBeep:'📳 Piep', notifBoth:'📱+✈️ Beide',
+    weatherLoading:'Wetter wird geladen…',
+    photoFromPhone:'📷 Foto vom Handy', removePhoto:'Foto entfernen', guestWord:'fremd', savedWord:'✅ Gespeichert:',
+    unitL:'l', unitKwh:'kWh', unitKw:'kW', unitMs:'m/s',
+    installHint:'Funktioniert offline · Schneller Zugriff', installHow:'Wie?',
+    installIos:'Tippe auf  ↑  und dann „Zum Home-Bildschirm“',
+    pushUnsupported:'⚠️ Push-Benachrichtigungen werden in diesem Browser nicht unterstützt',
+    pushAllowed:'✓ Push-Benachrichtigungen erlaubt', pushBlocked:'✗ Push blockiert. Bitte in den Browsereinstellungen erlauben',
+    allowWord:'Erlauben',
+    progEco:'Eco', progNormal:'Normal', progIntensive:'Intensiv', progQuick:'Kurz',
+    progDisinfect:'Hygiene', progPre:'Vorspülen', progSelfClean:'Selbstreinigung',
+    visLast:'Mindestens ein Gerät muss sichtbar bleiben',
+    resetStatsSub:'Verlauf des aktuellen Profils', resetConfirm:'Der gesamte Verlauf des Profils wird gelöscht:', records:'Einträge', resetIrrev:'Dies kann nicht rückgängig gemacht werden.',
+    resetDone:'Statistik zurückgesetzt',
     running:'Läuft', waiting:'Wartet',
     start:'Start', duration:'Dauer', end:'Ende', remaining:'Verbleibend',
     signal:'Signal bei Fertigstellung',
@@ -930,6 +1050,34 @@ var I18N = {
 
   en: {
     wash:'Washing Machine', dry:'Dryer', dish:'Dishwasher',
+    nowBtn:'Now', dataTitle:'Data', resetStats:'Reset statistics',
+    delBtn:'Delete', resetTitle:'Reset statistics?',
+    machinesTitle:'Machines on screen', visHint:'A running machine is always shown',
+    exitHint:'Press back again to exit',
+    notifTitle:'🔔 Notifications', notifChannel:'Notification channel',
+    pushHowTitle:'How to allow notifications', pushHowTap:'Tap to see how →',
+    pushHowBrowser:'1. Tap the 🔒 or ⓘ icon left of the address\n2. Open “Site settings” or “Permissions”\n3. Find “Notifications” and choose “Allow”\n4. Reload the page',
+    pushHowPwa:'1. Open Android settings\n2. Apps → LaundryAI → Notifications\n3. Turn notifications on\n4. Restart the app',
+    okWord:'Got it',
+    pushAsk:'Tap “Allow” when the browser asks',
+    finWashT:'Washing done!', finWashS:'Time to hang it up',
+    finDryT:'Drying done!', finDryS:'The laundry is dry',
+    finDishT:'Dishes are clean!', finDishS:'Ready to unload',
+    familyTitle:'👨‍👩‍👧 Family', signalTitle:'🔔 Signal', melodyClassic:'🎵 Classic',
+    melodyDing:'🔔 Ding-dong', melodyFanfare:'🎺 Fanfare', melodySoft:'🎶 Soft', melodyBeep:'📳 Beep', notifBoth:'📱+✈️ Both',
+    weatherLoading:'Loading weather…',
+    photoFromPhone:'📷 Photo from phone', removePhoto:'Remove photo', guestWord:'guest', savedWord:'✅ Saved:',
+    unitL:'l', unitKwh:'kWh', unitKw:'kW', unitMs:'m/s',
+    installHint:'Works offline · Quick access', installHow:'How?',
+    installIos:'Tap  ↑  then “Add to Home Screen”',
+    pushUnsupported:'⚠️ Push notifications are not supported in this browser',
+    pushAllowed:'✓ Push notifications allowed', pushBlocked:'✗ Push blocked. Allow it in browser settings',
+    allowWord:'Allow',
+    progEco:'Eco', progNormal:'Normal', progIntensive:'Intensive', progQuick:'Quick',
+    progDisinfect:'Hygiene', progPre:'Pre-rinse', progSelfClean:'Self-clean',
+    visLast:'At least one machine must stay visible',
+    resetStatsSub:'current profile history', resetConfirm:'All history will be deleted for profile', records:'records', resetIrrev:'This cannot be undone.',
+    resetDone:'Statistics reset',
     running:'Running', waiting:'Waiting',
     start:'Start', duration:'Duration', end:'End', remaining:'Remaining',
     signal:'Signal on finish',
@@ -1025,6 +1173,12 @@ function applyI18n() {
     var val = t(key);
     if (val && val !== key) el.textContent = val;
   });
+  // placeholder'ы переводятся отдельно — textContent у input не работает
+  document.querySelectorAll('[data-i18n-ph]').forEach(function(el) {
+    var key = el.getAttribute('data-i18n-ph');
+    var val = t(key);
+    if (val && val !== key) el.placeholder = val;
+  });
   // Навбар — у span внутри button
   var sel = document.getElementById('langSelect');
   if (sel) sel.value = LANG;
@@ -1039,6 +1193,10 @@ function setLang(lang) {
   if (typeof renderStats === 'function') renderStats();
   if (typeof renderHist === 'function') renderHist();
   if (typeof renderProfileBar === 'function') renderProfileBar();
+  // эти строки пишутся из JS в textContent, поэтому applyI18n их не трогает
+  if (typeof updateNotifUI === 'function') updateNotifUI();
+  if (typeof updateMelodyUI === 'function') updateMelodyUI();
+  if (typeof renderFamilyId === 'function') renderFamilyId();
 }
 
 </script>
@@ -1083,7 +1241,7 @@ function setLang(lang) {
   <div class="stats-page">
     <div class="section-title" data-i18n="dryForecast">🌤 Прогноз сушки</div>
     <div class="weather-card" id="weatherCard">
-      <div class="wload">Загрузка погоды…</div>
+      <div class="wload" data-i18n="weatherLoading">Загрузка погоды…</div>
     </div>
     <div class="section-title" data-i18n="totalRuns">Всего запусков</div>
     <div class="stats-grid">
@@ -1094,12 +1252,12 @@ function setLang(lang) {
     <div class="section-title" data-i18n="thisMonth">За этот месяц</div>
     <div class="avg-row">
       <div class="avg-box">
-        <div class="avg-box-lbl">💧 Вода</div>
+        <div class="avg-box-lbl" data-i18n="water">💧 Вода</div>
         <div class="avg-box-val" id="statWaterVal">0л</div>
         <div class="res-cost" id="statWaterCost">~0€</div>
       </div>
       <div class="avg-box">
-        <div class="avg-box-lbl">⚡ Электричество</div>
+        <div class="avg-box-lbl" data-i18n="electricity">⚡ Электричество</div>
         <div class="avg-box-val" id="statKwhVal">0кВт</div>
         <div class="res-cost" id="statKwhCost">~0€</div>
       </div>
@@ -1118,35 +1276,10 @@ function setLang(lang) {
   </div>
 </div>
 
-<!-- BOTTOM NAV -->
-<div class="bnav">
-  <button class="nbtn active" id="navHome">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-      <polyline points="9 22 9 12 15 12 15 22"/>
-    </svg>
-    <span data-i18n="navMachines">Машины</span>
-  </button>
-  <button class="nbtn" id="navStats">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/>
-      <line x1="6" y1="20" x2="6" y2="14"/>
-    </svg>
-    <span data-i18n="navStats">Статистика</span>
-  </button>
-  <button class="nbtn" id="navSettings">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <circle cx="12" cy="12" r="3"/>
-      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
-    </svg>
-    <span data-i18n="navSettings">Настройки</span>
-  </button>
-</div>
-
 <!-- SETTINGS PAGE -->
 <div id="pageSettings" style="flex:1;overflow-y:auto;scrollbar-width:none;display:none">
   <div class="stats-page">
-    <div class="section-title">👨‍👩‍👧 Семья</div>
+    <div class="section-title" data-i18n="familyTitle">👨‍👩‍👧 Семья</div>
     <div class="set-group">
       <div class="set-row" style="flex-direction:column;align-items:flex-start;gap:4px;padding-bottom:12px;border-bottom:1px solid var(--border)">
         <div style="font-size:13px;font-weight:600;color:var(--text)" data-i18n="familyCode">Ваш код семьи</div>
@@ -1189,7 +1322,7 @@ function setLang(lang) {
         <div class="set-lbl" data-i18n="city">🌍 Город</div>
         <input class="set-inp" id="setCityName" placeholder="Oberhausen" value="">
       </div>
-      <button class="set-btn" id="setGeoBtn">📍 Определить автоматически</button>
+      <button class="set-btn" id="setGeoBtn" data-i18n="geoBtn">📍 Определить автоматически</button>
     </div>
     <div class="section-title" data-i18n="tariffsTitle">Тарифы</div>
     <div class="set-group">
@@ -1210,21 +1343,21 @@ function setLang(lang) {
         <div style="display:flex;gap:8px;flex-wrap:wrap;width:100%">
           <button onclick="setNotifMode('push')"   id="nm-push"   class="mel-btn">📱 Push</button>
           <button onclick="setNotifMode('tg')"     id="nm-tg"     class="mel-btn">✈️ Telegram</button>
-          <button onclick="setNotifMode('both')"   id="nm-both"   class="mel-btn">📱+✈️ Оба</button>
+          <button onclick="setNotifMode('both')"   id="nm-both"   class="mel-btn" data-i18n="notifBoth">📱+✈️ Оба</button>
         </div>
         <div id="pushStatus" style="width:100%;font-size:12px;color:var(--text3);margin-top:4px"></div>
       </div>
     </div>
-    <div class="section-title" style="margin-top:28px">🔔 Сигнал / Signal</div>
+    <div class="section-title" style="margin-top:28px" data-i18n="signalTitle">🔔 Сигнал</div>
     <div class="set-group">
       <div class="set-row" style="flex-wrap:wrap;gap:8px;padding:12px 14px">
         <div class="set-lbl" style="width:100%;margin-bottom:4px" data-i18n="melodyLabel">Мелодия окончания</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;width:100%">
-          <button onclick="saveMelody(0);previewMelody(0);updateMelodyUI()" id="mel0" class="mel-btn active">🎵 Классика</button>
-          <button onclick="saveMelody(1);previewMelody(1);updateMelodyUI()" id="mel1" class="mel-btn">🔔 Дин-дон</button>
-          <button onclick="saveMelody(2);previewMelody(2);updateMelodyUI()" id="mel2" class="mel-btn">🎺 Фанфары</button>
-          <button onclick="saveMelody(3);previewMelody(3);updateMelodyUI()" id="mel3" class="mel-btn">🎶 Нежная</button>
-          <button onclick="saveMelody(4);previewMelody(4);updateMelodyUI()" id="mel4" class="mel-btn">📳 Бип</button>
+          <button onclick="saveMelody(0);previewMelody(0);updateMelodyUI()" id="mel0" class="mel-btn active" data-i18n="melodyClassic">🎵 Классика</button>
+          <button onclick="saveMelody(1);previewMelody(1);updateMelodyUI()" id="mel1" class="mel-btn" data-i18n="melodyDing">🔔 Дин-дон</button>
+          <button onclick="saveMelody(2);previewMelody(2);updateMelodyUI()" id="mel2" class="mel-btn" data-i18n="melodyFanfare">🎺 Фанфары</button>
+          <button onclick="saveMelody(3);previewMelody(3);updateMelodyUI()" id="mel3" class="mel-btn" data-i18n="melodySoft">🎶 Нежная</button>
+          <button onclick="saveMelody(4);previewMelody(4);updateMelodyUI()" id="mel4" class="mel-btn" data-i18n="melodyBeep">📳 Бип</button>
         </div>
       </div>
     </div>
@@ -1241,6 +1374,34 @@ function setLang(lang) {
         </select>
       </div>
     </div>
+    <div class="section-title" style="margin-top:28px" data-i18n="machinesTitle">Машины на экране</div>
+    <div class="set-group">
+      <div class="set-row">
+        <div class="set-lbl" data-i18n="wash">Стиральная</div>
+        <div class="toggle" id="vis-wash" style="--card-accent:var(--accent-wash)"><div class="toggle-knob"></div></div>
+      </div>
+      <div class="set-row" style="border-top:1px solid var(--border)">
+        <div class="set-lbl" data-i18n="dry">Сушильная</div>
+        <div class="toggle" id="vis-dry" style="--card-accent:var(--accent-dry)"><div class="toggle-knob"></div></div>
+      </div>
+      <div class="set-row" style="border-top:1px solid var(--border)">
+        <div class="set-lbl" data-i18n="dish">Посудомойка</div>
+        <div class="toggle" id="vis-dish" style="--card-accent:var(--accent-dish)"><div class="toggle-knob"></div></div>
+      </div>
+      <div class="set-row" style="border-top:1px solid var(--border)">
+        <div class="set-lbl" style="font-size:11px;color:var(--text3)" data-i18n="visHint">Запущенная машина показывается всегда</div>
+      </div>
+    </div>
+    <div class="section-title" style="margin-top:28px" data-i18n="dataTitle">Данные</div>
+    <div class="set-group">
+      <div class="set-row">
+        <div class="set-lbl">
+          <span data-i18n="resetStats">Сбросить статистику</span>
+          <div style="font-size:11px;color:var(--text3);margin-top:2px" data-i18n="resetStatsSub">история текущего профиля</div>
+        </div>
+        <button class="mel-btn" id="btnResetStats">🗑</button>
+      </div>
+    </div>
     <div class="section-title" style="margin-top:28px" data-i18n="aboutTitle">О приложении</div>
     <div class="set-group">
       <div class="set-row"><div class="set-lbl">LaundryAI</div><div class="set-val">v2.0</div></div>
@@ -1249,17 +1410,42 @@ function setLang(lang) {
   </div>
 </div>
 
+<!-- BOTTOM NAV -->
+<div class="bnav">
+  <button class="nbtn active" id="navHome">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+      <polyline points="9 22 9 12 15 12 15 22"/>
+    </svg>
+    <span data-i18n="navMachines">Машины</span>
+  </button>
+  <button class="nbtn" id="navStats">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/>
+      <line x1="6" y1="20" x2="6" y2="14"/>
+    </svg>
+    <span data-i18n="navStats">Статистика</span>
+  </button>
+  <button class="nbtn" id="navSettings">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="3"/>
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+    </svg>
+    <span data-i18n="navSettings">Настройки</span>
+  </button>
+</div>
+
 <!-- PICKER -->
 <div class="overlay" id="pickerOv">
   <div class="sheet">
     <div class="shandle"></div>
-    <div class="stitle">Длительность</div>
+    <div class="stitle" data-i18n="duration">Длительность</div>
     <div class="pcols">
       <div class="pcol" id="hCol"><div class="pline"></div><ul id="hList"></ul></div>
       <div class="psep">:</div>
       <div class="pcol" id="mCol"><div class="pline"></div><ul id="mList"></ul></div>
     </div>
-    <button class="sheet-ok" id="pickerOk">Готово</button>
+    <button class="sheet-ok" id="pickerOk" data-i18n="done">Готово</button>
   </div>
 </div>
 
@@ -1282,9 +1468,9 @@ function setLang(lang) {
   <path d="M58 19 Q64 22 66 30 L63 26 Z" fill="white" opacity="0.5"/>
 </svg></div>
       <div class="pavatar-right">
-        <label class="pavatar-btn" for="pAvatarInput">📷 Фото с телефона</label>
+        <label class="pavatar-btn" for="pAvatarInput" data-i18n="photoFromPhone">📷 Фото с телефона</label>
         <input type="file" id="pAvatarInput" accept="image/*" style="display:none">
-        <button class="pavatar-clear" id="pAvatarClear">Убрать фото</button>
+        <button class="pavatar-clear" id="pAvatarClear" data-i18n="removePhoto">Убрать фото</button>
       </div>
     </div>
     <div class="pquick">
@@ -1292,7 +1478,7 @@ function setLang(lang) {
       <button class="pqbtn" data-e="👤" title="Женщина" id="pqF" data-i18n="female">♀ Женщина</button>
     </div>
     <div class="padd">
-      <input class="pinput" id="pNewName" placeholder="Имя (необязательно)" maxlength="18">
+      <input class="pinput" id="pNewName" data-i18n-ph="namePlaceholder" placeholder="Имя (необязательно)" maxlength="18">
       <button class="pbtn" id="pAddBtn">+</button>
     </div>
     <button class="pclose" id="pClose" data-i18n="close">Закрыть</button>
@@ -1323,8 +1509,8 @@ function setLang(lang) {
     </div>
     <div class="crop-hint" data-i18n="cropHint">Перетащите фото для позиции</div>
     <div class="crop-btns">
-      <button class="crop-cancel" id="cropCancel">Отмена</button>
-      <button class="crop-ok" id="cropOk">Готово</button>
+      <button class="crop-cancel" id="cropCancel" data-i18n="cancel">Отмена</button>
+      <button class="crop-ok" id="cropOk" data-i18n="done">Готово</button>
     </div>
   </div>
 </div>
@@ -1350,6 +1536,20 @@ function setLang(lang) {
 ═══════════════════════════ */
 const KEYS = ['wash','dry','dish'];
 
+/* Видимые машины. Запущенная машина показывается всегда, даже если скрыта:
+   иначе её таймер крутился бы невидимо и уведомление пришло бы «ниоткуда». */
+function visKeys(){
+  const vis=(S && S.settings && S.settings.visible) || {};
+  const out=KEYS.filter(k=>{
+    if(vis[k]===false){
+      const m=(S.machines&&S.machines[S.activeProfile])?S.machines[S.activeProfile][k]:null;
+      return !!(m && m.isRunning);
+    }
+    return true;
+  });
+  return out.length?out:KEYS.slice();   // нельзя скрыть всё
+}
+
 
 const DEF = {
   wash:{name:'Стиральная',icon:'🫧',cls:'wash',h:1,m:42,programs:null,
@@ -1358,13 +1558,13 @@ const DEF = {
     water:0, kwh:1.2},   // сушилка: воды нет, 1.2 кВт·ч
   dish:{name:'Посудомойка',icon:'✨',cls:'dish',h:2,m:0,
     water:12, kwh:0.94,  // дефолт — программа Эко
-    programs:{1:{label:'Эко',h:2,m:45,temp:50,water:12,kwh:0.94},
-              2:{label:'Обычная',h:2,m:0,temp:55,water:15,kwh:1.35},
-              3:{label:'Интенсив',h:2,m:30,temp:65,water:15,kwh:1.50},
-              4:{label:'Быстрая',h:0,m:55,temp:50,water:11.5,kwh:1.10},
-              5:{label:'Дезинфек.',h:1,m:40,temp:65,water:11.5,kwh:1.30},
-              6:{label:'Предв.',h:0,m:10,temp:null,water:4.5,kwh:0.01},
-              7:{label:'Самоочист.',h:0,m:50,temp:65,water:8,kwh:0.80}}}
+    programs:{1:{key:'progEco',h:2,m:45,temp:50,water:12,kwh:0.94},
+              2:{key:'progNormal',h:2,m:0,temp:55,water:15,kwh:1.35},
+              3:{key:'progIntensive',h:2,m:30,temp:65,water:15,kwh:1.50},
+              4:{key:'progQuick',h:0,m:55,temp:50,water:11.5,kwh:1.10},
+              5:{key:'progDisinfect',h:1,m:40,temp:65,water:11.5,kwh:1.30},
+              6:{key:'progPre',h:0,m:10,temp:null,water:4.5,kwh:0.01},
+              7:{key:'progSelfClean',h:0,m:50,temp:65,water:8,kwh:0.80}}}
 };
 
 
@@ -1373,9 +1573,9 @@ const RING_R=75, RING_C=2*Math.PI*75;
 const EMOJIS=['👤','👨','👩','🧒','👴','👵','🧑'];
 const ACC={wash:'var(--accent-wash)',dry:'var(--accent-dry)',dish:'var(--accent-dish)'};
 const FINISH={
-  wash:{emoji:'🫧',title:'Стирка готова!',sub:'Пора вешать бельё',ac:'var(--accent-wash)'},
-  dry: {emoji:'💨',title:'Сушка готова!', sub:'Бельё высохло',    ac:'var(--accent-dry)'},
-  dish:{emoji:'✨',title:'Посуда чистая!',sub:'Можно доставать',  ac:'var(--accent-dish)'}
+  wash:{emoji:'🫧',tKey:'finWashT',sKey:'finWashS',ac:'var(--accent-wash)'},
+  dry: {emoji:'💨',tKey:'finDryT', sKey:'finDryS', ac:'var(--accent-dry)'},
+  dish:{emoji:'✨',tKey:'finDishT',sKey:'finDishS',ac:'var(--accent-dish)'}
 };
 
 
@@ -1397,7 +1597,8 @@ function mkMachines(){
 function defS(){
   return{profiles:[{id:'me',name:'Я',emoji:'👤'}],activeProfile:'me',
          machines:{me:mkMachines()},history:[],theme:'auto',
-         settings:{city:'Oberhausen',lat:51.47,lon:6.85,waterRate:0.002,kwhRate:0.30}};
+         settings:{city:'Oberhausen',lat:51.47,lon:6.85,waterRate:0.002,kwhRate:0.30,
+                   visible:{wash:true,dry:true,dish:true}}};
 }
 function loadS(){
   try{
@@ -1405,6 +1606,9 @@ function loadS(){
     if(s){
       const p=JSON.parse(s);
       p.profiles.forEach(pr=>{if(!p.machines[pr.id])p.machines[pr.id]=mkMachines()});
+      // совместимость со старыми сохранениями — раздела visible там нет
+      if(!p.settings) p.settings={};
+      if(!p.settings.visible) p.settings.visible={wash:true,dry:true,dish:true};
       return p;
     }
   }catch(e){}
@@ -1880,7 +2084,7 @@ document.getElementById('pAddBtn').onclick=()=>{
     if(selectedAvatar.type==='emoji' && selectedAvatar.val){
       name=selectedAvatar.val;
     } else {
-      name='Профиль '+(S.profiles.length+1);
+      name=t('profileN')+' '+(S.profiles.length+1);
     }
   }
   const id='p'+Date.now();
@@ -1909,7 +2113,9 @@ let touchStartX=0, touchStartY=0, dragging=false, dragDX=0;
 function buildSlides(){
   const track=document.getElementById('cardsTrack');
   track.innerHTML='';
-  KEYS.forEach((key,i)=>{
+  const vk=visKeys();
+  if(curSlide>vk.length-1) curSlide=vk.length-1;
+  vk.forEach((key,i)=>{
     const slide=document.createElement('div');
     slide.className='card-slide';
     slide.innerHTML=buildCardHTML(key);
@@ -1927,7 +2133,7 @@ function buildCardHTML(key){
   const startStr=`${String(m.startH).padStart(2,'0')}:${String(m.startM).padStart(2,'0')}`;
   const progHtml=def.programs?`<div class="prog-row">`+
     Object.entries(def.programs).map(([p,pd])=>
-      `<button class="pchip-sm${m.prog==p?' active':''}" data-prog="${p}">${pd.label}</button>`
+      `<button class="pchip-sm${m.prog==p?' active':''}" data-prog="${p}">${t(pd.key)}</button>`
     ).join('')+`</div>`:'';
   return `
   <div class="machine-card ${def.cls}${m.isRunning?' running':''}" id="card-${key}">
@@ -1957,6 +2163,7 @@ function buildCardHTML(key){
       <div class="sbox" id="startBox-${key}">
         <div class="slbl">${t('start')}</div>
         <div class="time-inp time-trigger" id="si-${key}">${startStr}</div>
+        ${m.isRunning?'':`<button class="now-btn" id="now-${key}" title="${t('nowBtn')}" aria-label="${t('nowBtn')}">⟳</button>`}
       </div>
       <div class="sbox" id="durBox-${key}">
         <div class="slbl">${t('duration')}</div>
@@ -1991,6 +2198,9 @@ function bindCard(slide, key){
   }
   // start time
   slide.querySelector(`#si-${key}`).onclick=()=>openTimeDrum(key);
+  // «сейчас» — сбросить время старта на текущее
+  const nowBtn=slide.querySelector(`#now-${key}`);
+  if(nowBtn) nowBtn.onclick=e=>{ e.stopPropagation(); setStartNow(key); };
   // duration picker
   slide.querySelector(`#durBox-${key}`).onclick=()=>openPicker(key);
   // toggle
@@ -2007,7 +2217,7 @@ function bindCard(slide, key){
 function buildDots(){
   const dots=document.getElementById('tabDots');
   dots.innerHTML='';
-  KEYS.forEach((k,i)=>{
+  visKeys().forEach((k,i)=>{
     const d=document.createElement('div');
     d.className='tab-dot'+(i===curSlide?' active':'');
     if(i===curSlide) d.style.setProperty('--card-accent',`var(--accent-${k})`);
@@ -2017,7 +2227,7 @@ function buildDots(){
 }
 
 function goToSlide(idx, animate=true){
-  curSlide=Math.max(0,Math.min(KEYS.length-1,idx));
+  curSlide=Math.max(0,Math.min(visKeys().length-1,idx));
   const track=document.getElementById('cardsTrack');
   if(!animate) track.style.transition='none'; else track.style.transition='transform .35s cubic-bezier(.32,1,.23,1)';
   track.style.transform=`translateX(${-curSlide*100}%)`;
@@ -2083,7 +2293,7 @@ function updateTemp(key){
 /* ═══════════════════════════
    UPDATE LOOP
 ═══════════════════════════ */
-function updateAll(){ KEYS.forEach(k=>{updateCard(k);updateTemp(k);}); }
+function updateAll(){ visKeys().forEach(k=>{updateCard(k);updateTemp(k);}); }
 function updateCard(key){
   const m=getM(key);
   const endDate=getEndDate(key);
@@ -2304,6 +2514,10 @@ function fireFinal(key, withSignal){
   showToast('✅ '+msg);
   addHist(key,msg);
   showFinish(key);
+  // если машина была скрыта и показывалась только потому, что работала —
+  // после финиша убираем её с экрана обратно
+  const vis=(S.settings&&S.settings.visible)||{};
+  if(vis[key]===false) setTimeout(()=>buildSlides(),400);
 }
 
 /* ═══════════════════════════
@@ -2340,8 +2554,8 @@ let stopConfetti=null;
 function showFinish(key){
   const fd=FINISH[key];
   document.getElementById('finEmoji').textContent=fd.emoji;
-  document.getElementById('finTitle').textContent=fd.title;
-  document.getElementById('finSub').textContent=fd.sub;
+  document.getElementById('finTitle').textContent=t(fd.tKey);
+  document.getElementById('finSub').textContent=t(fd.sKey);
   document.getElementById('finishOv').style.setProperty('--fin-accent',fd.ac);
   document.getElementById('finishOv').classList.add('show');
   if(stopConfetti)stopConfetti();
@@ -2380,8 +2594,8 @@ function renderStats(){
   const welK=document.getElementById('statKwhVal');
   const welWC=document.getElementById('statWaterCost');
   const welKC=document.getElementById('statKwhCost');
-  if(welW) welW.textContent=totalW.toFixed(1)+(LANG==='de'?'l':LANG==='en'?'l':'л');
-  if(welK) welK.textContent=totalK.toFixed(2)+(LANG==='de'||LANG==='en'?'kWh':'кВт');
+  if(welW) welW.textContent=totalW.toFixed(1)+t('unitL');
+  if(welK) welK.textContent=totalK.toFixed(2)+t('unitKw');
   if(welWC) welWC.textContent='~'+waterCost+'€';
   if(welKC) welKC.textContent='~'+kwhCost+'€';
   renderBarChart(h);
@@ -2437,14 +2651,14 @@ function renderHist(){
       <div class="hdot" style="background:${ACC[h.key]||'#888'}"></div>
       <div class="hinfo">
         <div class="htext">${h.message}</div>
-        <div class="hmeta">${h.date} ${h.time}${h.water?' · 💧'+h.water+(LANG==='de'||LANG==='en'?'l':'л'):''}${h.kwh?' · ⚡'+h.kwh+(LANG==='de'||LANG==='en'?'kWh':'кВт·ч'):''}</div>
+        <div class="hmeta">${h.date} ${h.time}${h.water?' · 💧'+h.water+t('unitL'):''}${h.kwh?' · ⚡'+h.kwh+t('unitKwh'):''}</div>
       </div>
-      ${i===0?`<button class="hrepeat" onclick="repeatLast('${h.key}')">↩</button>`:''}
+      ${i===0&&visKeys().includes(h.key)?`<button class="hrepeat" onclick="repeatLast('${h.key}')">↩</button>`:''}
     </div>`).join('');
 }
 function repeatLast(key){
   // переключиться на нужную машину и запустить
-  const idx=KEYS.indexOf(key);
+  const idx=visKeys().indexOf(key);
   if(idx>=0){
     document.getElementById('navHome').click();
     setTimeout(()=>{goToSlide(idx); setTimeout(()=>handleSS(key),300);},100);
@@ -2521,6 +2735,7 @@ function showPage(name){
 }
 document.getElementById('navHome').onclick=()=>showPage('home');
 document.getElementById('navStats').onclick=()=>{showPage('stats');renderStats();renderHist();loadWeather();};
+document.getElementById('btnResetStats').onclick=resetStats;
 document.getElementById('navSettings').onclick=()=>{showPage('settings');fillSettings();};
 
 /* ═══════════════════════════
@@ -2531,9 +2746,37 @@ function fillSettings(){
   document.getElementById('setCityName').value=st.city||'Oberhausen';
   document.getElementById('setWaterRate').value=st.waterRate||0.002;
   document.getElementById('setKwhRate').value=st.kwhRate||0.30;
-  document.getElementById('setWaterRate').value=st.waterRate||0.002;
-  document.getElementById('setKwhRate').value=st.kwhRate||0.30;
+  fillVisToggles();
 }
+
+function fillVisToggles(){
+  if(!S.settings) S.settings={};
+  if(!S.settings.visible) S.settings.visible={wash:true,dry:true,dish:true};
+  const vis=S.settings.visible;
+  KEYS.forEach(k=>{
+    const el=document.getElementById('vis-'+k);
+    if(el) el.classList.toggle('on', vis[k]!==false);
+  });
+}
+
+KEYS.forEach(k=>{
+  const el=document.getElementById('vis-'+k);
+  if(!el) return;
+  el.onclick=()=>{
+    if(!S.settings.visible) S.settings.visible={wash:true,dry:true,dish:true};
+    const vis=S.settings.visible;
+    const turningOff = vis[k]!==false;
+    // не даём скрыть последнюю оставшуюся машину
+    if(turningOff && KEYS.filter(x=>vis[x]!==false).length<=1){
+      showToast(t('visLast'));
+      return;
+    }
+    vis[k]=!turningOff;
+    saveS();
+    fillVisToggles();
+    buildSlides();
+  };
+});
 document.getElementById('setSave').onclick=async()=>{
   if(!S.settings)S.settings={};
   const cityInput=document.getElementById('setCityName').value.trim()||'Oberhausen';
@@ -2556,7 +2799,7 @@ document.getElementById('setSave').onclick=async()=>{
     }catch(e){showToast(t('geoError')); return;}
   }
   weatherCache=null; // сбросить кеш
-  saveS(); showToast('✅ Сохранено: '+S.settings.city);
+  saveS(); showToast(t('savedWord')+' '+S.settings.city);
 };
 document.getElementById('setGeoBtn').onclick=()=>{
   if(!navigator.geolocation){showToast(t('geoUnavailable'));return;}
@@ -2586,7 +2829,7 @@ async function loadWeather(){
   if(!card)return;
   // кеш на 30 мин
   if(weatherCache && Date.now()-weatherCacheTime<30*60*1000){renderWeather(weatherCache);return;}
-  card.innerHTML='<div class="wload">Загрузка погоды…</div>';
+  card.innerHTML=`<div class="wload">${t('weatherLoading')}</div>`;
   const st=S.settings||{lat:51.47,lon:6.85,city:'Oberhausen'};
   const lat=st.lat||51.47, lon=st.lon||6.85;
   try{
@@ -2656,7 +2899,7 @@ function renderWeather(d){
           ${t2!==null?`<div class="wdd-row"><span>🌡</span><span>${Math.round(t2)}°</span></div>`:''}
           ${hum!==null?`<div class="wdd-row"><span>💧</span><span>${Math.round(hum)}%</span></div>`:''}
           ${pres!==null?`<div class="wdd-row"><span>⏱</span><span>${Math.round(pres*0.750064)}</span></div>`:''}
-          ${windMs!==null?`<div class="wdd-row"><span>💨</span><span>${windMs}${LANG==="de"||LANG==="en"?"m/s":"м/с"}</span></div>`:''}
+          ${windMs!==null?`<div class="wdd-row"><span>💨</span><span>${windMs}${t('unitMs')}</span></div>`:''}
         </div>
       </div>`;
     }).join('');
@@ -2740,8 +2983,8 @@ if (!isInStandalone) {
     // iOS — показать инструкцию через 2 сек
     const isSafari = /safari/i.test(navigator.userAgent) && !/chrome/i.test(navigator.userAgent);
     if (isSafari) {
-      installSub.textContent = 'Нажмите  ↑  затем «На экран Домой»';
-      installBtn.textContent = 'Как?';
+      installSub.textContent = t('installIos');
+      installBtn.textContent = t('installHow');
       installBtn.onclick = () => showIOSGuide();
       setTimeout(() => installBanner.classList.add('show'), 2000);
     }
@@ -2750,7 +2993,7 @@ if (!isInStandalone) {
     window.addEventListener('beforeinstallprompt', e => {
       e.preventDefault();
       deferredPrompt = e;
-      installSub.textContent = 'Работает офлайн · Быстрый доступ';
+      installSub.textContent = t('installHint');
       setTimeout(() => installBanner.classList.add('show'), 1500);
     });
     installBtn.onclick = async () => {
@@ -2804,6 +3047,82 @@ function showIOSGuide() {
 /* ═══════════════════════════
    TIME DRUM PICKER
 ═══════════════════════════ */
+function setStartNow(key){
+  const mk=getM(key);
+  if(mk.isRunning) return;          // у запущенной машины старт не меняем
+  const d=new Date();
+  mk.startH=d.getHours(); mk.startM=d.getMinutes();
+  saveS();
+  const si=document.getElementById(`si-${key}`);
+  if(si) si.textContent=`${String(mk.startH).padStart(2,'0')}:${String(mk.startM).padStart(2,'0')}`;
+  updateCard(key);
+}
+
+/* Модалка подтверждения в стиле приложения вместо системного confirm() */
+function appConfirm({icon='⚠️', title='', text='', okLabel='OK', cancelLabel=''}){
+  return new Promise(resolve=>{
+    const old=document.getElementById('cfmOv'); if(old) old.remove();
+    const ov=document.createElement('div');
+    ov.id='cfmOv'; ov.className='cfm-ov';
+    ov.innerHTML=`
+      <div class="cfm-box">
+        <div class="cfm-icon">${icon}</div>
+        <div class="cfm-title">${title}</div>
+        ${text?`<div class="cfm-text">${text}</div>`:''}
+        <div class="cfm-btns">
+          <button class="cfm-btn cfm-no" id="cfmNo">${cancelLabel||t('cancel')||'Отмена'}</button>
+          <button class="cfm-btn cfm-yes" id="cfmYes">${okLabel}</button>
+        </div>
+      </div>`;
+    document.body.appendChild(ov);
+    requestAnimationFrame(()=>ov.classList.add('open'));
+    const close=val=>{
+      ov.classList.remove('open');
+      setTimeout(()=>ov.remove(),180);
+      resolve(val);
+    };
+    ov.querySelector('#cfmYes').onclick=()=>close(true);
+    ov.querySelector('#cfmNo').onclick=()=>close(false);
+    ov.onclick=e=>{ if(e.target===ov) close(false); };
+  });
+}
+
+/* Инструкция по разрешению уведомлений.
+   Программно открыть настройки браузера/Android нельзя — API такого нет,
+   поэтому показываем пошаговую подсказку под текущий режим запуска. */
+function showPushGuide(){
+  const standalone = window.matchMedia('(display-mode: standalone)').matches
+                     || window.navigator.standalone === true;
+  const steps = (standalone ? t('pushHowPwa') : t('pushHowBrowser'))
+                  .split('\n').map(l=>`<div style="margin:6px 0">${l}</div>`).join('');
+  appConfirm({
+    icon:'🔔',
+    title:t('pushHowTitle'),
+    text:`<div style="text-align:left">${steps}</div>`,
+    okLabel:t('okWord'),
+    cancelLabel:t('cancel')
+  });
+}
+
+async function resetStats(){
+  const pid=S.activeProfile;
+  const p=(S.profiles||[]).find(x=>x.id===pid);
+  const name=p?p.name:'';
+  const cnt=(S.history||[]).filter(x=>x.pid===pid).length;
+  const ok=await appConfirm({
+    icon:'🗑',
+    title:t('resetTitle'),
+    text:`${t('resetConfirm')} «${name}» — ${cnt} ${t('records')}. ${t('resetIrrev')}`,
+    okLabel:t('delBtn')
+  });
+  if(!ok) return;
+  // чистим историю только текущего профиля, чужие записи не трогаем
+  S.history=(S.history||[]).filter(x=>x.pid!==pid);
+  saveS();
+  renderStats(); renderHist();
+  showToast(t('resetDone'));
+}
+
 function openTimeDrum(key) {
   const mk = getM(key);
   let h = mk.startH || 0, m = mk.startM || 0;
@@ -2831,7 +3150,7 @@ function openTimeDrum(key) {
       box-shadow:0 8px 40px rgba(0,0,0,.5);width:280px;text-align:center;
       font-family:'DM Sans',sans-serif;">
       <div style="font-size:.8em;font-weight:700;color:${isDark?'#aaa':'#888'};letter-spacing:.08em;
-        margin-bottom:16px;text-transform:uppercase;">Время старта</div>
+        margin-bottom:16px;text-transform:uppercase;">${t('startTime')}</div>
 
       <div style="display:flex;align-items:center;justify-content:center;gap:4px;">
         <div style="position:relative;width:80px;height:230px;overflow:hidden;">
@@ -2856,15 +3175,20 @@ function openTimeDrum(key) {
       </div>
 
       <div style="display:flex;gap:10px;margin-top:22px;">
+        <button id="tpNow" style="flex:1;padding:12px;border:none;border-radius:50px;
+          background:${btnBg};color:${accent};font-size:1em;font-weight:700;cursor:pointer;
+          font-family:'DM Sans',sans-serif;">
+          ⟳
+        </button>
         <button id="tpCancel" style="flex:1;padding:12px;border:none;border-radius:50px;
           background:${btnBg};color:${isDark?'#aaa':'#666'};font-size:1em;font-weight:600;cursor:pointer;
           font-family:'DM Sans',sans-serif;">
-          Отмена
+          ${t('cancel')||'Отмена'}
         </button>
         <button id="tpSave" style="flex:2;padding:12px;border:none;border-radius:50px;
           background:${accent};color:#fff;font-size:1em;font-weight:700;cursor:pointer;
           font-family:'DM Sans',sans-serif;">
-          Готово
+          ${t('done')||'Готово'}
         </button>
       </div>
     </div>
@@ -2996,6 +3320,13 @@ function openTimeDrum(key) {
     if(slide){ slide.innerHTML = buildCardHTML(key); bindCard(slide, key); }
     overlay.remove();
   };
+  overlay.querySelector('#tpNow').onclick = () => {
+    overlay.remove();
+    setStartNow(key);
+    const cardEl = document.getElementById(`card-${key}`);
+    const slide = cardEl ? cardEl.closest('.card-slide') : null;
+    if(slide){ slide.innerHTML = buildCardHTML(key); bindCard(slide, key); }
+  };
   overlay.querySelector('#tpCancel').onclick = () => overlay.remove();
   overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
 }
@@ -3106,19 +3437,24 @@ function updateNotifUI(){
     st.textContent = ''; return;
   }
   if(!('PushManager' in window)){
-    st.textContent = '⚠️ Push-уведомления не поддерживаются в этом браузере';
+    st.textContent = t('pushUnsupported');
     return;
   }
   Notification.requestPermission().then(function(perm){
     if(perm === 'granted'){
       st.style.color = '#34c98a';
-      st.textContent = '✓ Push-уведомления разрешены';
+      st.textContent = t('pushAllowed');
     } else if(perm === 'denied'){
       st.style.color = '#ff4444';
-      st.textContent = '✗ Push заблокированы. Разрешите в настройках браузера';
+      st.textContent = t('pushBlocked');
+      // Открыть настройки браузера из JS нельзя — показываем инструкцию
+      st.innerHTML = t('pushBlocked')
+        + `<div style="margin-top:4px;color:var(--accent-wash);text-decoration:underline">${t('pushHowTap')}</div>`;
+      st.style.cursor = 'pointer';
+      st.onclick = showPushGuide;
     } else {
       st.style.color = 'var(--text3)';
-      st.textContent = 'Нажмите "Разрешить" когда браузер спросит';
+      st.textContent = t('pushAsk');
     }
   });
 }
@@ -3174,9 +3510,7 @@ function scheduleServer(key){
 }
 function scheduleWatchdog(key){
   const end=getEndDate(key);
-  const names={wash:t('washMsg').split('!')[0],dry:'Сушильная машина',dish:'Посудомойка'};
-  const texts={wash:'готова! 🫧',dry:'закончила! 💨',dish:'помыла! ✨'};
-  const msg=`${names[key]} ${texts[key]}`;
+  const msg=t(key==='wash'?'washMsg':key==='dry'?'dryMsg':'dishMsg');
   wdogs[key]=setInterval(async()=>{
     if(!getM(key).isRunning){cancelWatchdog(key);return;}
     if(end.getTime()-Date.now()<=0){
@@ -3202,7 +3536,7 @@ if(localStorage.getItem('washLang') && !localStorage.getItem('washLangManual')){
   localStorage.removeItem('washLang');
 }
 function updateMelodyUI(){
-  var names = (I18N[LANG]&&I18N[LANG].melodyNames)||['🎵 Классика','🔔 Дин-дон','🎺 Фанфары','🎶 Нежная','📳 Бип'];
+  var names = ['melodyClassic','melodyDing','melodyFanfare','melodySoft','melodyBeep'].map(t);
   [0,1,2,3,4].forEach(function(i){
     var btn = document.getElementById('mel'+i);
     if(btn){
@@ -3224,6 +3558,88 @@ regSW().then(function(){
 updateThemeColor();
 reqPerm();
 setInterval(updateAll,1000);
+
+/* ═══════════════════════════
+   КНОПКА «НАЗАД»
+   Порядок: закрыть оверлей → вернуться на «Машины» → предупредить → выйти
+═══════════════════════════ */
+function closeTopOverlay(){
+  // самый верхний слой закрываем первым
+  const cfm=document.getElementById('cfmOv');
+  if(cfm){ cfm.classList.remove('open'); setTimeout(()=>cfm.remove(),180); return true; }
+
+  const tp=document.getElementById('customTimePicker');
+  if(tp){ tp.remove(); return true; }
+
+  const lb=document.getElementById('lightbox');
+  if(lb && lb.classList.contains('show')){ lb.classList.remove('show'); return true; }
+
+  const crop=document.getElementById('cropModal');
+  if(crop && crop.classList.contains('show')){ crop.classList.remove('show'); return true; }
+
+  const fin=document.getElementById('finishOv');
+  if(fin && fin.classList.contains('show')){ fin.classList.remove('show'); return true; }
+
+  const pick=document.getElementById('pickerOv');
+  if(pick && pick.classList.contains('open')){ pick.classList.remove('open'); return true; }
+
+  const pm=document.getElementById('pModal');
+  if(pm && pm.classList.contains('open')){ pm.classList.remove('open'); return true; }
+
+  return false;
+}
+
+let exitArmed=false, exitTmr=null, exiting=false;
+
+function pushBackGuard(){ history.pushState({lai:1}, ''); }
+pushBackGuard();
+
+function doExit(){
+  const standalone = window.matchMedia('(display-mode: standalone)').matches
+                     || window.navigator.standalone === true;
+  // В установленной PWA окно можно закрыть; во вкладке браузера уходим назад
+  // по истории. Guard мы намеренно не возвращаем, поэтому если ни то ни другое
+  // не сработает — следующее нажатие «назад» закроет приложение штатно.
+  if(standalone){
+    window.close();
+    setTimeout(()=>{ if(!document.hidden) history.back(); }, 120);
+  } else {
+    history.back();
+  }
+}
+
+window.addEventListener('popstate', function(){
+  if(exiting) return;                       // уже выходим — не перехватываем
+
+  // 1. открыт оверлей — закрываем его
+  if(closeTopOverlay()){ pushBackGuard(); return; }
+
+  // 2. не на главной вкладке — возвращаемся на «Машины»
+  const main=document.getElementById('pageMain');
+  if(main && main.style.display==='none'){
+    document.getElementById('navHome').click();
+    pushBackGuard();
+    return;
+  }
+
+  // 3. первое нажатие — предупреждение
+  if(!exitArmed){
+    exitArmed=true;
+    showToast(t('exitHint'));
+    if('vibrate' in navigator) navigator.vibrate(30);
+    pushBackGuard();
+    clearTimeout(exitTmr);
+    exitTmr=setTimeout(()=>{ exitArmed=false; }, 2500);
+    return;
+  }
+
+  // 4. второе нажатие в течение 2.5 с — выходим.
+  // Guard больше не возвращаем: приложение остаётся на своей первой записи истории.
+  clearTimeout(exitTmr);
+  exitArmed=false;
+  exiting=true;
+  doExit();
+});
 </script>
 <script src="console.js"></script>
 </body>
