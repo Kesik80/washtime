@@ -1488,7 +1488,7 @@ function getM(key){
 ═══════════════════════════ */
 /* Метка сборки. Установленная PWA любит держать старую страницу в кэше,
    и по внешнему виду не понять, какая версия запущена. */
-const APP_BUILD='v2.2 · 15.08 19:25';
+const APP_BUILD='v2.3 · 15.08 19:40';
 (function(){
   const el=document.getElementById('appBuild');
   if(el) el.textContent=APP_BUILD;
@@ -3725,21 +3725,29 @@ window.addEventListener('popstate', function(){
     });
   }
   // В полноэкранном режиме значок консоли упирается в нижний край экрана.
-  // Сдвигаем его один раз — повторные вызовы отмечены через dataset.
-  function lift(el){
-    if (el.dataset.laiLifted) return;
-    var cs = getComputedStyle(el);
-    if (cs.position === 'fixed' && cs.bottom !== 'auto') {
-      var probe = document.createElement('div');
-      probe.style.cssText = 'position:fixed;bottom:0;height:env(safe-area-inset-bottom,0px);width:0';
-      document.body.appendChild(probe);
-      var safe = probe.getBoundingClientRect().height;
-      probe.remove();
-      var extra = Math.max(0, 18 - safe);
-      if (extra > 0) el.style.bottom = (parseFloat(cs.bottom) + extra) + 'px';
-    }
-    el.dataset.laiLifted = '1';
+  // Двигаем через CSS-свойство translate, а не bottom: console.js переписывает
+  // свои inline-стили при открытии панели и затирал наш сдвиг.
+  // translate не конфликтует с его transform-анимациями и не накапливается.
+  var LIFT = 0;
+  function measureLift(){
+    var probe = document.createElement('div');
+    probe.style.cssText = 'position:fixed;bottom:0;height:env(safe-area-inset-bottom,0px);width:0';
+    document.body.appendChild(probe);
+    var safe = probe.getBoundingClientRect().height;
+    probe.remove();
+    LIFT = Math.max(0, 30 - safe);
   }
+  function lift(el){
+    var want = LIFT ? '0px -' + LIFT + 'px' : '';
+    if (el.style.translate !== want) el.style.translate = want;
+    if (!el.dataset.laiObs) {          // console.js перерисовывает себя — следим
+      el.dataset.laiObs = '1';
+      new MutationObserver(function(){ lift(el); })
+        .observe(el, {attributes:true, attributeFilter:['style']});
+    }
+  }
+  measureLift();
+  window.addEventListener('resize', measureLift);
   window.laiApplyConsole = function(){
     scan();
     var on = localStorage.getItem('laiConsole') !== '0';
