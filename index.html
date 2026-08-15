@@ -1027,7 +1027,7 @@ function setLang(lang) {
       <div class="set-row">
         <div class="set-lbl">
           <span data-i18n="showConsole">Показывать консоль</span>
-          <div style="font-size:11px;color:var(--text3);margin-top:2px" data-i18n="showConsoleSub">отладочная панель</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:2px" data-i18n="showConsoleSub">отладочная панель (для разработчика)</div>
         </div>
         <div class="toggle" id="togConsole"><div class="toggle-knob"></div></div>
       </div>
@@ -1496,7 +1496,7 @@ function getM(key){
 ═══════════════════════════ */
 /* Метка сборки. Установленная PWA любит держать старую страницу в кэше,
    и по внешнему виду не понять, какая версия запущена. */
-const APP_BUILD='v2.7 · 15.08 21:40';
+const APP_BUILD='v2.8 · 15.08 21:55';
 (function(){
   const el=document.getElementById('appBuild');
   if(el) el.textContent=APP_BUILD;
