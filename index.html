@@ -101,7 +101,7 @@ body{
 .card-slide{
   flex-shrink:0;width:100%;height:100%;
   overflow-y:auto;scrollbar-width:none;
-  padding:4px 20px calc(var(--safe-bot) + 20px);
+  padding:4px 20px calc(max(var(--safe-bot), 18px) + 20px);
 }
 .card-slide::-webkit-scrollbar{display:none}
 
@@ -194,7 +194,7 @@ body{
 .psheet-ov.open{opacity:1}
 .psheet{
   width:100%;max-height:78vh;background:var(--bg3);
-  border-radius:22px 22px 0 0;padding:10px 16px calc(var(--safe-bot) + 16px);
+  border-radius:22px 22px 0 0;padding:10px 16px calc(max(var(--safe-bot), 18px) + 16px);
   transform:translateY(100%);transition:transform .22s cubic-bezier(.25,.46,.45,.94);
   display:flex;flex-direction:column;
 }
@@ -327,7 +327,7 @@ body{
 }
 
 /* ── STATS PAGE ── */
-.stats-page{padding:4px 20px calc(var(--safe-bot)+20px)}
+.stats-page{padding:4px 20px calc(max(var(--safe-bot), 18px) + 20px)}
 .section-title{
   font-size:12px;font-weight:600;color:var(--text3);
   text-transform:uppercase;letter-spacing:.6px;margin:20px 0 12px;
@@ -372,7 +372,7 @@ body{
 .bnav{
   flex-shrink:0;
   display:flex;justify-content:space-around;
-  padding:10px 24px calc(var(--safe-bot)+10px);
+  padding:10px 24px calc(max(var(--safe-bot), 18px) + 10px);
   background:var(--bg);border-top:1px solid var(--border);
 }
 .nbtn{
@@ -1488,7 +1488,7 @@ function getM(key){
 ═══════════════════════════ */
 /* Метка сборки. Установленная PWA любит держать старую страницу в кэше,
    и по внешнему виду не понять, какая версия запущена. */
-const APP_BUILD='v2.1 · 15.08 18:35';
+const APP_BUILD='v2.2 · 15.08 19:25';
 (function(){
   const el=document.getElementById('appBuild');
   if(el) el.textContent=APP_BUILD;
@@ -3724,10 +3724,26 @@ window.addEventListener('popstate', function(){
       if (window.__laiBefore.indexOf(el) === -1 && els.indexOf(el) === -1) els.push(el);
     });
   }
+  // В полноэкранном режиме значок консоли упирается в нижний край экрана.
+  // Сдвигаем его один раз — повторные вызовы отмечены через dataset.
+  function lift(el){
+    if (el.dataset.laiLifted) return;
+    var cs = getComputedStyle(el);
+    if (cs.position === 'fixed' && cs.bottom !== 'auto') {
+      var probe = document.createElement('div');
+      probe.style.cssText = 'position:fixed;bottom:0;height:env(safe-area-inset-bottom,0px);width:0';
+      document.body.appendChild(probe);
+      var safe = probe.getBoundingClientRect().height;
+      probe.remove();
+      var extra = Math.max(0, 18 - safe);
+      if (extra > 0) el.style.bottom = (parseFloat(cs.bottom) + extra) + 'px';
+    }
+    el.dataset.laiLifted = '1';
+  }
   window.laiApplyConsole = function(){
     scan();
     var on = localStorage.getItem('laiConsole') !== '0';
-    els.forEach(function(el){ el.style.display = on ? '' : 'none'; });
+    els.forEach(function(el){ el.style.display = on ? '' : 'none'; lift(el); });
   };
   laiApplyConsole();
   // console.js может дорисовать себя позже — пересканируем ещё пару раз
