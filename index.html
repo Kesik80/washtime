@@ -388,7 +388,6 @@ body{
   transition:color .2s;
 }
 .nbtn.active{color:var(--accent-wash)}
-.nbtn-exit:active{color:#e5484d}
 .nbtn svg{width:22px;height:22px}
 .nbtn span{font-size:10px;font-weight:500}
 
@@ -1086,16 +1085,6 @@ function setLang(lang) {
     </svg>
     <span data-i18n="navSettings">Настройки</span>
   </button>
-  <!-- Показывается только в установленном приложении: во вкладке браузера
-       закрывать нечего, там есть свои кнопки. -->
-  <button class="nbtn nbtn-exit" id="navExit" style="display:none">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-      <polyline points="16 17 21 12 16 7"/>
-      <line x1="21" y1="12" x2="9" y2="12"/>
-    </svg>
-    <span data-i18n="navExit">Выход</span>
-  </button>
 </div>
 
 <!-- PROFILE MODAL -->
@@ -1507,7 +1496,7 @@ function getM(key){
 ═══════════════════════════ */
 /* Метка сборки. Установленная PWA любит держать старую страницу в кэше,
    и по внешнему виду не понять, какая версия запущена. */
-const APP_BUILD='v2.6 · 15.08 21:15';
+const APP_BUILD='v2.7 · 15.08 21:40';
 (function(){
   const el=document.getElementById('appBuild');
   if(el) el.textContent=APP_BUILD;
@@ -2464,28 +2453,6 @@ document.querySelectorAll('.prog-open').forEach(b=>{
   b.onclick=()=>openProgEditor(b.dataset.progKey);
 });
 document.getElementById('navSettings').onclick=()=>{showPage('settings');fillSettings();};
-
-/* Кнопка выхода — только в установленном приложении */
-(function(){
-  const btn=document.getElementById('navExit');
-  if(!btn) return;
-  const standalone = window.matchMedia('(display-mode: standalone)').matches
-                  || window.matchMedia('(display-mode: fullscreen)').matches
-                  || window.navigator.standalone === true;
-  if(!standalone) return;                 // во вкладке браузера кнопку не показываем
-  btn.style.display='';
-  btn.onclick=()=>{
-    exiting=true;                         // чтобы обработчик «назад» не перехватил
-    window.close();
-    // Если браузер не дал закрыть окно — уходим назад по истории,
-    // а если и это не сработало, честно говорим, что закрыть нужно свайпом.
-    setTimeout(()=>{
-      if(document.hidden) return;
-      history.back();
-      setTimeout(()=>{ if(!document.hidden){ exiting=false; showToast(t('exitManual')); } }, 400);
-    }, 150);
-  };
-})();
 
 /* ═══════════════════════════
    SETTINGS
