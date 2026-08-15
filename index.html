@@ -29,11 +29,13 @@
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;overflow:hidden}
+html{background:var(--bg);color-scheme:dark light}
+[data-theme="dark"]{color-scheme:dark}
+[data-theme="light"]{color-scheme:light}
 body{
   font-family:'DM Sans',sans-serif;
   background:var(--bg); color:var(--text);
   padding-top:env(safe-area-inset-top);
-  padding-bottom:env(safe-area-inset-bottom);
   display:flex; flex-direction:column;
   transition:background .3s,color .3s;
 }
