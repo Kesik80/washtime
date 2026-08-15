@@ -689,11 +689,16 @@ body{
 .mel-btn.active{
   border-color:var(--accent-wash);color:var(--accent-wash);background:rgba(79,143,255,.12);
 }
+/* Три равные колонки вместо переноса: длинные немецкие названия
+   переносятся внутри кнопки, а не роняют третью кнопку на новую строку. */
 .rem-machines{
-  display:flex;flex-wrap:wrap;gap:8px;
+  display:grid;grid-template-columns:repeat(3,1fr);gap:8px;
   padding:12px 16px 14px;border-top:1px solid var(--border);
 }
-.rem-machines .mel-btn{flex:0 0 auto;padding:7px 13px;font-size:12.5px}
+.rem-machines .mel-btn{
+  padding:7px 8px;font-size:12px;line-height:1.25;
+  text-align:center;hyphens:auto;overflow-wrap:break-word;
+}
 .rem-delay{
   width:auto;margin:0;padding:8px 18px;border-radius:20px;
   font-family:'DM Mono',monospace;font-size:14px;color:var(--text);
@@ -966,7 +971,7 @@ function setLang(lang) {
         </div>
       </div>
     </div>
-    <div class="section-title" style="margin-top:28px">🌐 Язык / Language</div>
+    <div class="section-title" style="margin-top:28px" data-i18n="langTitle">🌐 Язык</div>
     <div class="set-group">
       <div class="set-row">
         <div class="set-lbl" data-i18n="langLabel">Язык интерфейса</div>
@@ -1507,7 +1512,7 @@ function getM(key){
 ═══════════════════════════ */
 /* Метка сборки. Установленная PWA любит держать старую страницу в кэше,
    и по внешнему виду не понять, какая версия запущена. */
-const APP_BUILD='v2.9 · 15.08 23:35';
+const APP_BUILD='v3.1 · 16.08 00:05';
 (function(){
   const el=document.getElementById('appBuild');
   if(el) el.textContent=APP_BUILD;
