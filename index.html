@@ -137,7 +137,10 @@ body{
 
 /* ring */
 .ring-wrap{display:flex;justify-content:center;margin-bottom:14px;position:relative}
-.ring-svg{width:170px;height:170px;transform:rotate(-90deg)}
+.ring-svg{width:170px;height:170px;transform:rotate(-90deg);transition:width .2s,height .2s}
+/* с полоской программ карточка выше — компенсируем кольцом и отступом */
+.machine-card.has-progs .ring-svg{width:148px;height:148px}
+.machine-card.has-progs .ring-wrap{margin-bottom:10px}
 .ring-track{fill:none;stroke:var(--border);stroke-width:7}
 .ring-prog{
   fill:none;stroke:var(--card-accent);stroke-width:7;stroke-linecap:round;
@@ -180,6 +183,50 @@ body{
 }
 .now-btn:active{opacity:.55;transform:translateY(-50%) scale(.88)}
 
+/* ── ПРОГРАММЫ ── */
+.pchip-more{font-weight:700;letter-spacing:1px}
+.psheet-ov{
+  position:fixed;inset:0;z-index:9990;background:rgba(0,0,0,.5);
+  display:flex;align-items:flex-end;opacity:0;transition:opacity .2s;
+}
+.psheet-ov.open{opacity:1}
+.psheet{
+  width:100%;max-height:78vh;background:var(--bg3);
+  border-radius:22px 22px 0 0;padding:10px 16px calc(var(--safe-bot) + 16px);
+  transform:translateY(100%);transition:transform .22s cubic-bezier(.25,.46,.45,.94);
+  display:flex;flex-direction:column;
+}
+.psheet-ov.open .psheet{transform:translateY(0)}
+.psheet.tall{max-height:86vh}
+.plist{overflow-y:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.plist::-webkit-scrollbar{display:none}
+.plist-row{
+  width:100%;display:block;text-align:left;background:none;border:none;
+  border-bottom:1px solid var(--border);padding:13px 6px;cursor:pointer;
+  font-family:'DM Sans',sans-serif;
+}
+.plist-row.active{background:var(--surface)}
+.plist-row.active .plist-name{color:var(--card-accent)}
+.plist-name{font-size:15px;font-weight:600;color:var(--text)}
+.plist-meta{font-size:12px;color:var(--text3);margin-top:2px;font-family:'DM Mono',monospace}
+.plist-empty{padding:26px 6px;text-align:center;color:var(--text3);font-size:13px}
+.pedit-row{display:flex;align-items:center;gap:6px;border-bottom:1px solid var(--border)}
+.pedit-star{background:none;border:none;font-size:19px;color:var(--card-accent);
+  padding:10px 4px;cursor:pointer;opacity:.35}
+.pedit-star.on{opacity:1}
+.pedit-main{flex:1;background:none;border:none;text-align:left;padding:11px 2px;cursor:pointer;
+  font-family:'DM Sans',sans-serif}
+.pedit-del{background:none;border:none;font-size:16px;padding:10px 6px;cursor:pointer;opacity:.55}
+.pedit-actions{display:flex;gap:10px;padding-top:14px}
+.pf-lbl{display:block;font-size:11px;color:var(--text3);text-transform:uppercase;
+  letter-spacing:.3px;margin:12px 0 5px}
+.pf-dur{width:100%;padding:11px;border:1px solid var(--border);border-radius:12px;
+  background:var(--surface);color:var(--text);font-family:'DM Mono',monospace;
+  font-size:16px;cursor:pointer}
+.pf-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.pf-grid .pinput{width:100%}
+.cfm-box .pf-lbl,.cfm-box .cfm-title{text-align:left}
+
 /* ── CONFIRM DIALOG ── */
 .cfm-ov{
   position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.55);
@@ -211,62 +258,6 @@ body{
 .sval{font-family:'DM Mono',monospace;font-size:15px;font-weight:500;color:var(--text)}
 .sval.ac{color:var(--card-accent)}
 /* ── TIME DRUM ── */
-.tdrum-overlay{
-  position:fixed;inset:0;z-index:800;
-  background:rgba(0,0,0,.6);backdrop-filter:blur(4px);
-  display:flex;align-items:flex-end;
-}
-.tdrum-sheet{
-  width:100%;background:var(--bg2);
-  border-radius:24px 24px 0 0;
-  padding:0 0 env(safe-area-inset-bottom,0px);
-}
-.tdrum-header{
-  display:flex;justify-content:space-between;align-items:center;
-  padding:16px 20px 12px;
-  border-bottom:1px solid var(--border);
-}
-.tdrum-title{font-size:15px;font-weight:600}
-.tdrum-ok{
-  color:var(--accent-wash);font-size:15px;
-  font-weight:600;cursor:pointer;padding:4px 8px;
-}
-.tdrum-cancel{color:var(--text3);font-size:15px;cursor:pointer;padding:4px 8px}
-.tdrum-body{
-  display:flex;justify-content:center;align-items:center;
-  gap:0;padding:16px 0;position:relative;height:220px;
-}
-.tdrum-col{
-  flex:1;height:220px;overflow:hidden;position:relative;
-  cursor:grab;
-}
-.tdrum-sep{
-  font-size:28px;font-weight:700;color:var(--text);
-  padding:0 4px;line-height:1;align-self:center;margin-top:-4px;
-}
-.tdrum-list{
-  display:flex;flex-direction:column;
-  transition:transform .15s ease;
-}
-.tdrum-item{
-  height:44px;display:flex;align-items:center;justify-content:center;
-  font-family:'DM Mono',monospace;font-size:26px;font-weight:500;
-  color:var(--text2);transition:color .15s,font-size .15s;
-  flex-shrink:0;
-}
-.tdrum-item.active{color:var(--text);font-size:30px}
-.tdrum-mask-top,.tdrum-mask-bot{
-  position:absolute;left:0;right:0;height:78px;pointer-events:none;z-index:2;
-}
-.tdrum-mask-top{top:0;background:linear-gradient(to bottom,var(--bg2),transparent)}
-.tdrum-mask-bot{bottom:0;background:linear-gradient(to top,var(--bg2),transparent)}
-.tdrum-line{
-  position:absolute;left:10%;right:10%;
-  height:44px;top:50%;transform:translateY(-50%);
-  border-top:1.5px solid var(--border2);
-  border-bottom:1.5px solid var(--border2);
-  pointer-events:none;z-index:1;border-radius:8px;
-}
 .time-inp{
   background:none;border:none;font-family:'DM Mono',monospace;
   font-size:16px;font-weight:500;color:var(--text);width:100%;outline:none;cursor:pointer;
@@ -274,15 +265,24 @@ body{
 .time-trigger{cursor:pointer;user-select:none;display:block;}
 
 /* programs */
+.prog-wrap{
+  position:relative;margin:0 -20px 8px;   /* компенсируем padding карточки */
+}
+.prog-wrap::after{                        /* подсказка, что список едет вбок */
+  content:'';position:absolute;top:0;right:0;width:28px;height:100%;
+  pointer-events:none;
+  background:linear-gradient(90deg,transparent,var(--bg3));
+}
 .prog-row{
-  display:flex;gap:6px;margin-bottom:8px;
-  overflow-x:auto;scrollbar-width:none;padding-bottom:2px;
+  display:flex;gap:6px;
+  overflow-x:auto;scrollbar-width:none;
+  padding:0 20px 2px;
   touch-action:pan-x;
   -webkit-overflow-scrolling:touch;
 }
 .prog-row::-webkit-scrollbar{display:none}
 .pchip-sm{
-  flex-shrink:0;padding:6px 11px;border-radius:10px;
+  flex-shrink:0;padding:5px 10px;border-radius:9px;
   border:1px solid var(--border);background:var(--surface);
   font-size:12px;font-weight:500;color:var(--text2);cursor:pointer;transition:all .15s;
 }
@@ -350,7 +350,6 @@ body{
   background:var(--bg3);border:1px solid var(--border);
   border-radius:18px;padding:20px;margin-bottom:4px;
 }
-.chart-title{font-size:13px;font-weight:500;color:var(--text2);margin-bottom:16px}
 .bar-chart{display:flex;align-items:flex-end;gap:6px;height:80px}
 .bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
 .bar{width:100%;border-radius:4px 4px 0 0;min-height:3px;transition:height .4s ease}
@@ -365,7 +364,6 @@ body{
 }
 .hdot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
 .htext{flex:1;font-size:14px;color:var(--text2)}
-.htime{font-family:'DM Mono',monospace;font-size:11px;color:var(--text3)}
 .hist-empty{text-align:center;padding:24px;color:var(--text3);font-size:14px}
 
 /* ── BOTTOM NAV ── */
@@ -393,24 +391,9 @@ body{
   display:none;align-items:flex-end;justify-content:center;padding:0 8px 8px;
 }
 .overlay.open{display:flex}
-.sheet{
-  background:var(--bg3);border:1px solid var(--border2);
-  border-radius:24px;width:100%;max-width:400px;padding:20px;
-  animation:slideUp .3s cubic-bezier(.32,1,.23,1);
-}
 @keyframes slideUp{from{transform:translateY(50px);opacity:0}to{transform:translateY(0);opacity:1}}
 .shandle{width:36px;height:4px;background:var(--border2);border-radius:2px;margin:0 auto 16px}
 .stitle{font-size:16px;font-weight:600;text-align:center;margin-bottom:20px}
-.pcols{display:flex;justify-content:center;gap:0;margin-bottom:16px}
-.pcol{height:200px;overflow-y:scroll;width:80px;scrollbar-width:none;position:relative}
-.pcol::-webkit-scrollbar{display:none}
-.psep{width:20px;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:300;color:var(--text2);padding-top:80px}
-.pcol ul{list-style:none;padding:80px 0}
-.pcol li{height:40px;display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:22px;color:var(--text3);cursor:pointer;transition:color .15s}
-.pcol li.sel{color:var(--text);font-weight:500}
-.pline{position:absolute;top:50%;left:0;right:0;height:40px;margin-top:-20px;border-top:1px solid var(--border2);border-bottom:1px solid var(--border2);pointer-events:none}
-.sheet-ok{width:100%;padding:14px;background:var(--accent-wash);color:#fff;border:none;border-radius:14px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;cursor:pointer}
-.sheet-ok:active{opacity:.85}
 
 /* ── PROFILE MODAL ── */
 .pmodal{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.6);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;padding:24px}
@@ -493,18 +476,6 @@ body{
   border-radius:18px;padding:20px;margin-bottom:4px;
 }
 .wload{color:var(--text3);font-size:14px;text-align:center;padding:8px 0}
-.weather-row{display:flex;gap:12px;flex-wrap:wrap}
-.wday{
-  flex:1;min-width:60px;
-  background:var(--surface);border-radius:12px;padding:12px 8px;
-  text-align:center;
-}
-.wday-name{font-size:11px;color:var(--text3);margin-bottom:6px;text-transform:uppercase;letter-spacing:.3px}
-.wday-icon{font-size:22px;margin-bottom:4px}
-.wday-temp{font-family:'DM Mono',monospace;font-size:14px;font-weight:500;margin-bottom:4px}
-.wday-score{
-  font-size:11px;font-weight:600;padding:3px 6px;border-radius:6px;
-}
 .wdetail-wrap{display:flex;flex-direction:column;gap:10px}
 
 .wperiods{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:0}
@@ -537,7 +508,6 @@ body{
 .wdd-score.good{background:rgba(52,201,138,.15);color:var(--accent-dish)}
 .wdd-score.mid{background:rgba(248,212,90,.15);color:#c8a800}
 .wdd-score.bad{background:rgba(255,107,53,.15);color:var(--accent-dry)}
-.wdd-body{padding:10px 14px;display:flex;flex-direction:column;gap:7px}
 .wdd-row{
   display:flex;justify-content:space-between;align-items:center;
   font-size:13px;
@@ -548,13 +518,6 @@ body{
   border:1.5px solid var(--accent-wash) !important;
   background:rgba(79,143,255,.08) !important;
 }
-.wday-extra{
-  font-size:10px;color:var(--text3);margin-bottom:2px;
-  white-space:nowrap;
-}
-.wday-score.good{background:rgba(52,201,138,.15);color:var(--accent-dish)}
-.wday-score.mid{background:rgba(248,212,90,.15);color:#c8a800}
-.wday-score.bad{background:rgba(255,107,53,.15);color:var(--accent-dry)}
 .wlocation{font-size:12px;color:var(--text3);margin-bottom:12px}
 
 /* ── HISTORY ITEM update ── */
@@ -760,389 +723,12 @@ try {
 }
 </script>
 
+<script src="lang.js"></script>
 <script>
-/* lang.js — WashTime translations. ru / uk / de / en */
-var I18N = {
-  ru: {
-    wash:'Стиральная', dry:'Сушильная', dish:'Посудомойка',
-    nowBtn:'Сейчас', dataTitle:'Данные', resetStats:'Сбросить статистику',
-    delBtn:'Удалить', resetTitle:'Сбросить статистику?',
-    machinesTitle:'Машины на экране', visHint:'Запущенная машина показывается всегда',
-    exitHint:'Нажмите «назад» ещё раз для выхода',
-    notifTitle:'🔔 Уведомления', notifChannel:'Канал уведомлений',
-    pushHowTitle:'Как разрешить уведомления', pushHowTap:'Нажмите, чтобы узнать как →',
-    pushHowBrowser:'1. Нажмите на значок 🔒 или ⓘ слева от адреса\n2. Откройте «Настройки сайта» или «Разрешения»\n3. Найдите «Уведомления» и выберите «Разрешить»\n4. Обновите страницу',
-    pushHowPwa:'1. Откройте настройки Android\n2. Приложения → LaundryAI → Уведомления\n3. Включите уведомления\n4. Перезапустите приложение',
-    okWord:'Понятно',
-    pushAsk:'Нажмите «Разрешить», когда браузер спросит',
-    finWashT:'Стирка готова!', finWashS:'Пора вешать бельё',
-    finDryT:'Сушка готова!', finDryS:'Бельё высохло',
-    finDishT:'Посуда чистая!', finDishS:'Можно доставать',
-    familyTitle:'👨‍👩‍👧 Семья', signalTitle:'🔔 Сигнал', melodyClassic:'🎵 Классика',
-    melodyDing:'🔔 Дин-дон', melodyFanfare:'🎺 Фанфары', melodySoft:'🎶 Нежная', melodyBeep:'📳 Бип', notifBoth:'📱+✈️ Оба',
-    weatherLoading:'Загрузка погоды…',
-    photoFromPhone:'📷 Фото с телефона', removePhoto:'Убрать фото', guestWord:'чужой', savedWord:'✅ Сохранено:',
-    unitL:'л', unitKwh:'кВт·ч', unitKw:'кВт', unitMs:'м/с',
-    installHint:'Работает офлайн · Быстрый доступ', installHow:'Как?',
-    installIos:'Нажмите  ↑  затем «На экран Домой»',
-    pushUnsupported:'⚠️ Push-уведомления не поддерживаются в этом браузере',
-    pushAllowed:'✓ Push-уведомления разрешены', pushBlocked:'✗ Push заблокированы. Разрешите в настройках браузера',
-    allowWord:'Разрешить',
-    progEco:'Эко', progNormal:'Обычная', progIntensive:'Интенсив', progQuick:'Быстрая',
-    progDisinfect:'Дезинфек.', progPre:'Предв.', progSelfClean:'Самоочист.',
-    visLast:'Хотя бы одна машина должна остаться',
-    resetStatsSub:'история текущего профиля', resetConfirm:'Будет удалена вся история профиля', records:'записей', resetIrrev:'Действие необратимо.',
-    resetDone:'Статистика сброшена',
-    running:'Работает', waiting:'Ожидание',
-    start:'Старт', duration:'Длительность', end:'Конец', remaining:'Осталось',
-    signal:'Сигнал по окончанию',
-    btnStart:'Запустить', btnStop:'Остановить',
-    launchedBy: function(who){ return '▶ ' + who; },
-    stoppedBy:  function(who, at){ return '⏹ ' + who + (at ? ' в ' + at : ''); },
-    msgStarted: function(who, what){ return who + ' запустил(а) ' + what; },
-    msgStopped: function(who, what){ return who + ' остановил(а) ' + what; },
-    washName:'стиральную', dryName:'сушилку', dishName:'посудомойку',
-    confirmStop:    function(who, what, time){ return who + ' запустил(а) ' + what + ' в ' + time; },
-    confirmStopSub: 'Вы уверены что хотите остановить?',
-    confirmNo:'Нет', confirmYes:'Остановить',
-    startTime:'Время старта', cancel:'Отмена', done:'Готово',
-    profilesTitle:'Профили', male:'♂ Мужчина', female:'♀ Женщина',
-    namePlaceholder:'Имя (необязательно)', close:'Закрыть', profileN:'Профиль',
-    finishTitle:'Готово!',
-    washDone:'Стирка завершена', dryDone:'Сушка завершена', dishDone:'Посуда чистая!',
-    finishBtn:'Отлично! 🎉',
-    washMsg:'Стиральная машина готова! 🫧', dryMsg:'Сушильная машина закончила! 💨', dishMsg:'Посудомойка помыла! ✨',
-    navMachines:'Машины', navStats:'Статистика', navSettings:'Настройки',
-    dryForecast:'🌤 Прогноз сушки', totalRuns:'Всего запусков',
-    washes:'🫧 Стирок', dries:'💨 Сушек', dishes:'✨ Мытий',
-    thisMonth:'За этот месяц', water:'💧 Вода', electricity:'⚡ Электричество',
-    avgTime:'Среднее время', avgLabel:'⏱ Среднее', runsPerMonth:'📅 Запусков в месяц',
-    activity7:'Активность за 7 дней', history:'История', historyEmpty:'История пуста',
-    weatherLoading:'Загрузка погоды…', weatherError:'Не удалось загрузить погоду',
-    today:'Сегодня', tomorrow:'Завтра',
-    morning:'Утро', day:'День', evening:'Вечер', night:'Ночь',
-    bad:'Плохо', ok:'Сойдёт', good:'Отлично',
-    familyTitle:'👨‍👩‍👧 Семья', familyCode:'Ваш код семьи',
-    familyCodeHint:'Отправьте партнёру — он вставит его ниже',
-    familyCopy:'📋 Копировать', familyCopied:'Код скопирован!',
-    familyJoinTitle:'Войти в семью', familyJoinHint:'Вставьте код от партнёра',
-    familyJoinPlaceholder:'family_xxxxxxxx', familyJoinBtn:'Войти',
-    familyLeaveTitle:'Покинуть семью', familyLeaveHint:'Создаст новый личный код',
-    familyLeaveBtn:'Выйти', familyLeaveConfirm:'Покинуть семью?',
-    familyLeaveConfirmSub: function(who){ return who + ' отключится от синхронизации. Остальные получат уведомление.'; },
-    familyLeft:'Вы покинули семью', familyJoined:'✅ Подключено! Перезагрузите страницу',
-    familyInvalidCode:'Введите корректный код',
-    memberJoined: function(who){ return who + ' подключился(ась) к семье'; },
-    memberLeft:   function(who){ return who + ' покинул(а) семью'; },
-    locationTitle:'Местоположение', city:'🌍 Город', cityPlaceholder:'Oberhausen',
-    geoBtn:'📍 Определить автоматически', geoSearching:'🔍 Ищу город…',
-    geoNotFound:'❌ Город не найден', geoError:'❌ Ошибка поиска',
-    geoUnavailable:'Геолокация недоступна', geoSearching2:'📍 Определяю…',
-    myCity:'Мой город', geoDone:'📍 Готово', geoNoAccess:'Нет доступа к геолокации',
-    tariffsTitle:'Тарифы', waterRate:'💧 Вода (€/л)', elRate:'⚡ Электричество (€/кВт·ч)',
-    save:'Сохранить', saved: function(city){ return '✅ Сохранено: ' + city; },
-    aboutTitle:'О приложении', dishData:'Данные посудомойки', dishDataSub:'из инструкции',
-    installTitle:'Установить WashTime', installSub:'Добавить на главный экран',
-    installBtn:'Установить', installOffline:'Работает офлайн · Быстрый доступ',
-    iosInstallTitle:'Установка на iPhone',
-    iosStep1:'Нажмите <strong>«Поделиться»</strong> (↑) внизу Safari',
-    iosStep2:'Выберите <strong>«На экран Домой»</strong>',
-    iosStep3:'Нажмите <strong>«Добавить»</strong>',
-    iosHow:'Как?', iosUnderstood:'Понятно',
-    themeAuto:'🌗 Авто', themeDark:'🌙 Тёмная', themeLight:'☀️ Светлая',
-    langTitle:'🌐 Язык',
-    langLabel:'Язык интерфейса',
-    melodyLabel:'Мелодия окончания',
-    melodyNames:['🎵 Классика','🔔 Дин-дон','🎺 Фанфары','🎶 Нежная','📳 Бип'],
-    photoBtn:'📷 Фото', removePhoto:'Убрать фото',
-    cropTitle:'Настройте фото', cropScale:'Масштаб', cropHint:'Перетащите для позиции',
-  },
-
-  uk: {
-    wash:'Пральна', dry:'Сушарка', dish:'Посудомийка',
-    nowBtn:'Зараз', dataTitle:'Дані', resetStats:'Скинути статистику',
-    delBtn:'Видалити', resetTitle:'Скинути статистику?',
-    machinesTitle:'Машини на екрані', visHint:'Запущена машина показується завжди',
-    exitHint:'Натисніть «назад» ще раз для виходу',
-    notifTitle:'🔔 Сповіщення', notifChannel:'Канал сповіщень',
-    pushHowTitle:'Як дозволити сповіщення', pushHowTap:'Натисніть, щоб дізнатися як →',
-    pushHowBrowser:'1. Натисніть на значок 🔒 або ⓘ ліворуч від адреси\n2. Відкрийте «Налаштування сайту» або «Дозволи»\n3. Знайдіть «Сповіщення» і виберіть «Дозволити»\n4. Оновіть сторінку',
-    pushHowPwa:'1. Відкрийте налаштування Android\n2. Додатки → LaundryAI → Сповіщення\n3. Увімкніть сповіщення\n4. Перезапустіть додаток',
-    okWord:'Зрозуміло',
-    pushAsk:'Натисніть «Дозволити», коли браузер запитає',
-    finWashT:'Прання готове!', finWashS:'Час вішати білизну',
-    finDryT:'Сушіння готове!', finDryS:'Білизна висохла',
-    finDishT:'Посуд чистий!', finDishS:'Можна діставати',
-    familyTitle:'👨‍👩‍👧 Родина', signalTitle:'🔔 Сигнал', melodyClassic:'🎵 Класика',
-    melodyDing:'🔔 Дін-дон', melodyFanfare:'🎺 Фанфари', melodySoft:'🎶 Ніжна', melodyBeep:'📳 Біп', notifBoth:'📱+✈️ Обидва',
-    weatherLoading:'Завантаження погоди…',
-    photoFromPhone:'📷 Фото з телефона', removePhoto:'Прибрати фото', guestWord:'чужий', savedWord:'✅ Збережено:',
-    unitL:'л', unitKwh:'кВт·год', unitKw:'кВт', unitMs:'м/с',
-    installHint:'Працює офлайн · Швидкий доступ', installHow:'Як?',
-    installIos:'Натисніть  ↑  потім «На екран Домівки»',
-    pushUnsupported:'⚠️ Push-сповіщення не підтримуються в цьому браузері',
-    pushAllowed:'✓ Push-сповіщення дозволені', pushBlocked:'✗ Push заблоковані. Дозвольте в налаштуваннях браузера',
-    allowWord:'Дозволити',
-    progEco:'Еко', progNormal:'Звичайна', progIntensive:'Інтенсив', progQuick:'Швидка',
-    progDisinfect:'Дезінфек.', progPre:'Попер.', progSelfClean:'Самоочищ.',
-    visLast:'Хоча б одна машина має залишитися',
-    resetStatsSub:'історія поточного профілю', resetConfirm:'Буде видалено всю історію профілю', records:'записів', resetIrrev:'Дію неможливо скасувати.',
-    resetDone:'Статистику скинуто',
-    running:'Працює', waiting:'Очікування',
-    start:'Старт', duration:'Тривалість', end:'Кінець', remaining:'Залишилось',
-    signal:'Сигнал по завершенню',
-    btnStart:'Запустити', btnStop:'Зупинити',
-    launchedBy: function(who){ return '▶ ' + who; },
-    stoppedBy:  function(who, at){ return '⏹ ' + who + (at ? ' о ' + at : ''); },
-    msgStarted: function(who, what){ return who + ' запустив(ла) ' + what; },
-    msgStopped: function(who, what){ return who + ' зупинив(ла) ' + what; },
-    washName:'пральну', dryName:'сушарку', dishName:'посудомийку',
-    confirmStop:    function(who, what, time){ return who + ' запустив(ла) ' + what + ' о ' + time; },
-    confirmStopSub: 'Ви впевнені що хочете зупинити?',
-    confirmNo:'Ні', confirmYes:'Зупинити',
-    startTime:'Час старту', cancel:'Скасувати', done:'Готово',
-    profilesTitle:'Профілі', male:'♂ Чоловік', female:'♀ Жінка',
-    namePlaceholder:"Ім'я (необов'язково)", close:'Закрити', profileN:'Профіль',
-    finishTitle:'Готово!',
-    washDone:'Прання завершено', dryDone:'Сушіння завершено', dishDone:'Посуд чистий!',
-    finishBtn:'Чудово! 🎉',
-    washMsg:'Пральна машина готова! 🫧', dryMsg:'Сушарка закінчила! 💨', dishMsg:'Посудомийка помила! ✨',
-    navMachines:'Машини', navStats:'Статистика', navSettings:'Налаштування',
-    dryForecast:'🌤 Прогноз сушіння', totalRuns:'Всього запусків',
-    washes:'🫧 Прань', dries:'💨 Сушінь', dishes:'✨ Миттів',
-    thisMonth:'За цей місяць', water:'💧 Вода', electricity:'⚡ Електрика',
-    avgTime:'Середній час', avgLabel:'⏱ Середнє', runsPerMonth:'📅 Запусків на місяць',
-    activity7:'Активність за 7 днів', history:'Історія', historyEmpty:'Історія порожня',
-    weatherLoading:'Завантаження погоди…', weatherError:'Не вдалося завантажити погоду',
-    today:'Сьогодні', tomorrow:'Завтра',
-    morning:'Ранок', day:'День', evening:'Вечір', night:'Ніч',
-    bad:'Погано', ok:'Зійде', good:'Відмінно',
-    familyTitle:"👨‍👩‍👧 Сім'я", familyCode:"Ваш код сім'ї",
-    familyCodeHint:'Надішліть партнеру — він вставить нижче',
-    familyCopy:'📋 Копіювати', familyCopied:'Код скопійовано!',
-    familyJoinTitle:"Увійти до сім'ї", familyJoinHint:'Вставте код від партнера',
-    familyJoinPlaceholder:'family_xxxxxxxx', familyJoinBtn:'Увійти',
-    familyLeaveTitle:"Покинути сім'ю", familyLeaveHint:'Створить новий особистий код',
-    familyLeaveBtn:'Вийти', familyLeaveConfirm:"Покинути сім'ю?",
-    familyLeaveConfirmSub: function(who){ return who + " відключиться від синхронізації. Інші отримають повідомлення."; },
-    familyLeft:"Ви покинули сім'ю", familyJoined:'✅ Підключено! Перезавантажте сторінку',
-    familyInvalidCode:'Введіть коректний код',
-    memberJoined: function(who){ return who + " підключився(лась) до сім'ї"; },
-    memberLeft:   function(who){ return who + " покинув(ла) сім'ю"; },
-    locationTitle:'Місцеположення', city:'🌍 Місто', cityPlaceholder:'Oberhausen',
-    geoBtn:'📍 Визначити автоматично', geoSearching:'🔍 Шукаю місто…',
-    geoNotFound:'❌ Місто не знайдено', geoError:'❌ Помилка пошуку',
-    geoUnavailable:'Геолокація недоступна', geoSearching2:'📍 Визначаю…',
-    myCity:'Моє місто', geoDone:'📍 Готово', geoNoAccess:'Немає доступу до геолокації',
-    tariffsTitle:'Тарифи', waterRate:'💧 Вода (€/л)', elRate:'⚡ Електрика (€/кВт·г)',
-    save:'Зберегти', saved: function(city){ return '✅ Збережено: ' + city; },
-    aboutTitle:'Про застосунок', dishData:'Дані посудомийки', dishDataSub:'з інструкції',
-    installTitle:'Встановити WashTime', installSub:'Додати на головний екран',
-    installBtn:'Встановити', installOffline:'Працює офлайн · Швидкий доступ',
-    iosInstallTitle:'Встановлення на iPhone',
-    iosStep1:'Натисніть <strong>«Поділитись»</strong> (↑) внизу Safari',
-    iosStep2:'Виберіть <strong>«На головний екран»</strong>',
-    iosStep3:"Натисніть <strong>«Додати»</strong>",
-    iosHow:'Як?', iosUnderstood:'Зрозуміло',
-    themeAuto:'🌗 Авто', themeDark:'🌙 Темна', themeLight:'☀️ Світла',
-    langTitle:'🌐 Мова',
-    langLabel:'Мова інтерфейсу',
-    melodyLabel:'Мелодія закінчення',
-    melodyNames:['🎵 Класика','🔔 Дзінь-дзінь','🎺 Фанфари','🎶 Ніжна','📳 Біп'],
-    photoBtn:'📷 Фото', removePhoto:'Видалити фото',
-    cropTitle:'Налаштуйте фото', cropScale:'Масштаб', cropHint:'Перетягніть для позиції',
-  },
-
-  de: {
-    wash:'Waschmaschine', dry:'Trockner', dish:'Spülmaschine',
-    nowBtn:'Jetzt', dataTitle:'Daten', resetStats:'Statistik zurücksetzen',
-    delBtn:'Löschen', resetTitle:'Statistik zurücksetzen?',
-    machinesTitle:'Geräte auf dem Bildschirm', visHint:'Ein laufendes Gerät wird immer angezeigt',
-    exitHint:'Zum Beenden erneut „Zurück“ drücken',
-    notifTitle:'🔔 Benachrichtigungen', notifChannel:'Benachrichtigungskanal',
-    pushHowTitle:'Benachrichtigungen erlauben', pushHowTap:'Tippen für eine Anleitung →',
-    pushHowBrowser:'1. Tippe auf 🔒 oder ⓘ links neben der Adresse\n2. Öffne „Website-Einstellungen“ bzw. „Berechtigungen“\n3. Wähle bei „Benachrichtigungen“ die Option „Zulassen“\n4. Lade die Seite neu',
-    pushHowPwa:'1. Öffne die Android-Einstellungen\n2. Apps → LaundryAI → Benachrichtigungen\n3. Benachrichtigungen aktivieren\n4. App neu starten',
-    okWord:'Verstanden',
-    pushAsk:'Tippe auf „Erlauben“, wenn der Browser fragt',
-    finWashT:'Wäsche fertig!', finWashS:'Zeit zum Aufhängen',
-    finDryT:'Trocknen fertig!', finDryS:'Die Wäsche ist trocken',
-    finDishT:'Geschirr sauber!', finDishS:'Kann ausgeräumt werden',
-    familyTitle:'👨‍👩‍👧 Familie', signalTitle:'🔔 Signal', melodyClassic:'🎵 Klassisch',
-    melodyDing:'🔔 Ding-Dong', melodyFanfare:'🎺 Fanfare', melodySoft:'🎶 Sanft', melodyBeep:'📳 Piep', notifBoth:'📱+✈️ Beide',
-    weatherLoading:'Wetter wird geladen…',
-    photoFromPhone:'📷 Foto vom Handy', removePhoto:'Foto entfernen', guestWord:'fremd', savedWord:'✅ Gespeichert:',
-    unitL:'l', unitKwh:'kWh', unitKw:'kW', unitMs:'m/s',
-    installHint:'Funktioniert offline · Schneller Zugriff', installHow:'Wie?',
-    installIos:'Tippe auf  ↑  und dann „Zum Home-Bildschirm“',
-    pushUnsupported:'⚠️ Push-Benachrichtigungen werden in diesem Browser nicht unterstützt',
-    pushAllowed:'✓ Push-Benachrichtigungen erlaubt', pushBlocked:'✗ Push blockiert. Bitte in den Browsereinstellungen erlauben',
-    allowWord:'Erlauben',
-    progEco:'Eco', progNormal:'Normal', progIntensive:'Intensiv', progQuick:'Kurz',
-    progDisinfect:'Hygiene', progPre:'Vorspülen', progSelfClean:'Selbstreinigung',
-    visLast:'Mindestens ein Gerät muss sichtbar bleiben',
-    resetStatsSub:'Verlauf des aktuellen Profils', resetConfirm:'Der gesamte Verlauf des Profils wird gelöscht:', records:'Einträge', resetIrrev:'Dies kann nicht rückgängig gemacht werden.',
-    resetDone:'Statistik zurückgesetzt',
-    running:'Läuft', waiting:'Wartet',
-    start:'Start', duration:'Dauer', end:'Ende', remaining:'Verbleibend',
-    signal:'Signal bei Fertigstellung',
-    btnStart:'Starten', btnStop:'Stoppen',
-    launchedBy: function(who){ return '▶ ' + who; },
-    stoppedBy:  function(who, at){ return '⏹ ' + who + (at ? ' um ' + at : ''); },
-    msgStarted: function(who, what){ return who + ' hat ' + what + ' gestartet'; },
-    msgStopped: function(who, what){ return who + ' hat ' + what + ' gestoppt'; },
-    washName:'die Waschmaschine', dryName:'den Trockner', dishName:'die Spülmaschine',
-    confirmStop:    function(who, what, time){ return who + ' hat ' + what + ' um ' + time + ' gestartet'; },
-    confirmStopSub: 'Möchten Sie wirklich stoppen?',
-    confirmNo:'Nein', confirmYes:'Stoppen',
-    startTime:'Startzeit', cancel:'Abbrechen', done:'Fertig',
-    profilesTitle:'Profile', male:'♂ Mann', female:'♀ Frau',
-    namePlaceholder:'Name (optional)', close:'Schließen', profileN:'Profil',
-    finishTitle:'Fertig!',
-    washDone:'Wäsche fertig', dryDone:'Trocknen fertig', dishDone:'Geschirr sauber!',
-    finishBtn:'Super! 🎉',
-    washMsg:'Waschmaschine fertig! 🫧', dryMsg:'Trockner fertig! 💨', dishMsg:'Spülmaschine fertig! ✨',
-    navMachines:'Maschinen', navStats:'Statistik', navSettings:'Einstellungen',
-    dryForecast:'🌤 Trockenprognose', totalRuns:'Starts gesamt',
-    washes:'🫧 Wäschen', dries:'💨 Trocknungen', dishes:'✨ Spülgänge',
-    thisMonth:'Diesen Monat', water:'💧 Wasser', electricity:'⚡ Strom',
-    avgTime:'Durchschnittszeit', avgLabel:'⏱ Schnitt', runsPerMonth:'📅 Starts/Monat',
-    activity7:'Aktivität letzte 7 Tage', history:'Verlauf', historyEmpty:'Kein Verlauf',
-    weatherLoading:'Wetter wird geladen…', weatherError:'Wetter nicht verfügbar',
-    today:'Heute', tomorrow:'Morgen',
-    morning:'Morgen', day:'Tag', evening:'Abend', night:'Nacht',
-    bad:'Schlecht', ok:'Geht so', good:'Sehr gut',
-    familyTitle:'👨‍👩‍👧 Familie', familyCode:'Ihr Familiencode',
-    familyCodeHint:'An Partner senden — er fügt ihn unten ein',
-    familyCopy:'📋 Kopieren', familyCopied:'Code kopiert!',
-    familyJoinTitle:'Familie beitreten', familyJoinHint:'Code vom Partner einfügen',
-    familyJoinPlaceholder:'family_xxxxxxxx', familyJoinBtn:'Beitreten',
-    familyLeaveTitle:'Familie verlassen', familyLeaveHint:'Erstellt neuen persönlichen Code',
-    familyLeaveBtn:'Verlassen', familyLeaveConfirm:'Familie verlassen?',
-    familyLeaveConfirmSub: function(who){ return who + ' wird getrennt. Andere werden benachrichtigt.'; },
-    familyLeft:'Sie haben die Familie verlassen', familyJoined:'✅ Verbunden! Seite neu laden',
-    familyInvalidCode:'Bitte gültigen Code eingeben',
-    memberJoined: function(who){ return who + ' ist beigetreten'; },
-    memberLeft:   function(who){ return who + ' hat die Familie verlassen'; },
-    locationTitle:'Standort', city:'🌍 Stadt', cityPlaceholder:'Oberhausen',
-    geoBtn:'📍 Automatisch bestimmen', geoSearching:'🔍 Suche Stadt…',
-    geoNotFound:'❌ Stadt nicht gefunden', geoError:'❌ Suchfehler',
-    geoUnavailable:'Geolocation nicht verfügbar', geoSearching2:'📍 Bestimme…',
-    myCity:'Meine Stadt', geoDone:'📍 Fertig', geoNoAccess:'Kein Geolocation-Zugriff',
-    tariffsTitle:'Tarife', waterRate:'💧 Wasser (€/l)', elRate:'⚡ Strom (€/kWh)',
-    save:'Speichern', saved: function(city){ return '✅ Gespeichert: ' + city; },
-    aboutTitle:'Über die App', dishData:'Spülmaschinen-Daten', dishDataSub:'aus Anleitung',
-    installTitle:'WashTime installieren', installSub:'Zum Startbildschirm hinzufügen',
-    installBtn:'Installieren', installOffline:'Offline verfügbar · Schneller Zugriff',
-    iosInstallTitle:'Installation auf iPhone',
-    iosStep1:'Tippen Sie auf <strong>«Teilen»</strong> (↑) in Safari',
-    iosStep2:'Wählen Sie <strong>«Zum Home-Bildschirm»</strong>',
-    iosStep3:'Tippen Sie auf <strong>«Hinzufügen»</strong>',
-    iosHow:'Wie?', iosUnderstood:'Verstanden',
-    themeAuto:'🌗 Auto', themeDark:'🌙 Dunkel', themeLight:'☀️ Hell',
-    langTitle:'🌐 Sprache',
-    langLabel:'Sprache der Oberfläche',
-    melodyLabel:'Abschlussmelodie',
-    melodyNames:['🎵 Klassisch','🔔 Ding-Dong','🎺 Fanfare','🎶 Sanft','📳 Piep'],
-    photoBtn:'📷 Foto', removePhoto:'Foto entfernen',
-    cropTitle:'Foto anpassen', cropScale:'Zoom', cropHint:'Ziehen für Position',
-  },
-
-  en: {
-    wash:'Washing Machine', dry:'Dryer', dish:'Dishwasher',
-    nowBtn:'Now', dataTitle:'Data', resetStats:'Reset statistics',
-    delBtn:'Delete', resetTitle:'Reset statistics?',
-    machinesTitle:'Machines on screen', visHint:'A running machine is always shown',
-    exitHint:'Press back again to exit',
-    notifTitle:'🔔 Notifications', notifChannel:'Notification channel',
-    pushHowTitle:'How to allow notifications', pushHowTap:'Tap to see how →',
-    pushHowBrowser:'1. Tap the 🔒 or ⓘ icon left of the address\n2. Open “Site settings” or “Permissions”\n3. Find “Notifications” and choose “Allow”\n4. Reload the page',
-    pushHowPwa:'1. Open Android settings\n2. Apps → LaundryAI → Notifications\n3. Turn notifications on\n4. Restart the app',
-    okWord:'Got it',
-    pushAsk:'Tap “Allow” when the browser asks',
-    finWashT:'Washing done!', finWashS:'Time to hang it up',
-    finDryT:'Drying done!', finDryS:'The laundry is dry',
-    finDishT:'Dishes are clean!', finDishS:'Ready to unload',
-    familyTitle:'👨‍👩‍👧 Family', signalTitle:'🔔 Signal', melodyClassic:'🎵 Classic',
-    melodyDing:'🔔 Ding-dong', melodyFanfare:'🎺 Fanfare', melodySoft:'🎶 Soft', melodyBeep:'📳 Beep', notifBoth:'📱+✈️ Both',
-    weatherLoading:'Loading weather…',
-    photoFromPhone:'📷 Photo from phone', removePhoto:'Remove photo', guestWord:'guest', savedWord:'✅ Saved:',
-    unitL:'l', unitKwh:'kWh', unitKw:'kW', unitMs:'m/s',
-    installHint:'Works offline · Quick access', installHow:'How?',
-    installIos:'Tap  ↑  then “Add to Home Screen”',
-    pushUnsupported:'⚠️ Push notifications are not supported in this browser',
-    pushAllowed:'✓ Push notifications allowed', pushBlocked:'✗ Push blocked. Allow it in browser settings',
-    allowWord:'Allow',
-    progEco:'Eco', progNormal:'Normal', progIntensive:'Intensive', progQuick:'Quick',
-    progDisinfect:'Hygiene', progPre:'Pre-rinse', progSelfClean:'Self-clean',
-    visLast:'At least one machine must stay visible',
-    resetStatsSub:'current profile history', resetConfirm:'All history will be deleted for profile', records:'records', resetIrrev:'This cannot be undone.',
-    resetDone:'Statistics reset',
-    running:'Running', waiting:'Waiting',
-    start:'Start', duration:'Duration', end:'End', remaining:'Remaining',
-    signal:'Signal on finish',
-    btnStart:'Start', btnStop:'Stop',
-    launchedBy: function(who){ return '▶ ' + who; },
-    stoppedBy:  function(who, at){ return '⏹ ' + who + (at ? ' at ' + at : ''); },
-    msgStarted: function(who, what){ return who + ' started ' + what; },
-    msgStopped: function(who, what){ return who + ' stopped ' + what; },
-    washName:'the washer', dryName:'the dryer', dishName:'the dishwasher',
-    confirmStop:    function(who, what, time){ return who + ' started ' + what + ' at ' + time; },
-    confirmStopSub: 'Are you sure you want to stop?',
-    confirmNo:'No', confirmYes:'Stop',
-    startTime:'Start Time', cancel:'Cancel', done:'Done',
-    profilesTitle:'Profiles', male:'♂ Male', female:'♀ Female',
-    namePlaceholder:'Name (optional)', close:'Close', profileN:'Profile',
-    finishTitle:'Done!',
-    washDone:'Washing complete', dryDone:'Drying complete', dishDone:'Dishes clean!',
-    finishBtn:'Great! 🎉',
-    washMsg:'Washing machine done! 🫧', dryMsg:'Dryer done! 💨', dishMsg:'Dishwasher done! ✨',
-    navMachines:'Machines', navStats:'Statistics', navSettings:'Settings',
-    dryForecast:'🌤 Drying Forecast', totalRuns:'Total runs',
-    washes:'🫧 Washes', dries:'💨 Drying', dishes:'✨ Dishwashing',
-    thisMonth:'This month', water:'💧 Water', electricity:'⚡ Electricity',
-    avgTime:'Average time', avgLabel:'⏱ Average', runsPerMonth:'📅 Runs/month',
-    activity7:'Activity last 7 days', history:'History', historyEmpty:'No history yet',
-    weatherLoading:'Loading weather…', weatherError:'Could not load weather',
-    today:'Today', tomorrow:'Tomorrow',
-    morning:'Morning', day:'Day', evening:'Evening', night:'Night',
-    bad:'Bad', ok:'Okay', good:'Great',
-    familyTitle:'👨‍👩‍👧 Family', familyCode:'Your family code',
-    familyCodeHint:'Send to your partner — they paste it below',
-    familyCopy:'📋 Copy', familyCopied:'Code copied!',
-    familyJoinTitle:'Join family', familyJoinHint:'Paste code from your partner',
-    familyJoinPlaceholder:'family_xxxxxxxx', familyJoinBtn:'Join',
-    familyLeaveTitle:'Leave family', familyLeaveHint:'Creates a new personal code',
-    familyLeaveBtn:'Leave', familyLeaveConfirm:'Leave family?',
-    familyLeaveConfirmSub: function(who){ return who + ' will disconnect. Others will be notified.'; },
-    familyLeft:'You left the family', familyJoined:'✅ Connected! Reload the page',
-    familyInvalidCode:'Please enter a valid code',
-    memberJoined: function(who){ return who + ' joined the family'; },
-    memberLeft:   function(who){ return who + ' left the family'; },
-    locationTitle:'Location', city:'🌍 City', cityPlaceholder:'Oberhausen',
-    geoBtn:'📍 Detect automatically', geoSearching:'🔍 Searching city…',
-    geoNotFound:'❌ City not found', geoError:'❌ Search error',
-    geoUnavailable:'Geolocation unavailable', geoSearching2:'📍 Detecting…',
-    myCity:'My city', geoDone:'📍 Done', geoNoAccess:'No geolocation access',
-    tariffsTitle:'Tariffs', waterRate:'💧 Water (€/l)', elRate:'⚡ Electricity (€/kWh)',
-    save:'Save', saved: function(city){ return '✅ Saved: ' + city; },
-    aboutTitle:'About', dishData:'Dishwasher data', dishDataSub:'from manual',
-    installTitle:'Install WashTime', installSub:'Add to home screen',
-    installBtn:'Install', installOffline:'Works offline · Quick access',
-    iosInstallTitle:'Install on iPhone',
-    iosStep1:'Tap <strong>«Share»</strong> (↑) at the bottom of Safari',
-    iosStep2:'Select <strong>«Add to Home Screen»</strong>',
-    iosStep3:'Tap <strong>«Add»</strong>',
-    iosHow:'How?', iosUnderstood:'Got it',
-    themeAuto:'🌗 Auto', themeDark:'🌙 Dark', themeLight:'☀️ Light',
-    langTitle:'🌐 Language',
-    langLabel:'Interface language',
-    melodyLabel:'Finish melody',
-    melodyNames:['🎵 Classic','🔔 Ding-dong','🎺 Fanfare','🎶 Gentle','📳 Beep'],
-    photoBtn:'📷 Photo', removePhoto:'Remove photo',
-    cropTitle:'Adjust photo', cropScale:'Scale', cropHint:'Drag to position',
-  }
-};
+/* Словарь переводов вынесен в lang.js и подключён строкой выше.
+   Подстраховка: если файл не загрузился, приложение не падает —
+   t() будет возвращать сами ключи, интерфейс останется рабочим. */
+if (typeof I18N === 'undefined') { var I18N = { ru:{}, uk:{}, de:{}, en:{} }; console.warn('lang.js не загружен'); }
 
 function detectLang() {
   // Системный язык телефона
@@ -1392,9 +978,65 @@ function setLang(lang) {
         <div class="set-lbl" style="font-size:11px;color:var(--text3)" data-i18n="visHint">Запущенная машина показывается всегда</div>
       </div>
     </div>
+    <div class="section-title" style="margin-top:28px" data-i18n="remindTitle">Напоминание</div>
+    <div class="set-group">
+      <div class="set-row">
+        <div class="set-lbl">
+          <span data-i18n="remindOn">Напомнить о белье</span>
+          <div style="font-size:11px;color:var(--text3);margin-top:2px" data-i18n="remindSub">повтор после окончания цикла</div>
+        </div>
+        <div class="toggle" id="remTog"><div class="toggle-knob"></div></div>
+      </div>
+      <div class="set-row" style="border-top:1px solid var(--border)">
+        <div class="set-lbl" data-i18n="remindDelay">Через</div>
+        <button class="set-btn" id="remDelay" style="width:auto;padding:7px 16px">01:00</button>
+      </div>
+      <div class="set-row" style="border-top:1px solid var(--border);flex-wrap:wrap;gap:6px">
+        <button class="mel-btn" id="remM-wash" data-i18n="wash">Стиральная</button>
+        <button class="mel-btn" id="remM-dry" data-i18n="dry">Сушильная</button>
+        <button class="mel-btn" id="remM-dish" data-i18n="dish">Посудомойка</button>
+      </div>
+    </div>
+    <div class="section-title" style="margin-top:28px" data-i18n="programsTitle">Программы</div>
+    <div class="set-group">
+      <button class="set-row prog-open" data-prog-key="wash" style="width:100%;background:none;border:none;font-family:'DM Sans',sans-serif">
+        <div class="set-lbl" data-i18n="wash">Стиральная</div><div class="set-val">›</div>
+      </button>
+      <button class="set-row prog-open" data-prog-key="dry" style="width:100%;background:none;border:none;border-top:1px solid var(--border);font-family:'DM Sans',sans-serif">
+        <div class="set-lbl" data-i18n="dry">Сушильная</div><div class="set-val">›</div>
+      </button>
+      <button class="set-row prog-open" data-prog-key="dish" style="width:100%;background:none;border:none;border-top:1px solid var(--border);font-family:'DM Sans',sans-serif">
+        <div class="set-lbl" data-i18n="dish">Посудомойка</div><div class="set-val">›</div>
+      </button>
+      <div class="set-row" style="border-top:1px solid var(--border)">
+        <div class="set-lbl" style="font-size:11px;color:var(--text3)" data-i18n="progHint">Отмеченные ★ показываются на карточке</div>
+      </div>
+    </div>
     <div class="section-title" style="margin-top:28px" data-i18n="dataTitle">Данные</div>
     <div class="set-group">
       <div class="set-row">
+        <div class="set-lbl">
+          <span data-i18n="showConsole">Показывать консоль</span>
+          <div style="font-size:11px;color:var(--text3);margin-top:2px" data-i18n="showConsoleSub">отладочная панель</div>
+        </div>
+        <div class="toggle" id="togConsole"><div class="toggle-knob"></div></div>
+      </div>
+      <div class="set-row" style="border-top:1px solid var(--border)">
+        <div class="set-lbl">
+          <span data-i18n="backupSave">Сохранить настройки</span>
+          <div style="font-size:11px;color:var(--text3);margin-top:2px" data-i18n="backupSaveSub">файл в память телефона</div>
+        </div>
+        <button class="mel-btn" id="btnBackupSave">💾</button>
+      </div>
+      <div class="set-row" style="border-top:1px solid var(--border)">
+        <div class="set-lbl">
+          <span data-i18n="backupLoad">Загрузить настройки</span>
+          <div style="font-size:11px;color:var(--text3);margin-top:2px" data-i18n="backupLoadSub">из сохранённого файла</div>
+        </div>
+        <button class="mel-btn" id="btnBackupLoad">📂</button>
+      </div>
+      <input type="file" id="backupFile" accept="application/json,.json" style="display:none">
+      <div class="set-row" style="border-top:1px solid var(--border)">
         <div class="set-lbl">
           <span data-i18n="resetStats">Сбросить статистику</span>
           <div style="font-size:11px;color:var(--text3);margin-top:2px" data-i18n="resetStatsSub">история текущего профиля</div>
@@ -1435,20 +1077,6 @@ function setLang(lang) {
   </button>
 </div>
 
-<!-- PICKER -->
-<div class="overlay" id="pickerOv">
-  <div class="sheet">
-    <div class="shandle"></div>
-    <div class="stitle" data-i18n="duration">Длительность</div>
-    <div class="pcols">
-      <div class="pcol" id="hCol"><div class="pline"></div><ul id="hList"></ul></div>
-      <div class="psep">:</div>
-      <div class="pcol" id="mCol"><div class="pline"></div><ul id="mList"></ul></div>
-    </div>
-    <button class="sheet-ok" id="pickerOk" data-i18n="done">Готово</button>
-  </div>
-</div>
-
 <!-- PROFILE MODAL -->
 <div class="pmodal" id="pModal">
   <div class="pmsheet">
@@ -1479,8 +1107,10 @@ function setLang(lang) {
     </div>
     <div class="padd">
       <input class="pinput" id="pNewName" data-i18n-ph="namePlaceholder" placeholder="Имя (необязательно)" maxlength="18">
-      <button class="pbtn" id="pAddBtn">+</button>
+      <button class="pbtn" id="pSaveBtn" title="save">✓</button>
     </div>
+    <button class="pavatar-btn" id="pAddBtn" style="width:100%;margin-top:8px"
+            data-i18n="profileAdd">+ Новый профиль</button>
     <button class="pclose" id="pClose" data-i18n="close">Закрыть</button>
   </div>
 </div>
@@ -1584,13 +1214,18 @@ const FINISH={
 ═══════════════════════════ */
 let S = loadS();
 let curSlide = 0;
-let pickerCtx = null, hSel=0, mSel=0;
+// defaultPrograms() использует t(), поэтому строим набор уже после инициализации словарей
+if(S._needProgInit || !S.programs){
+  S.programs = defaultPrograms();
+  delete S._needProgInit;
+  try{ localStorage.setItem('laiS2', JSON.stringify(S)); }catch(e){}
+}
 
 function mkMachines(){
   const m={};
   KEYS.forEach(k=>{
     m[k]={h:DEF[k].h,m:DEF[k].m,startH:new Date().getHours(),startM:new Date().getMinutes(),
-           isRunning:false,hasFinished:false,prog:2,signalEnabled:true};
+           isRunning:false,hasFinished:false,progId:null,signalEnabled:true};
   });
   return m;
 }
@@ -1598,7 +1233,10 @@ function defS(){
   return{profiles:[{id:'me',name:'Я',emoji:'👤'}],activeProfile:'me',
          machines:{me:mkMachines()},history:[],theme:'auto',
          settings:{city:'Oberhausen',lat:51.47,lon:6.85,waterRate:0.002,kwhRate:0.30,
-                   visible:{wash:true,dry:true,dish:true}}};
+                   visible:{wash:true,dry:true,dish:true},
+                   showProgs:{wash:true,dry:true,dish:true},
+                   remind:{on:false,h:1,m:0,wash:true,dry:true,dish:false}},
+         programs:null,_needProgInit:true};
 }
 function loadS(){
   try{
@@ -1609,6 +1247,13 @@ function loadS(){
       // совместимость со старыми сохранениями — раздела visible там нет
       if(!p.settings) p.settings={};
       if(!p.settings.visible) p.settings.visible={wash:true,dry:true,dish:true};
+      if(!p.settings.showProgs) p.settings.showProgs={wash:true,dry:true,dish:true};
+      if(!p.settings.remind) p.settings.remind={on:false,h:1,m:0,wash:true,dry:true,dish:false};
+      // программы переехали из констант в состояние; старый числовой m.prog отбрасываем
+      if(!p.programs){
+        p.programs=null;            // достроим после инициализации S
+        p._needProgInit=true;
+      }
       return p;
     }
   }catch(e){}
@@ -1643,7 +1288,7 @@ function fbPushMachine(key){
     startM: m.startM||0,
     h: m.h||0,
     m: m.m||0,
-    prog: m.prog||1,
+    progId: m.progId||null,
     updatedAt: Date.now(),
     byDevice: getDeviceId(),        // уникальный ID устройства
     byProfile: pid,
@@ -1683,7 +1328,7 @@ function fbWatchMachine(key){
     m.startM = data.startM;
     m.h = data.h;
     m.m = data.m;
-    if(data.prog) m.prog = data.prog;
+    if(data.progId!==undefined) m.progId = data.progId;
     saveS();
 
     // Обновить UI карточки полностью
@@ -1931,7 +1576,7 @@ function renderPModal(){
     if(p.avatar){ava=`<img src="${p.avatar}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;clickAttr=`onclick="openLightbox('${p.avatar}')" style="cursor:zoom-in"`;}
     else if(p.avatarSvg){ava=p.avatarSvg;}
     else if(p.emoji){ava=p.emoji;}
-    else{ava=`<img src='/svg/man.svg' style='width:100%;height:100%;border-radius:50%'>`;} 
+    else{ava=`<img src='svg/man.svg' style='width:100%;height:100%;border-radius:50%' onerror="this.replaceWith(Object.assign(document.createElement('div'),{textContent:'👤',style:'font-size:26px;line-height:1;display:flex;align-items:center;justify-content:center;width:100%;height:100%'}))">`;} 
     d.innerHTML=`<div class="pavatar" ${clickAttr}>${ava}</div><div class="pname">${p.name}</div>`+
       (S.profiles.length>1?`<div class="pdel" data-id="${p.id}">✕</div>`:'');
     d.onclick=e=>{
@@ -1958,33 +1603,72 @@ function openLightbox(src){
 }
 
 // quick gender buttons — синие SVG аватары
-const MALE_HTML=`<img src='/svg/man.svg' style='width:100%;height:100%;border-radius:50%'>`;
-const FEMALE_HTML=`<img src='/svg/woman.svg' style='width:100%;height:100%;border-radius:50%'>`;
+const MALE_HTML=`<img src='svg/man.svg' style='width:100%;height:100%;border-radius:50%' onerror="this.replaceWith(Object.assign(document.createElement('div'),{textContent:'👤',style:'font-size:26px;line-height:1;display:flex;align-items:center;justify-content:center;width:100%;height:100%'}))">`;
+const FEMALE_HTML=`<img src='svg/woman.svg' style='width:100%;height:100%;border-radius:50%' onerror="this.replaceWith(Object.assign(document.createElement('div'),{textContent:'👤',style:'font-size:26px;line-height:1;display:flex;align-items:center;justify-content:center;width:100%;height:100%'}))">`;
 
-document.getElementById('pqM').onclick=()=>{
-  selectedAvatar={type:'svg', val:MALE_HTML, gender:'m'};
-  const prev=document.getElementById('pAvatarPreview');
-  if(prev) prev.innerHTML=MALE_HTML;
-  document.getElementById('pqM').classList.add('active');
-  document.getElementById('pqF').classList.remove('active');
-  document.getElementById('pAvatarInput').value='';
-};
-document.getElementById('pqF').onclick=()=>{
-  selectedAvatar={type:'svg', val:FEMALE_HTML, gender:'f'};
-  const prev=document.getElementById('pAvatarPreview');
-  if(prev) prev.innerHTML=FEMALE_HTML;
-  document.getElementById('pqF').classList.add('active');
-  document.getElementById('pqM').classList.remove('active');
-  document.getElementById('pAvatarInput').value='';
-};
+// Пол — самостоятельное поле. Раньше он писался в selectedAvatar и стирал
+// выбранное фото; теперь иконка пола используется только когда фото нет.
+let selectedGender = null;
+
+function pickGender(g){
+  selectedGender = g;
+  document.getElementById('pqM').classList.toggle('active', g==='m');
+  document.getElementById('pqF').classList.toggle('active', g==='f');
+  // превью меняем только если фотографии нет
+  if(selectedAvatar.type!=='img'){
+    selectedAvatar={type:'svg', val:(g==='m'?MALE_HTML:FEMALE_HTML), gender:g};
+    const prev=document.getElementById('pAvatarPreview');
+    if(prev) prev.innerHTML=selectedAvatar.val;
+  }
+}
+document.getElementById('pqM').onclick=()=>pickGender('m');
+document.getElementById('pqF').onclick=()=>pickGender('f');
 // avatar picker
 let selectedAvatar = {type:'none'};
 function resetAvatarPicker(){
   selectedAvatar={type:'none'};
+  selectedGender=null;
   const prev=document.getElementById('pAvatarPreview');
-  if(prev) prev.innerHTML=`<img src='/svg/man.svg' style='width:100%;height:100%;border-radius:50%'>`;
+  if(prev) prev.innerHTML=MALE_HTML;
   document.getElementById('pqM')?.classList.remove('active');
   document.getElementById('pqF')?.classList.remove('active');
+  const inp=document.getElementById('pNewName'); if(inp) inp.value='';
+}
+
+// Форма всегда редактирует активный профиль — иначе выбранное фото
+// некуда было сохранить и оно терялось при закрытии окна.
+function loadProfileIntoForm(){
+  const p=(S.profiles||[]).find(x=>x.id===S.activeProfile);
+  resetAvatarPicker();
+  if(!p) return;
+  const inp=document.getElementById('pNewName'); if(inp) inp.value=p.name||'';
+  const prev=document.getElementById('pAvatarPreview');
+  if(p.avatar){
+    selectedAvatar={type:'img',val:p.avatar};
+    if(prev) prev.innerHTML=`<img src="${p.avatar}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+  } else if(p.avatarSvg){
+    selectedAvatar={type:'svg',val:p.avatarSvg,gender:p.gender||null};
+    if(prev) prev.innerHTML=p.avatarSvg;
+  }
+  if(p.gender){
+    selectedGender=p.gender;
+    document.getElementById('pqM')?.classList.toggle('active',p.gender==='m');
+    document.getElementById('pqF')?.classList.toggle('active',p.gender==='f');
+  }
+}
+
+function saveActiveProfile(){
+  const p=(S.profiles||[]).find(x=>x.id===S.activeProfile);
+  if(!p) return;
+  const name=document.getElementById('pNewName').value.trim();
+  if(name) p.name=name;
+  p.gender=selectedGender||p.gender||null;
+  if(selectedAvatar.type==='img'){ p.avatar=selectedAvatar.val; p.avatarSvg=null; p.emoji=null; }
+  else if(selectedAvatar.type==='svg'){ p.avatarSvg=selectedAvatar.val; p.avatar=null; p.emoji=null; }
+  else if(selectedAvatar.type==='none'){ p.avatar=null; p.avatarSvg=null; }
+  saveS();
+  renderPModal(); renderProfileBar(); buildSlides();
+  showToast(t('profileSaved'));
 }
 // ── CROPPER ──
 let cropState={imgSrc:'',scale:1,ox:0,oy:0,dragging:false,lastX:0,lastY:0};
@@ -2131,12 +1815,19 @@ function buildCardHTML(key){
   const machineName = key==='wash'?t('wash'):key==='dry'?t('dry'):t('dish');
   const durStr=`${String(m.h).padStart(2,'0')}:${String(m.m).padStart(2,'0')}`;
   const startStr=`${String(m.startH).padStart(2,'0')}:${String(m.startM).padStart(2,'0')}`;
-  const progHtml=def.programs?`<div class="prog-row">`+
-    Object.entries(def.programs).map(([p,pd])=>
-      `<button class="pchip-sm${m.prog==p?' active':''}" data-prog="${p}">${t(pd.key)}</button>`
-    ).join('')+`</div>`:'';
+  // Полоска нужна только когда есть что показывать: без избранных «⋯» висел бы
+  // сам по себе. Плюс явный переключатель показа в редакторе программ.
+  const allProgs=getProgs(key);
+  const favProgs=allProgs.filter(p=>p.fav);
+  const showProgRow = favProgs.length>0 && progsVisible(key);
+  const progHtml=showProgRow?`<div class="prog-wrap"><div class="prog-row">`+
+    favProgs.map(p=>
+      `<button class="pchip-sm${m.progId===p.id?' active':''}" data-prog="${p.id}">${p.name}</button>`
+    ).join('')+
+    `<button class="pchip-sm pchip-more" data-more="1">⋯</button>`+
+    `</div></div>`:'';
   return `
-  <div class="machine-card ${def.cls}${m.isRunning?' running':''}" id="card-${key}">
+  <div class="machine-card ${def.cls}${m.isRunning?' running':''}${showProgRow?' has-progs':''}" id="card-${key}">
     <div class="card-head">
       <div class="micon">${def.icon}</div>
       <div>
@@ -2163,7 +1854,8 @@ function buildCardHTML(key){
       <div class="sbox" id="startBox-${key}">
         <div class="slbl">${t('start')}</div>
         <div class="time-inp time-trigger" id="si-${key}">${startStr}</div>
-        ${m.isRunning?'':`<button class="now-btn" id="now-${key}" title="${t('nowBtn')}" aria-label="${t('nowBtn')}">⟳</button>`}
+        <button class="now-btn" id="now-${key}" title="${t('nowBtn')}" aria-label="${t('nowBtn')}"
+                style="${m.isRunning?'display:none':''}">⟳</button>
       </div>
       <div class="sbox" id="durBox-${key}">
         <div class="slbl">${t('duration')}</div>
@@ -2187,22 +1879,20 @@ function buildCardHTML(key){
 function bindCard(slide, key){
   const def=DEF[key];
   // programs
-  if(def.programs){
-    slide.querySelectorAll('.pchip-sm').forEach(ch=>{
-      ch.onclick=()=>{
-        const p=parseInt(ch.dataset.prog);
-        const m=getM(key); m.prog=p; m.h=def.programs[p].h; m.m=def.programs[p].m;
-        saveS(); buildSlides(); goToSlide(curSlide,false);
-      };
-    });
-  }
+  slide.querySelectorAll('.pchip-sm').forEach(ch=>{
+    ch.onclick=()=>{
+      if(ch.dataset.more){ openProgList(key); return; }
+      const p=getProgs(key).find(x=>x.id===ch.dataset.prog);
+      if(p) applyProg(key,p);
+    };
+  });
   // start time
   slide.querySelector(`#si-${key}`).onclick=()=>openTimeDrum(key);
   // «сейчас» — сбросить время старта на текущее
   const nowBtn=slide.querySelector(`#now-${key}`);
   if(nowBtn) nowBtn.onclick=e=>{ e.stopPropagation(); setStartNow(key); };
   // duration picker
-  slide.querySelector(`#durBox-${key}`).onclick=()=>openPicker(key);
+  slide.querySelector(`#durBox-${key}`).onclick=()=>openTimeDrum(key,'dur');
   // toggle
   slide.querySelector(`#tog-${key}`).onclick=()=>{
     const m=getM(key); m.signalEnabled=!m.signalEnabled;
@@ -2282,12 +1972,9 @@ function getEndDate(key){
 function updateTemp(key){
   const el=document.getElementById('temp-'+key);
   if(!el) return;
-  if(key!=='dish'){el.style.visibility='hidden';return;}
-  el.style.visibility='visible';
-  const m=getM(key);
-  const prog=DEF[key].programs[m.prog];
-  if(prog && prog.temp) el.textContent=prog.temp+'°C';
-  else el.textContent='';
+  const prog=getProg(key);
+  if(prog && prog.temp){ el.style.visibility='visible'; el.textContent=prog.temp+'°C'; }
+  else { el.style.visibility='hidden'; el.textContent=''; }
 }
 
 /* ═══════════════════════════
@@ -2296,8 +1983,20 @@ function updateTemp(key){
 function updateAll(){ visKeys().forEach(k=>{updateCard(k);updateTemp(k);}); }
 function updateCard(key){
   const m=getM(key);
+  // «сейчас» прячем только на время работы машины. Раньше кнопка не рендерилась
+  // вовсе при запуске, и после финиша карточка не пересобиралась — кнопка
+  // пропадала до перезагрузки страницы.
+  const nb=document.getElementById(`now-${key}`);
+  if(nb) nb.style.display = m.isRunning ? 'none' : '';
   const endDate=getEndDate(key);
-  const endStr=`${String(endDate.getHours()).padStart(2,'0')}:${String(endDate.getMinutes()).padStart(2,'0')}`;
+  let endStr=`${String(endDate.getHours()).padStart(2,'0')}:${String(endDate.getMinutes()).padStart(2,'0')}`;
+  // Цикл может закончиться после полуночи — без пометки «16:55» читается как сегодня
+  const today=new Date();
+  const dayShift=Math.round(
+    (new Date(endDate.getFullYear(),endDate.getMonth(),endDate.getDate()) -
+     new Date(today.getFullYear(),today.getMonth(),today.getDate())) / 86400000);
+  if(dayShift===1) endStr+=' '+t('tomorrowShort');
+  else if(dayShift>1) endStr+=' +'+dayShift;
   const evEl=document.getElementById(`ev-${key}`);
   if(evEl) evEl.textContent=endStr;
   const lvEl=document.getElementById(`lv-${key}`);
@@ -2334,38 +2033,12 @@ function updateCard(key){
 /* ═══════════════════════════
    START / STOP
 ═══════════════════════════ */
+// Единая модалка подтверждения. Раньше рядом с appConfirm жил второй диалог
+// со своей вёрсткой и цветами — выглядели они по-разному.
 function showConfirm(title, subtitle, onYes){
-  const existing=document.getElementById('confirmDialog');
-  if(existing) existing.remove();
-  const isDark=document.documentElement.getAttribute('data-theme')==='dark'||
-    (document.documentElement.getAttribute('data-theme')==='auto'&&window.matchMedia('(prefers-color-scheme: dark)').matches);
-  const overlay=document.createElement('div');
-  overlay.id='confirmDialog';
-  overlay.style.cssText='position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:20px;';
-  overlay.innerHTML=`
-    <div style="background:${isDark?'#1a1a24':'#fff'};border-radius:20px;padding:24px;
-      max-width:320px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.4);
-      font-family:'DM Sans',sans-serif;text-align:center;">
-      <div style="font-size:2em;margin-bottom:12px">⚠️</div>
-      <div style="font-size:15px;font-weight:600;color:${isDark?'#f0f0f5':'#0a0a18'};margin-bottom:8px">${title}</div>
-      <div style="font-size:13px;color:${isDark?'#888':'#666'};margin-bottom:24px">${subtitle}</div>
-      <div style="display:flex;gap:10px">
-        <button id="confirmNo" style="flex:1;padding:13px;border:none;border-radius:50px;
-          background:${isDark?'#2a2a35':'#f0f0f5'};color:${isDark?'#aaa':'#666'};
-          font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">
-          ${t('confirmNo')}
-        </button>
-        <button id="confirmYes" style="flex:1;padding:13px;border:none;border-radius:50px;
-          background:#ff4444;color:#fff;
-          font-size:14px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif">
-          ${t('confirmYes')}
-        </button>
-      </div>
-    </div>`;
-  document.body.appendChild(overlay);
-  overlay.querySelector('#confirmNo').onclick=()=>overlay.remove();
-  overlay.querySelector('#confirmYes').onclick=()=>{ overlay.remove(); onYes(); };
-  overlay.addEventListener('click',e=>{if(e.target===overlay)overlay.remove();});
+  appConfirm({icon:'⚠️', title:title, text:subtitle,
+              okLabel:t('confirmYes'), cancelLabel:t('confirmNo')})
+    .then(ok=>{ if(ok) onYes(); });
 }
 
 function doStop(key){
@@ -2580,12 +2253,22 @@ function renderStats(){
     try{const d=new Date(x.ts||0);return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();}
     catch(e){return false;}
   });
-  document.getElementById('thisMonth').textContent=thisM.length||h.length;
-  const durs=KEYS.map(k=>getM(k)).map(m=>m.h*60+m.m);
-  const avg=Math.round(durs.reduce((a,b)=>a+b,0)/durs.length);
-  document.getElementById('avgTime').textContent=`${String(Math.floor(avg/60)).padStart(2,'0')}:${String(avg%60).padStart(2,'0')}`;
+  // раньше при пустом месяце подставлялось общее число — цифра врала
+  document.getElementById('thisMonth').textContent=thisM.length;
+  // среднее берём из истории; раньше считалось по текущим настройкам машин,
+  // то есть менялось от того, что выставлено в пикере прямо сейчас
+  const durs=h.map(x=>x.durMin).filter(v=>typeof v==='number'&&v>0);
+  const avgEl=document.getElementById('avgTime');
+  if(durs.length){
+    const avg=Math.round(durs.reduce((a,b)=>a+b,0)/durs.length);
+    avgEl.textContent=`${String(Math.floor(avg/60)).padStart(2,'0')}:${String(avg%60).padStart(2,'0')}`;
+  } else {
+    avgEl.textContent='--:--';   // в старых записях длительности нет
+  }
   // итого вода/свет за месяц
-  const st=S.settings||{waterRate:0.06,kwhRate:5.5};
+  const st=S.settings||{};
+  if(st.waterRate===undefined) st.waterRate=0.002;
+  if(st.kwhRate===undefined)   st.kwhRate=0.30;
   const totalW=thisM.reduce((a,x)=>a+(x.water||0),0);
   const totalK=thisM.reduce((a,x)=>a+(x.kwh||0),0);
   const waterCost=(totalW*st.waterRate).toFixed(0);
@@ -2629,16 +2312,18 @@ function addHist(key,msg){
   // определяем расход для этого запуска
   const def=DEF[key];
   let water=def.water||0, kwh=def.kwh||0;
-  if(def.programs){
-    const m=getM(key);
-    const prog=def.programs[m.prog];
-    if(prog){water=prog.water||0; kwh=prog.kwh||0;}
-  }
+  const prog=getProg(key);
+  if(prog && (prog.water||prog.kwh)){ water=prog.water||0; kwh=prog.kwh||0; }
+  const mm=getM(key);
   S.history.unshift({pid:S.activeProfile,key,message:msg,
     time:new Date().toLocaleTimeString('ru',{hour:'2-digit',minute:'2-digit'}),
     date:new Date().toLocaleDateString('ru',{day:'2-digit',month:'2-digit'}),
-    ts:Date.now(), water, kwh});
-  S.history=S.history.slice(0,50); saveS();
+    ts:Date.now(), water, kwh,
+    durMin:(mm.h||0)*60+(mm.m||0),                       // нужна для среднего времени
+    prog:(getProg(key)||{}).name||null});
+  // 50 записей — это меньше месяца на трёх машинах, из-за чего месячная
+  // статистика теряла данные. 500 записей это примерно 100 КБ.
+  S.history=S.history.slice(0,500); saveS();
   renderHist(); renderStats();
 }
 function renderHist(){
@@ -2678,48 +2363,6 @@ function showToast(msg){
 /* ═══════════════════════════
    PICKER
 ═══════════════════════════ */
-function fillPicker(){
-  ['hList','mList'].forEach((id,idx)=>{
-    const ul=document.getElementById(id); ul.innerHTML='';
-    const max=idx===0?10:60;
-    for(let i=0;i<max;i++){
-      const li=document.createElement('li');
-      li.textContent=String(i).padStart(2,'0');
-      li.dataset.val=i; ul.appendChild(li);
-    }
-  });
-}
-function centerPicker(col,idx){col.scrollTop=idx*40;}
-function openPicker(key){
-  pickerCtx=key;
-  const m=getM(key); hSel=m.h; mSel=m.m;
-  const hc=document.getElementById('hCol'), mc=document.getElementById('mCol');
-  hc.querySelectorAll('li').forEach(l=>l.classList.toggle('sel',parseInt(l.dataset.val)===hSel));
-  mc.querySelectorAll('li').forEach(l=>l.classList.toggle('sel',parseInt(l.dataset.val)===mSel));
-  centerPicker(hc,hSel); centerPicker(mc,mSel);
-  document.getElementById('pickerOv').classList.add('open');
-}
-['hCol','mCol'].forEach(id=>{
-  document.getElementById(id).addEventListener('scroll',function(){
-    const idx=Math.round(this.scrollTop/40);
-    const b=Math.max(0,Math.min(id==='hCol'?9:59,idx));
-    if(id==='hCol')hSel=b; else mSel=b;
-    this.querySelectorAll('li').forEach(l=>l.classList.toggle('sel',parseInt(l.dataset.val)===b));
-  });
-});
-document.getElementById('pickerOk').onclick=()=>{
-  if(!pickerCtx)return;
-  const m=getM(pickerCtx); m.h=hSel; m.m=mSel; saveS();
-  const dv=document.getElementById(`dv-${pickerCtx}`);
-  if(dv)dv.textContent=`${String(hSel).padStart(2,'0')}:${String(mSel).padStart(2,'0')}`;
-  document.getElementById('pickerOv').classList.remove('open');
-  updateCard(pickerCtx);
-};
-document.getElementById('pickerOv').onclick=e=>{
-  if(e.target===document.getElementById('pickerOv'))
-    document.getElementById('pickerOv').classList.remove('open');
-};
-
 /* ═══════════════════════════
    NAVIGATION
 ═══════════════════════════ */
@@ -2736,6 +2379,53 @@ function showPage(name){
 document.getElementById('navHome').onclick=()=>showPage('home');
 document.getElementById('navStats').onclick=()=>{showPage('stats');renderStats();renderHist();loadWeather();};
 document.getElementById('btnResetStats').onclick=resetStats;
+(function(){
+  const r=()=>{ if(!S.settings.remind) S.settings.remind={on:false,h:1,m:0,wash:true,dry:true,dish:false};
+                return S.settings.remind; };
+  function paint(){
+    const c=r();
+    const tog=document.getElementById('remTog');
+    tog.classList.toggle('on', !!c.on);
+    tog.style.setProperty('--card-accent','var(--accent-wash)');
+    document.getElementById('remDelay').textContent=
+      String(c.h||0).padStart(2,'0')+':'+String(c.m||0).padStart(2,'0');
+    KEYS.forEach(k=>{
+      const b=document.getElementById('remM-'+k);
+      if(b) b.classList.toggle('active', c[k]!==false);
+    });
+  }
+  document.getElementById('remTog').onclick=()=>{ const c=r(); c.on=!c.on; saveS(); paint(); };
+  document.getElementById('remDelay').onclick=()=>{
+    const c=r();
+    openValueDrum('wash', c.h||1, c.m||0, (h,m)=>{ c.h=h; c.m=m; saveS(); paint(); });
+  };
+  KEYS.forEach(k=>{
+    const b=document.getElementById('remM-'+k);
+    if(b) b.onclick=()=>{ const c=r(); c[k]=c[k]===false; saveS(); paint(); };
+  });
+  paint();
+})();
+
+(function(){
+  const tog=document.getElementById('togConsole');
+  const isOn=()=>localStorage.getItem('laiConsole')!=='0';
+  tog.classList.toggle('on', isOn());
+  tog.style.setProperty('--card-accent','var(--accent-wash)');
+  tog.onclick=()=>{
+    localStorage.setItem('laiConsole', isOn() ? '0' : '1');
+    tog.classList.toggle('on', isOn());
+    if(window.laiApplyConsole) window.laiApplyConsole();
+  };
+})();
+document.getElementById('btnBackupSave').onclick=exportBackup;
+document.getElementById('btnBackupLoad').onclick=()=>document.getElementById('backupFile').click();
+document.getElementById('backupFile').onchange=function(){
+  if(this.files && this.files[0]) importBackupFile(this.files[0]);
+  this.value='';   // иначе повторный выбор того же файла не вызовет change
+};
+document.querySelectorAll('.prog-open').forEach(b=>{
+  b.onclick=()=>openProgEditor(b.dataset.progKey);
+});
 document.getElementById('navSettings').onclick=()=>{showPage('settings');fillSettings();};
 
 /* ═══════════════════════════
@@ -3047,6 +2737,316 @@ function showIOSGuide() {
 /* ═══════════════════════════
    TIME DRUM PICKER
 ═══════════════════════════ */
+/* ═══════════════════════════
+   ПРОГРАММЫ МАШИН
+   Хранятся в S.programs и полностью редактируются пользователем.
+   h/m === null означает «длительность не задана» — её нужно ввести вручную.
+═══════════════════════════ */
+function defaultPrograms(){
+  const P=(name,h,m,extra)=>Object.assign({id:'p'+Math.random().toString(36).slice(2,9),
+                                           name,h,m,temp:null,water:0,kwh:0,fav:false},extra||{});
+  return {
+    // Стиральная: пока только те программы, которыми пользуются.
+    // Остальные добавляются вручную — у каждой машины свой набор.
+    wash:[
+      P('Bewölkter Tag',null,null,{fav:true}),
+      P('Buntwäsche',   null,null,{fav:true})
+    ],
+    // Сушильная Samsung: названия циклов с панели.
+    // Длительность у большинства плавающая, поэтому не задана.
+    dry:[
+      P('Eco хлопок',        null,null),
+      P('AI Dry+',           null,null,{fav:true}),
+      P('Самоосушение',      null,null),
+      P('Быстрая сушка 35′', 0,35),
+      P('Ускоренный режим',  null,null),
+      P('Синтетика',         null,null),
+      P('Деликатные ткани',  null,null),
+      P('Полотенца',         null,null),
+      P('Постельное бельё',  null,null),
+      P('Рубашки',           null,null),
+      P('Гигиенический уход',null,null),
+      P('Шерсть',            null,null),
+      P('Верхняя одежда',    null,null),
+      P('Сушка под утюг',    null,null),
+      P('Сушка по времени',  null,null),
+      P('Тёплый воздух',     null,null),
+      P('Холодный воздух',   null,null),
+      P('Освежение воздухом',null,null)
+    ],
+    // Посудомойка: значения из инструкции, были зашиты в коде.
+    dish:[
+      P(t('progEco'),       2,45,{temp:50,water:12,  kwh:0.94,fav:true}),
+      P(t('progNormal'),    2, 0,{temp:55,water:15,  kwh:1.35,fav:true}),
+      P(t('progIntensive'), 2,30,{temp:65,water:15,  kwh:1.50,fav:true}),
+      P(t('progQuick'),     0,55,{temp:50,water:11.5,kwh:1.10,fav:true}),
+      P(t('progDisinfect'), 1,40,{temp:65,water:11.5,kwh:1.30,fav:true}),
+      P(t('progPre'),       0,10,{temp:null,water:4.5,kwh:0.01,fav:true}),
+      P(t('progSelfClean'), 0,50,{temp:65,water:8,   kwh:0.80,fav:true})
+    ]
+  };
+}
+
+/* ═══════════════════════════
+   РЕЗЕРВНАЯ КОПИЯ НАСТРОЕК
+   Всё состояние выгружается одним JSON-файлом в память телефона.
+   deviceId намеренно не выгружается: он привязан к конкретному устройству,
+   и восстановление чужого id сломало бы адресацию push-уведомлений.
+═══════════════════════════ */
+const BACKUP_KEYS = ['washFamilyId','washMelody','washNotifMode','washLangManual'];
+
+function buildBackup(){
+  const extra = {};
+  BACKUP_KEYS.forEach(k=>{ const v = localStorage.getItem(k); if(v!==null) extra[k]=v; });
+  const state = JSON.parse(JSON.stringify(S));
+  delete state._needProgInit;
+  return { app:'LaundryAI', format:1, exportedAt:new Date().toISOString(), state, extra };
+}
+
+function exportBackup(){
+  try{
+    const data = JSON.stringify(buildBackup(), null, 2);
+    const blob = new Blob([data], {type:'application/json'});
+    const d = new Date();
+    const pad = n=>String(n).padStart(2,'0');
+    const name = `laundryai_${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}.json`;
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url), 3000);
+    showToast(t('backupSaved'));
+  }catch(e){
+    console.warn('export failed:', e);
+    showToast(t('backupFail'));
+  }
+}
+
+function importBackupFile(file){
+  const rd = new FileReader();
+  rd.onload = async () => {
+    let obj;
+    try{ obj = JSON.parse(rd.result); }
+    catch(e){ showToast(t('backupBad')); return; }
+
+    // минимальная проверка, чтобы не затереть данные посторонним файлом
+    if(!obj || obj.app !== 'LaundryAI' || !obj.state || !obj.state.machines){
+      showToast(t('backupBad')); return;
+    }
+
+    const st = obj.state;
+    const cnt = (st.profiles||[]).length;
+    const hist = (st.history||[]).length;
+    const ok = await appConfirm({
+      icon:'📂',
+      title:t('backupLoadTitle'),
+      text:`${t('backupFrom')} ${new Date(obj.exportedAt).toLocaleString()}<br>${t('backupContains')} ${cnt} / ${hist}<br><br>${t('backupWarn')}`,
+      okLabel:t('backupLoadBtn')
+    });
+    if(!ok) return;
+
+    try{
+      localStorage.setItem('laiS2', JSON.stringify(st));
+      Object.keys(obj.extra||{}).forEach(k=>{
+        if(BACKUP_KEYS.indexOf(k)>=0) localStorage.setItem(k, obj.extra[k]);
+      });
+    }catch(e){ showToast(t('backupFail')); return; }
+
+    showToast(t('backupLoaded'));
+    // перезагрузка надёжнее ручной перерисовки десятка экранов
+    setTimeout(()=>location.reload(), 700);
+  };
+  rd.onerror = () => showToast(t('backupFail'));
+  rd.readAsText(file);
+}
+
+function progsVisible(key){
+  const sp=(S.settings&&S.settings.showProgs)||{};
+  return sp[key]!==false;
+}
+
+function getProgs(key){
+  if(!S.programs) S.programs=defaultPrograms();
+  return S.programs[key]||[];
+}
+function getProg(key){
+  const m=getM(key);
+  return getProgs(key).find(p=>p.id===m.progId)||null;
+}
+function applyProg(key,p){
+  const m=getM(key);
+  m.progId=p.id;
+  if(p.h!==null&&p.m!==null){ m.h=p.h; m.m=p.m; }   // без длительности оставляем прежнюю
+  saveS();
+  const cardEl=document.getElementById(`card-${key}`);
+  const slide=cardEl?cardEl.closest('.card-slide'):null;
+  if(slide){ slide.innerHTML=buildCardHTML(key); bindCard(slide,key); }
+  updateTemp(key);
+}
+
+/* ── Полный список программ (шит снизу) ── */
+function openProgList(key){
+  const list=getProgs(key);
+  const m=getM(key);
+  const rows=list.map(p=>`
+    <button class="plist-row${p.id===m.progId?' active':''}" data-id="${p.id}">
+      <div class="plist-name">${p.fav?'★ ':''}${p.name}</div>
+      <div class="plist-meta">${p.h===null?t('progNoDur'):String(p.h).padStart(2,'0')+':'+String(p.m).padStart(2,'0')}${p.temp?' · '+p.temp+'°C':''}</div>
+    </button>`).join('');
+  const ov=document.createElement('div');
+  ov.className='psheet-ov'; ov.id='progListOv';
+  ov.innerHTML=`<div class="psheet" style="--card-accent:var(--accent-${key})">
+      <div class="shandle"></div>
+      <div class="stitle">${t('programsTitle')}</div>
+      <div class="plist">${rows||'<div class="plist-empty">'+t('progEmpty')+'</div>'}</div>
+    </div>`;
+  document.body.appendChild(ov);
+  requestAnimationFrame(()=>ov.classList.add('open'));
+  const close=()=>{ov.classList.remove('open');setTimeout(()=>ov.remove(),200);};
+  ov.onclick=e=>{ if(e.target===ov) close(); };
+  ov.querySelectorAll('.plist-row').forEach(b=>{
+    b.onclick=()=>{
+      const p=getProgs(key).find(x=>x.id===b.dataset.id);
+      if(p) applyProg(key,p);
+      close();
+    };
+  });
+}
+
+/* ── Редактор программ машины ── */
+function openProgEditor(key){
+  const ov=document.createElement('div');
+  ov.className='psheet-ov'; ov.id='progEditOv';
+  ov.innerHTML=`<div class="psheet tall" style="--card-accent:var(--accent-${key})">
+      <div class="shandle"></div>
+      <div class="stitle">${t(key)}</div>
+      <div class="set-row" style="border-bottom:1px solid var(--border);padding:4px 6px 12px">
+        <div class="set-lbl">${t('progShowRow')}</div>
+        <div class="toggle${progsVisible(key)?' on':''}" id="progShowTog"><div class="toggle-knob"></div></div>
+      </div>
+      <div class="plist" id="progEditList"></div>
+      <div class="pedit-actions">
+        <button class="cfm-btn cfm-no" id="progReset">${t('progReset')}</button>
+        <button class="cfm-btn" id="progAdd"
+          style="background:var(--card-accent);color:#fff">${t('progAdd')}</button>
+      </div>
+    </div>`;
+  document.body.appendChild(ov);
+  requestAnimationFrame(()=>ov.classList.add('open'));
+  const close=()=>{ov.classList.remove('open');setTimeout(()=>ov.remove(),200);};
+  ov.onclick=e=>{ if(e.target===ov) close(); };
+
+  function render(){
+    const list=getProgs(key);
+    const el=ov.querySelector('#progEditList');
+    el.innerHTML=list.map(p=>`
+      <div class="pedit-row" data-id="${p.id}">
+        <button class="pedit-star${p.fav?' on':''}" data-act="fav">${p.fav?'★':'☆'}</button>
+        <button class="pedit-main" data-act="edit">
+          <div class="plist-name">${p.name}</div>
+          <div class="plist-meta">${p.h===null?t('progNoDur'):String(p.h).padStart(2,'0')+':'+String(p.m).padStart(2,'0')}${p.temp?' · '+p.temp+'°C':''}</div>
+        </button>
+        <button class="pedit-del" data-act="del">🗑</button>
+      </div>`).join('') || `<div class="plist-empty">${t('progEmpty')}</div>`;
+
+    el.querySelectorAll('.pedit-row').forEach(row=>{
+      const id=row.dataset.id;
+      row.querySelectorAll('button').forEach(b=>{
+        b.onclick=async()=>{
+          const list=getProgs(key);
+          const p=list.find(x=>x.id===id);
+          if(!p) return;
+          if(b.dataset.act==='fav'){ p.fav=!p.fav; saveS(); render(); buildSlides(); }
+          if(b.dataset.act==='edit'){ openProgForm(key,p,()=>{render();buildSlides();}); }
+          if(b.dataset.act==='del'){
+            const ok=await appConfirm({icon:'🗑',title:t('progDelTitle'),text:p.name,okLabel:t('delBtn')});
+            if(!ok) return;
+            S.programs[key]=list.filter(x=>x.id!==id);
+            KEYS.forEach(k=>{ const mm=getM(k); if(mm.progId===id) mm.progId=null; });
+            saveS(); render(); buildSlides();
+          }
+        };
+      });
+    });
+  }
+  render();
+
+  ov.querySelector('#progShowTog').onclick=function(){
+    if(!S.settings.showProgs) S.settings.showProgs={wash:true,dry:true,dish:true};
+    S.settings.showProgs[key]=!progsVisible(key);
+    this.classList.toggle('on',progsVisible(key));
+    saveS(); buildSlides();
+  };
+  ov.querySelector('#progAdd').onclick=()=>{
+    const p={id:'p'+Math.random().toString(36).slice(2,9),name:'',h:null,m:null,
+             temp:null,water:0,kwh:0,fav:false};
+    openProgForm(key,p,saved=>{
+      if(saved){ getProgs(key).push(p); saveS(); }
+      render(); buildSlides();
+    },true);
+  };
+  ov.querySelector('#progReset').onclick=async()=>{
+    const ok=await appConfirm({icon:'↺',title:t('progResetTitle'),text:t('progResetText'),okLabel:t('progReset')});
+    if(!ok) return;
+    S.programs[key]=defaultPrograms()[key];
+    KEYS.forEach(k=>{ getM(k).progId=null; });
+    saveS(); render(); buildSlides();
+    showToast(t('progResetDone'));
+  };
+}
+
+/* ── Форма одной программы ── */
+function openProgForm(key,p,onDone,isNew){
+  const ov=document.createElement('div');
+  ov.className='cfm-ov'; ov.id='progFormOv';
+  const num=(v)=>v===null||v===undefined?'':v;
+  ov.innerHTML=`<div class="cfm-box" style="--card-accent:var(--accent-${key})">
+      <div class="cfm-title">${isNew?t('progAdd'):t('progEditTitle')}</div>
+      <label class="pf-lbl">${t('progName')}</label>
+      <input class="pinput" id="pfName" maxlength="28" value="${p.name.replace(/"/g,'&quot;')}">
+      <label class="pf-lbl">${t('duration')}</label>
+      <button class="pf-dur" id="pfDur">${p.h===null?t('progNoDur'):String(p.h).padStart(2,'0')+':'+String(p.m).padStart(2,'0')}</button>
+      <div class="pf-grid">
+        <div><label class="pf-lbl">${t('progTemp')}</label>
+          <input class="pinput" id="pfTemp" type="number" inputmode="numeric" value="${num(p.temp)}"></div>
+        <div><label class="pf-lbl">${t('progWater')}</label>
+          <input class="pinput" id="pfWater" type="number" inputmode="decimal" step="0.1" value="${num(p.water)}"></div>
+        <div><label class="pf-lbl">${t('progKwh')}</label>
+          <input class="pinput" id="pfKwh" type="number" inputmode="decimal" step="0.01" value="${num(p.kwh)}"></div>
+      </div>
+      <div class="cfm-btns" style="margin-top:18px">
+        <button class="cfm-btn cfm-no" id="pfCancel">${t('cancel')}</button>
+        <button class="cfm-btn" id="pfSave"
+          style="background:var(--card-accent);color:#fff">${t('done')}</button>
+      </div>
+    </div>`;
+  document.body.appendChild(ov);
+  requestAnimationFrame(()=>ov.classList.add('open'));
+  const close=saved=>{ov.classList.remove('open');setTimeout(()=>ov.remove(),180);if(onDone)onDone(saved);};
+
+  let dh=p.h, dm=p.m;
+  ov.querySelector('#pfDur').onclick=()=>{
+    openValueDrum(key, dh===null?1:dh, dm===null?0:dm, (h,m)=>{
+      dh=h; dm=m;
+      ov.querySelector('#pfDur').textContent=String(h).padStart(2,'0')+':'+String(m).padStart(2,'0');
+    });
+  };
+  ov.querySelector('#pfCancel').onclick=()=>close(false);
+  ov.querySelector('#pfSave').onclick=()=>{
+    const name=ov.querySelector('#pfName').value.trim();
+    if(!name){ showToast(t('progNameEmpty')); return; }
+    const numOrNull=el=>{const v=el.value.trim();return v===''?null:parseFloat(v);};
+    p.name=name; p.h=dh; p.m=dm;
+    p.temp=numOrNull(ov.querySelector('#pfTemp'));
+    p.water=numOrNull(ov.querySelector('#pfWater'))||0;
+    p.kwh=numOrNull(ov.querySelector('#pfKwh'))||0;
+    saveS();
+    close(true);
+  };
+}
+
+function openValueDrum(key,h,m,cb){ openTimeDrum(key,'value',{h:h,m:m,onSave:cb}); }
+
 function setStartNow(key){
   const mk=getM(key);
   if(mk.isRunning) return;          // у запущенной машины старт не меняем
@@ -3123,9 +3123,14 @@ async function resetStats(){
   showToast(t('resetDone'));
 }
 
-function openTimeDrum(key) {
+function openTimeDrum(key, mode, opts) {
+  mode = mode || 'start';
+  opts = opts || {};
+  const isDur = mode === 'dur';
+  const isVal = mode === 'value';       // просто вернуть значение, машину не трогать
   const mk = getM(key);
-  let h = mk.startH || 0, m = mk.startM || 0;
+  let h = isVal ? Math.min(opts.h || 0, 3) : isDur ? Math.min(mk.h || 0, 3) : (mk.startH || 0);
+  let m = isVal ? (opts.m || 0)           : isDur ? (mk.m || 0)             : (mk.startM || 0);
 
   const existing = document.getElementById('customTimePicker');
   if (existing) existing.remove();
@@ -3135,12 +3140,13 @@ function openTimeDrum(key) {
   const bgFade = isDark ? 'rgba(30,30,30,' : 'rgba(255,255,255,';
   const textCol= isDark ? '#e0e0e0' : '#222222';
   const btnBg  = isDark ? '#2a2a2a' : '#f0f0f0';
-  const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent-wash').trim() || '#4f8fff';
+  const accent = getComputedStyle(document.documentElement)
+                   .getPropertyValue('--accent-'+key).trim() || '#4f8fff';
 
   const overlay = document.createElement('div');
   overlay.id = 'customTimePicker';
   overlay.style.cssText = `
-    position:fixed;inset:0;z-index:9999;
+    position:fixed;inset:0;z-index:10050;
     background:rgba(0,0,0,.5);
     display:flex;align-items:center;justify-content:center;
   `;
@@ -3150,7 +3156,7 @@ function openTimeDrum(key) {
       box-shadow:0 8px 40px rgba(0,0,0,.5);width:280px;text-align:center;
       font-family:'DM Sans',sans-serif;">
       <div style="font-size:.8em;font-weight:700;color:${isDark?'#aaa':'#888'};letter-spacing:.08em;
-        margin-bottom:16px;text-transform:uppercase;">${t('startTime')}</div>
+        margin-bottom:16px;text-transform:uppercase;">${(isDur||isVal)?t('duration'):t('startTime')}</div>
 
       <div style="display:flex;align-items:center;justify-content:center;gap:4px;">
         <div style="position:relative;width:80px;height:230px;overflow:hidden;">
@@ -3175,11 +3181,6 @@ function openTimeDrum(key) {
       </div>
 
       <div style="display:flex;gap:10px;margin-top:22px;">
-        <button id="tpNow" style="flex:1;padding:12px;border:none;border-radius:50px;
-          background:${btnBg};color:${accent};font-size:1em;font-weight:700;cursor:pointer;
-          font-family:'DM Sans',sans-serif;">
-          ⟳
-        </button>
         <button id="tpCancel" style="flex:1;padding:12px;border:none;border-radius:50px;
           background:${btnBg};color:${isDark?'#aaa':'#666'};font-size:1em;font-weight:600;cursor:pointer;
           font-family:'DM Sans',sans-serif;">
@@ -3199,7 +3200,14 @@ function openTimeDrum(key) {
   const ITEM_H = 46;
 
   function makeDrum(el, count, current, onChange) {
-    for (let rep = 0; rep < 3; rep++) {
+    // Лента должна быть достаточно длинной независимо от числа значений:
+    // для 4 часов трёх повторов не хватало, и после рывка барабан улетал
+    // за пределы ленты — колонка выглядела пустой.
+    const REPS = Math.max(3, Math.ceil(20 / count));
+    const CENTER = 230/2 - ITEM_H/2;
+    const PERIOD = count * ITEM_H;
+
+    for (let rep = 0; rep < REPS; rep++) {
       for (let i = 0; i < count; i++) {
         const d = document.createElement('div');
         d.style.cssText = `height:${ITEM_H}px;line-height:${ITEM_H}px;text-align:center;
@@ -3209,7 +3217,7 @@ function openTimeDrum(key) {
       }
     }
 
-    let offset = -(count + current) * ITEM_H + (230/2 - ITEM_H/2);
+    let offset = -(Math.floor(REPS/2) * count + current) * ITEM_H + CENTER;
     el.style.transform = `translateY(${offset}px)`;
 
     el.querySelectorAll('div').forEach((item, i) => {
@@ -3218,24 +3226,26 @@ function openTimeDrum(key) {
       item.style.fontSize = isSel ? '2em' : '1.9em';
     });
 
-    function normalize() {
-      if (offset < -(count * 2 - 1) * ITEM_H + (230/2 - ITEM_H/2)) {
-        offset += count * ITEM_H;
+    // while, а не if: один сдвиг на период не возвращал ленту в диапазон,
+    // если рывок был сильный, а период маленький.
+    function normalize(dragging) {
+      // держим ленту так, чтобы сверху и снизу от окна всегда оставались элементы
+      const lo = -((REPS * count - 3) * ITEM_H) + CENTER;
+      const hi = -(2 * ITEM_H) + CENTER;
+      let shift = 0;
+      while (offset < lo) { offset += PERIOD; shift += PERIOD; }
+      while (offset > hi) { offset -= PERIOD; shift -= PERIOD; }
+      if (shift !== 0) {
         el.style.transition = 'none';
         el.style.transform = `translateY(${offset}px)`;
-      }
-      if (offset > -(1) * ITEM_H + (230/2 - ITEM_H/2)) {
-        offset -= count * ITEM_H;
-        el.style.transition = 'none';
-        el.style.transform = `translateY(${offset}px)`;
+        if (dragging) startOffset += shift;   // чтобы палец не «дёрнул» ленту
       }
     }
 
     function snapToNearest(animate) {
-      const center = 230/2 - ITEM_H/2;
-      const raw = -offset + center;
+      const raw = -offset + CENTER;
       const idx = Math.round(raw / ITEM_H);
-      const snapped = -(idx * ITEM_H) + center;
+      const snapped = -(idx * ITEM_H) + CENTER;
       if (animate) el.style.transition = 'transform .15s cubic-bezier(.25,.46,.45,.94)';
       offset = snapped;
       el.style.transform = `translateY(${offset}px)`;
@@ -3267,6 +3277,7 @@ function openTimeDrum(key) {
       offset = startOffset + (y - startY);
       el.style.transition = 'none';
       el.style.transform = `translateY(${offset}px)`;
+      normalize(true);
     }, {passive:true});
 
     el.addEventListener('touchend', () => {
@@ -3274,6 +3285,7 @@ function openTimeDrum(key) {
         offset += vel * 280;
         el.style.transition = 'none';
         el.style.transform = `translateY(${offset}px)`;
+        normalize(false);
       }
       snapToNearest(true);
     });
@@ -3286,16 +3298,25 @@ function openTimeDrum(key) {
       startOffset = offset;
       el.style.cursor = 'grabbing';
     });
-    window.addEventListener('mousemove', e => {
+    // Слушатели на window снимаются вместе с закрытием диалога, иначе каждый
+    // открытый барабан оставлял бы пару обработчиков, держащих ссылку на el.
+    const onMove = e => {
       if (!mouseDown) return;
       offset = startOffset + (e.clientY - startY);
       el.style.transform = `translateY(${offset}px)`;
-    });
-    window.addEventListener('mouseup', () => {
+      normalize(true);
+    };
+    const onUp = () => {
       if (!mouseDown) return;
       mouseDown = false;
       el.style.cursor = 'grab';
       snapToNearest(true);
+    };
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+    (overlay._cleanup = overlay._cleanup || []).push(() => {
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
     });
 
     el.addEventListener('wheel', e => {
@@ -3303,32 +3324,46 @@ function openTimeDrum(key) {
       offset -= Math.sign(e.deltaY) * ITEM_H;
       el.style.transition = 'none';
       el.style.transform = `translateY(${offset}px)`;
+      normalize(false);
       clearTimeout(el._wt);
       el._wt = setTimeout(() => snapToNearest(true), 150);
     }, {passive:false});
   }
 
-  makeDrum(overlay.querySelector('#tpHDrum'), 24, h, v => { h = v; });
+  // Ни один цикл не идёт дольше 3 часов, поэтому в длительности хватает 0–3.
+  // Барабан зациклен, так что от 03 до 00 — один шаг, а не прокрутка через семь пустых значений.
+  makeDrum(overlay.querySelector('#tpHDrum'), (isDur||isVal) ? 4 : 24, h, v => { h = v; });
   makeDrum(overlay.querySelector('#tpMDrum'), 60, m, v => { m = v; });
 
   overlay.querySelector('#tpSave').onclick = () => {
+    if(isVal){
+      if(h===0 && m===0){ showToast(t('durZero')); return; }
+      (overlay._cleanup || []).forEach(fn => fn());
+      overlay.remove();
+      if(opts.onSave) opts.onSave(h,m);
+      return;
+    }
     const mk2 = getM(key);
-    mk2.startH = h; mk2.startM = m; saveS();
+    if(isDur){
+      if(h===0 && m===0){ showToast(t('durZero')); return; }   // нулевая стирка бессмысленна
+      mk2.h = h; mk2.m = m;
+    } else {
+      mk2.startH = h; mk2.startM = m;
+    }
+    saveS();
     // Перестроить слайд целиком
     const cardEl = document.getElementById(`card-${key}`);
     const slide = cardEl ? cardEl.closest('.card-slide') : null;
     if(slide){ slide.innerHTML = buildCardHTML(key); bindCard(slide, key); }
+    (overlay._cleanup || []).forEach(fn => fn());
     overlay.remove();
   };
-  overlay.querySelector('#tpNow').onclick = () => {
+  const closeDrum = () => {
+    (overlay._cleanup || []).forEach(fn => fn());
     overlay.remove();
-    setStartNow(key);
-    const cardEl = document.getElementById(`card-${key}`);
-    const slide = cardEl ? cardEl.closest('.card-slide') : null;
-    if(slide){ slide.innerHTML = buildCardHTML(key); bindCard(slide, key); }
   };
-  overlay.querySelector('#tpCancel').onclick = () => overlay.remove();
-  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+  overlay.querySelector('#tpCancel').onclick = closeDrum;
+  overlay.addEventListener('click', e => { if (e.target === overlay) closeDrum(); });
 }
 
 /* ═══════════════════════════
@@ -3404,17 +3439,6 @@ async function subscribePush(){
   }
 }
 
-async function sendWebPush(title, body){
-  if(!pushSubscription) return;
-  try{
-    await fetch('/api/push-send', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json','x-internal-secret':'wash42'},
-      body: JSON.stringify({title, body, deviceId: localStorage.getItem('washDeviceId')||'unknown'})
-    });
-  } catch(e){ console.warn('Push send error:', e); }
-}
-
 function getNotifMode(){ return localStorage.getItem('washNotifMode')||'push'; }
 
 function setNotifMode(mode){
@@ -3483,6 +3507,7 @@ async function initPush(){
 const wdogs={};
 function scheduleServer(key){
   cancelWatchdog(key);
+  scheduleReminder(key);
   const end=getEndDate(key);
   const msg=t(key==='wash'?'washMsg':key==='dry'?'dryMsg':'dishMsg');
   const mode = getNotifMode();
@@ -3508,6 +3533,36 @@ function scheduleServer(key){
     }
   }
 }
+/* Напоминание «бельё в машине»: отдельный отложенный push через N после финиша.
+   Ставится в очередь на сервере тем же способом, что и уведомление об окончании. */
+function remindCfg(){
+  return (S.settings&&S.settings.remind)||{on:false,h:1,m:0};
+}
+function scheduleReminder(key){
+  const r=remindCfg();
+  if(!r.on || r[key]===false) return;
+  const delayMin=(r.h||0)*60+(r.m||0);
+  if(delayMin<=0) return;
+  const mode=getNotifMode();
+  const msg=t(key==='wash'?'remindWash':key==='dry'?'remindDry':'remindDish');
+  const when=new Date(getEndDate(key).getTime()+delayMin*60000);
+  if(mode==='tg'||mode==='both'){
+    fetch('/api/schedule',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({endTime:when.toISOString(),message:msg})}).catch(e=>console.warn(e));
+  }
+  if((mode==='push'||mode==='both') && VAPID_PUBLIC_KEY && pushSubscription){
+    const delayMs=when.getTime()-Date.now();
+    if(delayMs>0 && delayMs<12*60*60*1000){
+      fetch('/api/push-schedule',{method:'POST',
+        headers:{'Content-Type':'application/json','x-internal-secret':'wash42'},
+        body:JSON.stringify({endTime:when.toISOString(),title:'LaundryAI',body:msg,
+          deviceId:localStorage.getItem('washDeviceId')||'unknown'})})
+        .catch(e=>console.warn('Reminder schedule:',e));
+    }
+  }
+  console.log('Напоминание запланировано на', when.toLocaleTimeString());
+}
+
 function scheduleWatchdog(key){
   const end=getEndDate(key);
   const msg=t(key==='wash'?'washMsg':key==='dry'?'dryMsg':'dishMsg');
@@ -3546,7 +3601,6 @@ function updateMelodyUI(){
   });
 }
 
-fillPicker();
 renderProfileBar();
 buildSlides();
 applyI18n();
@@ -3569,7 +3623,15 @@ function closeTopOverlay(){
   if(cfm){ cfm.classList.remove('open'); setTimeout(()=>cfm.remove(),180); return true; }
 
   const tp=document.getElementById('customTimePicker');
-  if(tp){ tp.remove(); return true; }
+  if(tp){ (tp._cleanup||[]).forEach(fn=>fn()); tp.remove(); return true; }
+
+  const pf=document.getElementById('progFormOv');
+  if(pf){ pf.classList.remove('open'); setTimeout(()=>pf.remove(),180); return true; }
+
+  for(const id of ['progListOv','progEditOv']){
+    const el=document.getElementById(id);
+    if(el){ el.classList.remove('open'); setTimeout(()=>el.remove(),200); return true; }
+  }
 
   const lb=document.getElementById('lightbox');
   if(lb && lb.classList.contains('show')){ lb.classList.remove('show'); return true; }
@@ -3579,9 +3641,6 @@ function closeTopOverlay(){
 
   const fin=document.getElementById('finishOv');
   if(fin && fin.classList.contains('show')){ fin.classList.remove('show'); return true; }
-
-  const pick=document.getElementById('pickerOv');
-  if(pick && pick.classList.contains('open')){ pick.classList.remove('open'); return true; }
 
   const pm=document.getElementById('pModal');
   if(pm && pm.classList.contains('open')){ pm.classList.remove('open'); return true; }
@@ -3641,6 +3700,30 @@ window.addEventListener('popstate', function(){
   doExit();
 });
 </script>
+
+<!-- Запоминаем, что было в body до загрузки console.js, чтобы затем
+     отличить его элементы от остальных и уметь их скрывать. -->
+<script>window.__laiBefore = Array.prototype.slice.call(document.body.children);</script>
 <script src="console.js"></script>
+<script>
+(function(){
+  var els = [];
+  function scan(){
+    Array.prototype.slice.call(document.body.children).forEach(function(el){
+      if (window.__laiBefore.indexOf(el) === -1 && els.indexOf(el) === -1) els.push(el);
+    });
+  }
+  window.laiApplyConsole = function(){
+    scan();
+    var on = localStorage.getItem('laiConsole') !== '0';
+    els.forEach(function(el){ el.style.display = on ? '' : 'none'; });
+  };
+  laiApplyConsole();
+  // console.js может дорисовать себя позже — пересканируем ещё пару раз
+  document.addEventListener('DOMContentLoaded', laiApplyConsole);
+  window.addEventListener('load', laiApplyConsole);
+  setTimeout(laiApplyConsole, 1200);
+})();
+</script>
 </body>
 </html>
