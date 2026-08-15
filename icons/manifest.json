@@ -1,6 +1,6 @@
 {
-  "name": "LaundryAI",
-  "short_name": "LaundryAI",
+  "name": "WashTime",
+  "short_name": "WashTime",
   "start_url": "/",
   "display": "fullscreen",
   "display_override": ["fullscreen", "standalone"],
