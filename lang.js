@@ -1,4 +1,4 @@
-/* lang.js — LaundryAI translations. ru / uk / de / en
+/* lang.js — WashTime translations. ru / uk / de / en
    Словарь вынесен из index.html отдельным файлом.
    Подключается в <head> ДО основного скрипта — тот использует I18N сразу.
    Все четыре языка должны содержать одинаковый набор ключей: при отсутствии
@@ -37,7 +37,7 @@ var I18N = {
     notifTitle:'🔔 Уведомления', notifChannel:'Канал уведомлений',
     pushHowTitle:'Как разрешить уведомления', pushHowTap:'Нажмите, чтобы узнать как →',
     pushHowBrowser:'1. Нажмите на значок 🔒 или ⓘ слева от адреса\n2. Откройте «Настройки сайта» или «Разрешения»\n3. Найдите «Уведомления» и выберите «Разрешить»\n4. Обновите страницу',
-    pushHowPwa:'1. Откройте настройки Android\n2. Приложения → LaundryAI → Уведомления\n3. Включите уведомления\n4. Перезапустите приложение',
+    pushHowPwa:'1. Откройте настройки Android\n2. Приложения → WashTime → Уведомления\n3. Включите уведомления\n4. Перезапустите приложение',
     okWord:'Понятно',
     pushAsk:'Нажмите «Разрешить», когда браузер спросит',
     finWashT:'Стирка готова!', finWashS:'Пора вешать бельё',
@@ -145,7 +145,7 @@ var I18N = {
     notifTitle:'🔔 Сповіщення', notifChannel:'Канал сповіщень',
     pushHowTitle:'Як дозволити сповіщення', pushHowTap:'Натисніть, щоб дізнатися як →',
     pushHowBrowser:'1. Натисніть на значок 🔒 або ⓘ ліворуч від адреси\n2. Відкрийте «Налаштування сайту» або «Дозволи»\n3. Знайдіть «Сповіщення» і виберіть «Дозволити»\n4. Оновіть сторінку',
-    pushHowPwa:'1. Відкрийте налаштування Android\n2. Додатки → LaundryAI → Сповіщення\n3. Увімкніть сповіщення\n4. Перезапустіть додаток',
+    pushHowPwa:'1. Відкрийте налаштування Android\n2. Додатки → WashTime → Сповіщення\n3. Увімкніть сповіщення\n4. Перезапустіть додаток',
     okWord:'Зрозуміло',
     pushAsk:'Натисніть «Дозволити», коли браузер запитає',
     finWashT:'Прання готове!', finWashS:'Час вішати білизну',
@@ -253,7 +253,7 @@ var I18N = {
     notifTitle:'🔔 Benachrichtigungen', notifChannel:'Benachrichtigungskanal',
     pushHowTitle:'Benachrichtigungen erlauben', pushHowTap:'Tippen für eine Anleitung →',
     pushHowBrowser:'1. Tippe auf 🔒 oder ⓘ links neben der Adresse\n2. Öffne „Website-Einstellungen“ bzw. „Berechtigungen“\n3. Wähle bei „Benachrichtigungen“ die Option „Zulassen“\n4. Lade die Seite neu',
-    pushHowPwa:'1. Öffne die Android-Einstellungen\n2. Apps → LaundryAI → Benachrichtigungen\n3. Benachrichtigungen aktivieren\n4. App neu starten',
+    pushHowPwa:'1. Öffne die Android-Einstellungen\n2. Apps → WashTime → Benachrichtigungen\n3. Benachrichtigungen aktivieren\n4. App neu starten',
     okWord:'Verstanden',
     pushAsk:'Tippe auf „Erlauben“, wenn der Browser fragt',
     finWashT:'Wäsche fertig!', finWashS:'Zeit zum Aufhängen',
@@ -361,7 +361,7 @@ var I18N = {
     notifTitle:'🔔 Notifications', notifChannel:'Notification channel',
     pushHowTitle:'How to allow notifications', pushHowTap:'Tap to see how →',
     pushHowBrowser:'1. Tap the 🔒 or ⓘ icon left of the address\n2. Open “Site settings” or “Permissions”\n3. Find “Notifications” and choose “Allow”\n4. Reload the page',
-    pushHowPwa:'1. Open Android settings\n2. Apps → LaundryAI → Notifications\n3. Turn notifications on\n4. Restart the app',
+    pushHowPwa:'1. Open Android settings\n2. Apps → WashTime → Notifications\n3. Turn notifications on\n4. Restart the app',
     okWord:'Got it',
     pushAsk:'Tap “Allow” when the browser asks',
     finWashT:'Washing done!', finWashS:'Time to hang it up',
