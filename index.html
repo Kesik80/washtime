@@ -689,6 +689,15 @@ body{
 .mel-btn.active{
   border-color:var(--accent-wash);color:var(--accent-wash);background:rgba(79,143,255,.12);
 }
+.rem-machines{
+  display:flex;flex-wrap:wrap;gap:8px;
+  padding:12px 16px 14px;border-top:1px solid var(--border);
+}
+.rem-machines .mel-btn{flex:0 0 auto;padding:7px 13px;font-size:12.5px}
+.rem-delay{
+  width:auto;margin:0;padding:8px 18px;border-radius:20px;
+  font-family:'DM Mono',monospace;font-size:14px;color:var(--text);
+}
 
 .dry-tip{
   margin:10px 0 12px;padding:11px 16px;border-radius:14px;
@@ -999,9 +1008,11 @@ function setLang(lang) {
       </div>
       <div class="set-row" style="border-top:1px solid var(--border)">
         <div class="set-lbl" data-i18n="remindDelay">Через</div>
-        <button class="set-btn" id="remDelay" style="width:auto;padding:7px 16px">01:00</button>
+        <button class="set-btn rem-delay" id="remDelay">01:00</button>
       </div>
-      <div class="set-row" style="border-top:1px solid var(--border);flex-wrap:wrap;gap:6px">
+      <!-- Отдельный контейнер: в .set-row кнопки разъезжались по краям
+           из-за justify-content:space-between, и третья падала вниз одна. -->
+      <div class="rem-machines">
         <button class="mel-btn" id="remM-wash" data-i18n="wash">Стиральная</button>
         <button class="mel-btn" id="remM-dry" data-i18n="dry">Сушильная</button>
         <button class="mel-btn" id="remM-dish" data-i18n="dish">Посудомойка</button>
@@ -1496,7 +1507,7 @@ function getM(key){
 ═══════════════════════════ */
 /* Метка сборки. Установленная PWA любит держать старую страницу в кэше,
    и по внешнему виду не понять, какая версия запущена. */
-const APP_BUILD='v2.8 · 15.08 21:55';
+const APP_BUILD='v2.9 · 15.08 23:35';
 (function(){
   const el=document.getElementById('appBuild');
   if(el) el.textContent=APP_BUILD;
