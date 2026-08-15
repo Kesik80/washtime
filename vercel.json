@@ -20,6 +20,13 @@
       }
     },
     {
+      "src": "/console.js",
+      "dest": "/console.js",
+      "headers": {
+        "Content-Type": "application/javascript"
+      }
+    },
+    {
       "src": "/icons/(.*)",
       "dest": "/icons/$1"
     },
