@@ -1048,7 +1048,7 @@ function setLang(lang) {
     </div>
     <div class="section-title" style="margin-top:28px" data-i18n="aboutTitle">О приложении</div>
     <div class="set-group">
-      <div class="set-row"><div class="set-lbl">LaundryAI</div><div class="set-val">v2.0</div></div>
+      <div class="set-row"><div class="set-lbl">LaundryAI</div><div class="set-val" id="appBuild">v2.0</div></div>
       <div class="set-row" style="border-top:1px solid var(--border)"><div class="set-lbl" data-i18n="dishData">Данные посудомойки</div><div class="set-val" style="font-size:11px;color:var(--text3)" data-i18n="dishDataSub">из инструкции</div></div>
     </div>
   </div>
@@ -1486,6 +1486,15 @@ function getM(key){
 /* ═══════════════════════════
    THEME
 ═══════════════════════════ */
+/* Метка сборки. Установленная PWA любит держать старую страницу в кэше,
+   и по внешнему виду не понять, какая версия запущена. */
+const APP_BUILD='v2.1 · 15.08 18:35';
+(function(){
+  const el=document.getElementById('appBuild');
+  if(el) el.textContent=APP_BUILD;
+  console.log('LaundryAI', APP_BUILD);
+})();
+
 function updateThemeColor(){
   const dark = document.documentElement.getAttribute('data-theme') === 'dark';
   const color = dark ? '#0a0a0f' : '#f0f0f7';
