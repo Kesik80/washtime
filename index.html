@@ -1558,7 +1558,7 @@ function getM(key){
 ═══════════════════════════ */
 /* Метка сборки. Установленная PWA любит держать старую страницу в кэше,
    и по внешнему виду не понять, какая версия запущена. */
-const APP_BUILD='v3.8 · 16.08 17:40';
+const APP_BUILD='v3.9 · 16.08 19:00';
 (function(){
   const el=document.getElementById('appBuild');
   if(el) el.textContent=APP_BUILD;
@@ -1603,7 +1603,7 @@ function renderProfileBar(){
     const c=document.createElement('button');
     c.className='pchip'+(p.id===S.activeProfile?' active':'');
     if(p.avatar){
-      c.innerHTML=`<img src="${esc(p.avatar)}" style="width:20px;height:20px;border-radius:50%;object-fit:cover;margin-right:5px;vertical-align:middle"> ${esc(p.name)}`;
+      c.innerHTML=`<img src="${safeAvatarUrl(p.avatar)}" style="width:20px;height:20px;border-radius:50%;object-fit:cover;margin-right:5px;vertical-align:middle"> ${esc(p.name)}`;
     } else if(p.avatarSvg){
       c.innerHTML=`<span style="display:inline-flex;width:20px;height:20px;border-radius:50%;overflow:hidden;margin-right:5px;vertical-align:middle">${safeAvatarSvg(p.avatarSvg)}</span>${esc(p.name)}`;
     } else {
@@ -1637,7 +1637,7 @@ function renderProfileBar(){
     chip.className='pchip';
     chip.style.cssText='opacity:0.75;cursor:default;border-style:dashed;pointer-events:none;';
     if(activeP.avatar){
-      chip.innerHTML=`<img src="${esc(activeP.avatar)}" style="width:20px;height:20px;border-radius:50%;object-fit:cover;margin-right:5px;vertical-align:middle"> ${esc(activeP.name)}`;
+      chip.innerHTML=`<img src="${safeAvatarUrl(activeP.avatar)}" style="width:20px;height:20px;border-radius:50%;object-fit:cover;margin-right:5px;vertical-align:middle"> ${esc(activeP.name)}`;
     } else {
       chip.textContent=(activeP.emoji||'👤')+' '+activeP.name;
     }
@@ -1654,12 +1654,15 @@ function renderPModal(){
     const d=document.createElement('div');
     d.className='pitem'+(p.id===S.activeProfile?' cur':'');
     let ava, clickAttr='';
-    if(p.avatar){ava=`<img src="${esc(p.avatar)}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;clickAttr=`onclick="openLightbox('${esc(p.avatar)}')" style="cursor:zoom-in"`;}
+    if(p.avatar){ava=`<img src="${safeAvatarUrl(p.avatar)}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;clickAttr=`data-ava="1" style="cursor:zoom-in"`;}
     else if(p.avatarSvg){ava=safeAvatarSvg(p.avatarSvg);}
     else if(p.emoji){ava=p.emoji;}
     else{ava=`<img src='svg/man.svg' style='width:100%;height:100%;border-radius:50%' onerror="this.replaceWith(Object.assign(document.createElement('div'),{textContent:'👤',style:'font-size:26px;line-height:1;display:flex;align-items:center;justify-content:center;width:100%;height:100%'}))">`;} 
     d.innerHTML=`<div class="pavatar" ${clickAttr}>${ava}</div><div class="pname">${esc(p.name)}</div>`+
       (S.profiles.length>1?`<div class="pdel" data-id="${p.id}">✕</div>`:'');
+    // просмотр аватара вешаем скриптом, а не инлайновым onclick с данными
+    const avaBox=d.querySelector('[data-ava]');
+    if(avaBox) avaBox.onclick=e=>{ e.stopPropagation(); openLightbox(safeAvatarUrl(p.avatar)); };
     d.onclick=e=>{
       if(e.target.classList.contains('pdel'))return;
       S.activeProfile=p.id;saveS();
@@ -1726,7 +1729,7 @@ function loadProfileIntoForm(){
   const prev=document.getElementById('pAvatarPreview');
   if(p.avatar){
     selectedAvatar={type:'img',val:p.avatar};
-    if(prev) prev.innerHTML=`<img src="${esc(p.avatar)}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+    if(prev) prev.innerHTML=`<img src="${safeAvatarUrl(p.avatar)}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
   } else if(p.avatarSvg){
     selectedAvatar={type:'svg',val:p.avatarSvg,gender:p.gender||null};
     if(prev) prev.innerHTML=safeAvatarSvg(p.avatarSvg);
@@ -1827,7 +1830,9 @@ document.getElementById('cropOk').onclick=()=>{
   const dataUrl=canvas.toDataURL('image/jpeg',0.85);
   selectedAvatar={type:'img',val:dataUrl};
   const prev=document.getElementById('pAvatarPreview');
-  prev.innerHTML=`<img src="${dataUrl}" onclick="openLightbox('${dataUrl}')" style="cursor:zoom-in">`;
+  prev.innerHTML=`<img src="${safeAvatarUrl(dataUrl)}" style="cursor:zoom-in">`;
+  const pimg=prev.querySelector('img');
+  if(pimg) pimg.onclick=()=>openLightbox(dataUrl);
   document.getElementById('cropModal').classList.remove('show');
 };
 
@@ -2051,6 +2056,16 @@ scroll.addEventListener('touchend',()=>{
 function safeAvatarSvg(v){
   if(typeof v !== 'string') return MALE_HTML;
   return /woman\.svg/.test(v) ? FEMALE_HTML : MALE_HTML;
+}
+
+/* Аватар хранится как data-URL и синхронизируется через Firebase, то есть
+   приходит с чужого устройства. В атрибуте onclick он попадал внутрь
+   JS-строки, а там esc() не спасает: браузер декодирует &#39; обратно в
+   апостроф ДО разбора скрипта, и строку можно закрыть. Поэтому проверяем
+   формат целиком и всё непохожее на картинку отбрасываем. */
+function safeAvatarUrl(v){
+  return (typeof v === 'string' && /^data:image\/(png|jpe?g|webp);base64,[A-Za-z0-9+/=]+$/.test(v))
+    ? v : '';
 }
 
 function esc(v){
