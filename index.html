@@ -1531,7 +1531,7 @@ function getM(key){
 ═══════════════════════════ */
 /* Метка сборки. Установленная PWA любит держать старую страницу в кэше,
    и по внешнему виду не понять, какая версия запущена. */
-const APP_BUILD='v3.3 · 16.08 11:40';
+const APP_BUILD='v3.4 · 16.08 12:30';
 (function(){
   const el=document.getElementById('appBuild');
   if(el) el.textContent=APP_BUILD;
@@ -2009,9 +2009,23 @@ scroll.addEventListener('touchend',()=>{
 /* ═══════════════════════════
    RING HELPERS
 ═══════════════════════════ */
+/* Цикл обновления идёт раз в секунду для каждой видимой карточки.
+   Раньше он переписывал DOM даже когда значения не менялись: минуты
+   обновляются раз в минуту, а запись шла 60 раз. Теперь сравниваем перед
+   записью — браузеру не приходится пересчитывать разметку впустую. */
+function setText(el, val){
+  if(el && el.textContent !== val) el.textContent = val;
+}
+function setStyle(el, prop, val){
+  if(el && el.style[prop] !== val) el.style[prop] = val;
+}
+
 function setRing(key,pct){
   const el=document.getElementById(`rp-${key}`);
-  if(el) el.style.strokeDashoffset=RING_C-(RING_C*Math.max(0,Math.min(1,pct)));
+  if(!el) return;
+  // округляем до десятых процента: глазом не видно, а записей на порядок меньше
+  const off=Math.round((RING_C-(RING_C*Math.max(0,Math.min(1,pct))))*10)/10;
+  if(el._off!==off){ el._off=off; el.style.strokeDashoffset=off; }
 }
 function getEndDate(key){
   const m=getM(key);
@@ -2027,8 +2041,8 @@ function updateTemp(key){
   const el=document.getElementById('temp-'+key);
   if(!el) return;
   const prog=getProg(key);
-  if(prog && prog.temp){ el.style.visibility='visible'; el.textContent=prog.temp+'°C'; }
-  else { el.style.visibility='hidden'; el.textContent=''; }
+  if(prog && prog.temp){ setStyle(el,'visibility','visible'); setText(el, prog.temp+'°C'); }
+  else { setStyle(el,'visibility','hidden'); setText(el,''); }
 }
 
 /* ═══════════════════════════
@@ -2048,7 +2062,7 @@ function updateCard(key){
   // вовсе при запуске, и после финиша карточка не пересобиралась — кнопка
   // пропадала до перезагрузки страницы.
   const nb=document.getElementById(`now-${key}`);
-  if(nb) nb.style.display = m.isRunning ? 'none' : '';
+  setStyle(nb, 'display', m.isRunning ? 'none' : '');
   const endDate=getEndDate(key);
   let endStr=`${String(endDate.getHours()).padStart(2,'0')}:${String(endDate.getMinutes()).padStart(2,'0')}`;
   // Цикл может закончиться после полуночи — без пометки «16:55» читается как сегодня
@@ -2058,20 +2072,19 @@ function updateCard(key){
      new Date(today.getFullYear(),today.getMonth(),today.getDate())) / 86400000);
   if(dayShift===1) endStr+=' '+t('tomorrowShort');
   else if(dayShift>1) endStr+=' +'+dayShift;
-  const evEl=document.getElementById(`ev-${key}`);
-  if(evEl) evEl.textContent=endStr;
+  setText(document.getElementById(`ev-${key}`), endStr);
   const lvEl=document.getElementById(`lv-${key}`);
   const rtEl=document.getElementById(`rt-${key}`);
   const rlEl=document.getElementById(`rl-${key}`);
   if(!lvEl||!rtEl) return;
   if(!m.isRunning){
-    lvEl.textContent='--:--'; rtEl.textContent='--:--';
+    setText(lvEl,'--:--'); setText(rtEl,'--:--');
     setRing(key,0); return;
   }
   const leftMs=endDate.getTime()-Date.now();
   const totalMs=(m.h*60+m.m)*60000;
   if(leftMs<=0){
-    lvEl.textContent='00:00'; rtEl.textContent='00:00'; setRing(key,1);
+    setText(lvEl,'00:00'); setText(rtEl,'00:00'); setRing(key,1);
     if(!m.hasFinished){
       fireFinal(key, m.signalEnabled);
     }
@@ -2081,13 +2094,13 @@ function updateCard(key){
   if(leftMs<60000){
     const s=Math.ceil(leftMs/1000);
     const tstr=`${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
-    lvEl.textContent=tstr; rtEl.textContent=tstr;
-    if(rlEl)rlEl.textContent=t('remaining').toLowerCase();
+    setText(lvEl,tstr); setText(rtEl,tstr);
+    setText(rlEl, t('remaining').toLowerCase());
   } else {
     const tm=Math.ceil(leftMs/60000);
     const tstr=`${String(Math.floor(tm/60)).padStart(2,'0')}:${String(tm%60).padStart(2,'0')}`;
-    lvEl.textContent=tstr; rtEl.textContent=tstr;
-    if(rlEl)rlEl.textContent=t('remaining').toLowerCase();
+    setText(lvEl,tstr); setText(rtEl,tstr);
+    setText(rlEl, t('remaining').toLowerCase());
   }
 }
 
