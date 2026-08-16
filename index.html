@@ -700,6 +700,12 @@ body{
   font-family:'DM Sans',sans-serif;
 }
 .fam-btn:active{background:var(--border2)}
+.share-app-btn{
+  width:100%;margin-top:10px;padding:9px;border-radius:12px;
+  border:1px solid var(--border2);background:var(--surface);
+  color:var(--text2);font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;
+}
+.share-app-btn:active{background:var(--surface2)}
 .rem-machines{
   display:grid;grid-template-columns:repeat(3,1fr);gap:8px;
   padding:12px 16px 14px;border-top:1px solid var(--border);
@@ -909,6 +915,7 @@ function setLang(lang) {
           <button onclick="copyFamilyId()" class="fam-btn" title="Copy">📋</button>
           <button onclick="shareFamilyId()" class="fam-btn" title="Share">📤</button>
         </div>
+        <button onclick="shareApp()" class="share-app-btn" data-i18n="shareAppBtn">📲 Поделиться приложением</button>
       </div>
       <div class="set-row" style="flex-direction:column;align-items:flex-start;gap:6px;padding-top:12px;border-bottom:1px solid var(--border);padding-bottom:12px">
         <div style="font-size:13px;font-weight:600;color:var(--text)" data-i18n="familyJoinTitle">Войти в семью</div>
@@ -1397,8 +1404,28 @@ function copyFamilyId(){
 
 // Отправить код через системное меню «Поделиться».
 // Если API недоступно (десктоп, старый браузер) — откатываемся на копирование.
+// Для случая, когда у второго человека приложения ещё нет:
+// ссылка на установку плюс код одним сообщением.
+function shareApp(){
+  const text = t('shareAppText') + '\n' + location.origin + '\n'
+             + t('familyShareText') + ' ' + FAMILY_ID;
+  if(navigator.share){
+    navigator.share({ title:'WashTime', text })
+      .catch(e=>{ if(e && e.name!=='AbortError') copyText(text); });
+  } else {
+    copyText(text);
+  }
+}
+
+function copyText(text){
+  navigator.clipboard?.writeText(text)
+    .then(()=>showToast(t('familyCopied')))
+    .catch(()=>{});
+}
+
 function shareFamilyId(){
-  const text = t('familyShareText') + ' ' + FAMILY_ID;
+  // Только сам код: получателю его нужно вставить в поле, лишние слова мешают
+  const text = FAMILY_ID;
   if(navigator.share){
     navigator.share({ title:'WashTime', text })
       .catch(e=>{ if(e && e.name!=='AbortError') copyFamilyId(); });
@@ -1531,7 +1558,7 @@ function getM(key){
 ═══════════════════════════ */
 /* Метка сборки. Установленная PWA любит держать старую страницу в кэше,
    и по внешнему виду не понять, какая версия запущена. */
-const APP_BUILD='v3.6 · 16.08 14:20';
+const APP_BUILD='v3.7 · 16.08 15:05';
 (function(){
   const el=document.getElementById('appBuild');
   if(el) el.textContent=APP_BUILD;
