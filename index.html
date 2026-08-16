@@ -1558,7 +1558,7 @@ function getM(key){
 ═══════════════════════════ */
 /* Метка сборки. Установленная PWA любит держать старую страницу в кэше,
    и по внешнему виду не понять, какая версия запущена. */
-const APP_BUILD='v3.7 · 16.08 15:05';
+const APP_BUILD='v3.8 · 16.08 17:40';
 (function(){
   const el=document.getElementById('appBuild');
   if(el) el.textContent=APP_BUILD;
@@ -1605,7 +1605,7 @@ function renderProfileBar(){
     if(p.avatar){
       c.innerHTML=`<img src="${esc(p.avatar)}" style="width:20px;height:20px;border-radius:50%;object-fit:cover;margin-right:5px;vertical-align:middle"> ${esc(p.name)}`;
     } else if(p.avatarSvg){
-      c.innerHTML=`<span style="display:inline-flex;width:20px;height:20px;border-radius:50%;overflow:hidden;margin-right:5px;vertical-align:middle">${p.avatarSvg}</span>${esc(p.name)}`;
+      c.innerHTML=`<span style="display:inline-flex;width:20px;height:20px;border-radius:50%;overflow:hidden;margin-right:5px;vertical-align:middle">${safeAvatarSvg(p.avatarSvg)}</span>${esc(p.name)}`;
     } else {
       if(p.emoji){c.textContent=p.emoji+' '+p.name;}
       else{c.innerHTML=`<span style="display:inline-flex;width:20px;height:20px;border-radius:50%;overflow:hidden;margin-right:5px;vertical-align:middle"><svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
@@ -1655,10 +1655,10 @@ function renderPModal(){
     d.className='pitem'+(p.id===S.activeProfile?' cur':'');
     let ava, clickAttr='';
     if(p.avatar){ava=`<img src="${esc(p.avatar)}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;clickAttr=`onclick="openLightbox('${esc(p.avatar)}')" style="cursor:zoom-in"`;}
-    else if(p.avatarSvg){ava=p.avatarSvg;}
+    else if(p.avatarSvg){ava=safeAvatarSvg(p.avatarSvg);}
     else if(p.emoji){ava=p.emoji;}
     else{ava=`<img src='svg/man.svg' style='width:100%;height:100%;border-radius:50%' onerror="this.replaceWith(Object.assign(document.createElement('div'),{textContent:'👤',style:'font-size:26px;line-height:1;display:flex;align-items:center;justify-content:center;width:100%;height:100%'}))">`;} 
-    d.innerHTML=`<div class="pavatar" ${clickAttr}>${ava}</div><div class="pname">${p.name}</div>`+
+    d.innerHTML=`<div class="pavatar" ${clickAttr}>${ava}</div><div class="pname">${esc(p.name)}</div>`+
       (S.profiles.length>1?`<div class="pdel" data-id="${p.id}">✕</div>`:'');
     d.onclick=e=>{
       if(e.target.classList.contains('pdel'))return;
@@ -1726,10 +1726,10 @@ function loadProfileIntoForm(){
   const prev=document.getElementById('pAvatarPreview');
   if(p.avatar){
     selectedAvatar={type:'img',val:p.avatar};
-    if(prev) prev.innerHTML=`<img src="${p.avatar}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+    if(prev) prev.innerHTML=`<img src="${esc(p.avatar)}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
   } else if(p.avatarSvg){
     selectedAvatar={type:'svg',val:p.avatarSvg,gender:p.gender||null};
-    if(prev) prev.innerHTML=p.avatarSvg;
+    if(prev) prev.innerHTML=safeAvatarSvg(p.avatarSvg);
   }
   if(p.gender){
     selectedGender=p.gender;
@@ -2044,6 +2044,15 @@ scroll.addEventListener('touchend',()=>{
    ещё и приходят из Firebase от другого устройства. Всё это подставлялось
    в innerHTML как есть: имя вида <img src=x onerror=…> выполнило бы код
    в чужом приложении, с доступом ко всему localStorage и базе. */
+/* avatarSvg хранится и синхронизируется как готовый HTML. Доверять ему нельзя:
+   запись приходит от другого устройства через Firebase, и туда можно положить
+   что угодно. Поэтому от чужой строки берём только признак пола, а разметку
+   подставляем свою. */
+function safeAvatarSvg(v){
+  if(typeof v !== 'string') return MALE_HTML;
+  return /woman\.svg/.test(v) ? FEMALE_HTML : MALE_HTML;
+}
+
 function esc(v){
   return String(v == null ? '' : v)
     .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
