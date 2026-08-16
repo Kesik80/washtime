@@ -206,6 +206,8 @@ body{
 }
 .psheet-ov.open .psheet{transform:translateY(0)}
 .psheet.tall{max-height:86vh}
+.psheet .shandle{cursor:grab;padding:2px 0;margin-bottom:12px}
+.psheet{touch-action:pan-y}
 .plist{overflow-y:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .plist::-webkit-scrollbar{display:none}
 .plist-row{
@@ -691,6 +693,13 @@ body{
 }
 /* Три равные колонки вместо переноса: длинные немецкие названия
    переносятся внутри кнопки, а не роняют третью кнопку на новую строку. */
+.fam-btn{
+  flex-shrink:0;padding:7px 12px;
+  background:var(--surface2);color:var(--text);border:1px solid var(--border);
+  border-radius:10px;font-size:12px;font-weight:600;cursor:pointer;
+  font-family:'DM Sans',sans-serif;
+}
+.fam-btn:active{background:var(--border2)}
 .rem-machines{
   display:grid;grid-template-columns:repeat(3,1fr);gap:8px;
   padding:12px 16px 14px;border-top:1px solid var(--border);
@@ -897,10 +906,8 @@ function setLang(lang) {
         <div style="display:flex;align-items:center;gap:8px;width:100%;margin-top:6px">
           <code id="familyIdDisplay" style="flex:1;font-family:'DM Mono',monospace;font-size:12px;
             color:var(--accent-wash);overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></code>
-          <button onclick="copyFamilyId()" style="flex-shrink:0;padding:7px 12px;
-            background:var(--surface2);color:var(--text);border:1px solid var(--border);
-            border-radius:10px;font-size:12px;font-weight:600;cursor:pointer;
-            font-family:'DM Sans',sans-serif">📋</button>
+          <button onclick="copyFamilyId()" class="fam-btn" title="Copy">📋</button>
+          <button onclick="shareFamilyId()" class="fam-btn" title="Share">📤</button>
         </div>
       </div>
       <div class="set-row" style="flex-direction:column;align-items:flex-start;gap:6px;padding-top:12px;border-bottom:1px solid var(--border);padding-bottom:12px">
@@ -1388,6 +1395,18 @@ function copyFamilyId(){
   });
 }
 
+// Отправить код через системное меню «Поделиться».
+// Если API недоступно (десктоп, старый браузер) — откатываемся на копирование.
+function shareFamilyId(){
+  const text = t('familyShareText') + ' ' + FAMILY_ID;
+  if(navigator.share){
+    navigator.share({ title:'WashTime', text })
+      .catch(e=>{ if(e && e.name!=='AbortError') copyFamilyId(); });
+  } else {
+    copyFamilyId();
+  }
+}
+
 // Покинуть семью
 function leaveFamily(){
   const isDark=document.documentElement.getAttribute('data-theme')==='dark'||
@@ -1512,7 +1531,7 @@ function getM(key){
 ═══════════════════════════ */
 /* Метка сборки. Установленная PWA любит держать старую страницу в кэше,
    и по внешнему виду не понять, какая версия запущена. */
-const APP_BUILD='v3.2 · 16.08 01:10';
+const APP_BUILD='v3.3 · 16.08 11:40';
 (function(){
   const el=document.getElementById('appBuild');
   if(el) el.textContent=APP_BUILD;
@@ -2926,6 +2945,41 @@ function applyProg(key,p){
   updateTemp(key);
 }
 
+/* Закрытие шита свайпом вниз.
+   Тянуть можно за любое место, кроме прокручиваемого списка — его перехватываем
+   только когда он уже пролистан наверх, иначе жест конфликтует с прокруткой. */
+function enableSheetDrag(ov, sheet, close){
+  let y0=0, dy=0, dragging=false, t0=0;
+  const list=sheet.querySelector('.plist');
+
+  sheet.addEventListener('touchstart', e=>{
+    if(e.touches.length!==1) return;
+    if(list && list.contains(e.target) && list.scrollTop>0) return;
+    y0=e.touches[0].clientY; dy=0; dragging=true; t0=Date.now();
+    sheet.style.transition='none';
+  }, {passive:true});
+
+  sheet.addEventListener('touchmove', e=>{
+    if(!dragging) return;
+    dy=e.touches[0].clientY-y0;
+    if(dy<0) dy=0;                       // вверх не тянем
+    sheet.style.transform=`translateY(${dy}px)`;
+    ov.style.opacity=String(Math.max(0, 1-dy/400));
+  }, {passive:true});
+
+  const end=()=>{
+    if(!dragging) return;
+    dragging=false;
+    sheet.style.transition='';
+    ov.style.opacity='';
+    const fast=(Date.now()-t0)<300 && dy>40;
+    if(dy>110 || fast){ sheet.style.transform=''; close(); }
+    else sheet.style.transform='';       // пружинка назад
+  };
+  sheet.addEventListener('touchend', end, {passive:true});
+  sheet.addEventListener('touchcancel', end, {passive:true});
+}
+
 /* ── Полный список программ (шит снизу) ── */
 function openProgList(key){
   const list=getProgs(key);
@@ -2946,6 +3000,7 @@ function openProgList(key){
   requestAnimationFrame(()=>ov.classList.add('open'));
   const close=()=>{ov.classList.remove('open');setTimeout(()=>ov.remove(),200);};
   ov.onclick=e=>{ if(e.target===ov) close(); };
+  enableSheetDrag(ov, ov.querySelector('.psheet'), close);
   ov.querySelectorAll('.plist-row').forEach(b=>{
     b.onclick=()=>{
       const p=getProgs(key).find(x=>x.id===b.dataset.id);
@@ -2977,6 +3032,7 @@ function openProgEditor(key){
   requestAnimationFrame(()=>ov.classList.add('open'));
   const close=()=>{ov.classList.remove('open');setTimeout(()=>ov.remove(),200);};
   ov.onclick=e=>{ if(e.target===ov) close(); };
+  enableSheetDrag(ov, ov.querySelector('.psheet'), close);
 
   function render(){
     const list=getProgs(key);
