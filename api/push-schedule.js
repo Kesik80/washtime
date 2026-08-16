@@ -1,24 +1,26 @@
 // /api/push-schedule.js
-// Планирует отправку Web Push уведомления через QStash (как /api/schedule для Telegram)
+// Планирует отправку Web Push уведомления через QStash
 
 import { Client } from '@upstash/qstash';
+import { verifyDevice, delaySeconds, clampText } from './_verify.js';
 
 const qstash = new Client({ token: process.env.QSTASH_TOKEN });
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
 
-  const secret = req.headers['x-internal-secret'];
-  if (secret !== process.env.INTERNAL_SECRET) return res.status(403).end();
-
-  const { endTime, title, body, deviceId } = req.body;
+  const { endTime, title, body, deviceId, familyId } = req.body || {};
   if (!endTime || !deviceId) return res.status(400).json({ error: 'Missing fields' });
 
-  const end = new Date(endTime);
-  const delayMs = end.getTime() - Date.now();
-  if (delayMs < 0) return res.status(400).json({ error: 'End time in the past' });
+  // Вместо общего секрета из клиента — проверка, что устройство нам знакомо
+  if (!(await verifyDevice(deviceId, familyId))) {
+    return res.status(403).json({ error: 'Unknown device' });
+  }
 
-  const delaySec = Math.max(1, Math.round(delayMs / 1000));
+  const delaySec = delaySeconds(endTime);
+  if (delaySec === null) {
+    return res.status(400).json({ error: 'End time out of range' });
+  }
 
   try {
     const baseUrl = process.env.VERCEL_URL
@@ -28,7 +30,13 @@ export default async function handler(req, res) {
     const result = await qstash.publishJSON({
       url: `${baseUrl}/api/push-send`,
       delay: delaySec,
-      body: { title: title || 'WashTime', body: body || '✅', deviceId }
+      // Секрет живёт только между серверами: QStash перешлёт заголовок в push-send
+      headers: { 'x-internal-secret': process.env.INTERNAL_SECRET || '' },
+      body: {
+        title: clampText(title, 60) || 'WashTime',
+        body: clampText(body, 200) || '✅',
+        deviceId
+      }
     });
 
     res.json({ success: true, messageId: result.messageId });

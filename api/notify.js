@@ -1,15 +1,27 @@
 // api/notify.js — отправляет Telegram
-// Вызывается либо напрямую (тест), либо автоматически через QStash
+// Вызывается либо из QStash по расписанию, либо напрямую из приложения
+
+import { verifyDevice, clampText } from './_verify.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Метод не разрешён' });
   }
 
-  const { message } = req.body;
-
+  const { message, deviceId, familyId } = req.body || {};
   if (!message || typeof message !== 'string') {
     return res.status(400).json({ error: 'Неверный формат сообщения' });
+  }
+
+  // Два законных источника вызова:
+  //  1. QStash — пересылает серверный секрет заголовком, клиент его не видит;
+  //  2. само приложение — тогда проверяем, что устройство нам известно.
+  // Раньше эндпоинт принимал вообще любой запрос: открытый ретранслятор в чужой Telegram.
+  const secret = req.headers['x-internal-secret'];
+  const fromQStash = process.env.INTERNAL_SECRET && secret === process.env.INTERNAL_SECRET;
+
+  if (!fromQStash && !(await verifyDevice(deviceId, familyId))) {
+    return res.status(403).json({ error: 'Unknown device' });
   }
 
   const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
@@ -28,7 +40,7 @@ export default async function handler(req, res) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           chat_id: TELEGRAM_CHAT_ID,
-          text: `✅ ${message}`,
+          text: `✅ ${clampText(message, 300)}`,
           disable_web_page_preview: true
         })
       }
