@@ -278,11 +278,17 @@ body{
 .prog-wrap{
   position:relative;margin:0 -20px 8px;   /* компенсируем padding карточки */
 }
-.prog-wrap::after{                        /* подсказка, что список едет вбок */
-  content:'';position:absolute;top:0;right:0;width:28px;height:100%;
-  pointer-events:none;
-  background:linear-gradient(90deg,transparent,var(--bg3));
+/* Растушёвка с обеих сторон: слева чип обрезался «по-живому» и выглядел
+   как ошибка вёрстки, справа растворялся. Теперь одинаково с двух краёв. */
+.prog-wrap::before,
+.prog-wrap::after{
+  content:'';position:absolute;top:0;width:26px;height:100%;
+  pointer-events:none;transition:opacity .15s;
 }
+.prog-wrap::before{left:0;background:linear-gradient(270deg,transparent,var(--bg3))}
+.prog-wrap::after{right:0;background:linear-gradient(90deg,transparent,var(--bg3))}
+.prog-wrap.at-start::before{opacity:0}
+.prog-wrap.at-end::after{opacity:0}
 .prog-row{
   display:flex;gap:6px;
   overflow-x:auto;scrollbar-width:none;
@@ -1558,7 +1564,7 @@ function getM(key){
 ═══════════════════════════ */
 /* Метка сборки. Установленная PWA любит держать старую страницу в кэше,
    и по внешнему виду не понять, какая версия запущена. */
-const APP_BUILD='v4.0 · 16.08 19:30';
+const APP_BUILD='v4.1 · 16.08 21:30';
 (function(){
   const el=document.getElementById('appBuild');
   if(el) el.textContent=APP_BUILD;
@@ -1964,11 +1970,17 @@ function bindCard(slide, key){
   // programs
   slide.querySelectorAll('.pchip-sm').forEach(ch=>{
     ch.onclick=()=>{
+      ch.blur();                       // иначе браузер сам доскроллит к фокусу
       if(ch.dataset.more){ openProgList(key); return; }
       const p=getProgs(key).find(x=>x.id===ch.dataset.prog);
       if(p) applyProg(key,p);
     };
   });
+  const progRow=slide.querySelector('.prog-row');
+  if(progRow){
+    progRow.addEventListener('scroll',()=>updateProgFades(progRow),{passive:true});
+    centerActiveChip(slide);
+  }
   // start time
   slide.querySelector(`#si-${key}`).onclick=()=>openTimeDrum(key);
   // «сейчас» — сбросить время старта на текущее
@@ -3010,6 +3022,29 @@ function getProg(key){
   const m=getM(key);
   return getProgs(key).find(p=>p.id===m.progId)||null;
 }
+/* После выбора карточка пересобирается, и полоска оказывалась прокручена так,
+   что выбранный чип уходил за край. Подводим его к центру видимой области. */
+function centerActiveChip(slide){
+  const row=slide && slide.querySelector('.prog-row');
+  const act=row && row.querySelector('.pchip-sm.active');
+  if(!row) return;
+  if(act){
+    const target=act.offsetLeft - (row.clientWidth - act.offsetWidth)/2;
+    row.scrollLeft=Math.max(0, target);
+  }
+  updateProgFades(row);
+}
+
+// Гасим градиент у того края, до которого уже долистали
+function updateProgFades(row){
+  if(!row) return;
+  const wrap=row.parentElement;
+  if(!wrap) return;
+  const max=row.scrollWidth-row.clientWidth;
+  wrap.classList.toggle('at-start', row.scrollLeft<=1);
+  wrap.classList.toggle('at-end', row.scrollLeft>=max-1);
+}
+
 function applyProg(key,p){
   const m=getM(key);
   m.progId=p.id;
@@ -3017,7 +3052,7 @@ function applyProg(key,p){
   saveS();
   const cardEl=document.getElementById(`card-${key}`);
   const slide=cardEl?cardEl.closest('.card-slide'):null;
-  if(slide){ slide.innerHTML=buildCardHTML(key); bindCard(slide,key); }
+  if(slide){ slide.innerHTML=buildCardHTML(key); bindCard(slide,key); centerActiveChip(slide); }
   updateTemp(key);
 }
 
