@@ -1531,7 +1531,7 @@ function getM(key){
 ═══════════════════════════ */
 /* Метка сборки. Установленная PWA любит держать старую страницу в кэше,
    и по внешнему виду не понять, какая версия запущена. */
-const APP_BUILD='v3.4 · 16.08 12:30';
+const APP_BUILD='v3.5 · 16.08 13:20';
 (function(){
   const el=document.getElementById('appBuild');
   if(el) el.textContent=APP_BUILD;
@@ -2122,7 +2122,7 @@ function doStop(key){
   m.stoppedBy = (profile.emoji||'👤')+' '+(profile.name||'?');
   m.stoppedAt = `${String(new Date().getHours()).padStart(2,'0')}:${String(new Date().getMinutes()).padStart(2,'0')}`;
   m.isRunning=false; saveS(); fbPushMachine(key); playStop();
-  cancelWatchdog(key); setRing(key,0);
+  cancelWatchdog(key); cancelScheduled(key); setRing(key,0);
   // Перестроить карточку полностью
   const cardEl = document.getElementById(`card-${key}`);
   const slide = cardEl ? cardEl.closest('.card-slide') : null;
@@ -2263,6 +2263,11 @@ function fireFinal(key, withSignal){
   showFinish(key);
   // если машина была скрыта и показывалась только потому, что работала —
   // после финиша убираем её с экрана обратно
+  // Уведомление об окончании доставлено, отменять его больше нечего.
+  // Напоминание о белье, наоборот, ещё впереди — его id оставляем.
+  const mm=getM(key);
+  if(Array.isArray(mm.qmsgs) && mm.qmsgs.length && !remindCfg().on){ mm.qmsgs=[]; saveS(); }
+
   const vis=(S.settings&&S.settings.visible)||{};
   if(vis[key]===false) setTimeout(()=>buildSlides(),400);
 }
@@ -3625,8 +3630,31 @@ function devIds(){
   };
 }
 
+/* QStash отзывает сообщение только по его messageId, поэтому запоминаем их
+   на устройстве. Раньше при остановке цикла ни уведомление об окончании,
+   ни напоминание не отменялись — они приходили как ни в чём не бывало. */
+function rememberMsg(key, id){
+  if(!id) return;
+  const m=getM(key);
+  if(!Array.isArray(m.qmsgs)) m.qmsgs=[];
+  if(m.qmsgs.length<20) m.qmsgs.push(id);
+  saveS();
+}
+
+function cancelScheduled(key){
+  const m=getM(key);
+  const ids=Array.isArray(m.qmsgs)?m.qmsgs.slice():[];
+  m.qmsgs=[]; saveS();
+  if(!ids.length) return;
+  fetch('/api/push-cancel',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({ids,...devIds()})})
+    .then(r=>r.json()).then(d=>console.log('Отменено сообщений:', d.cancelled))
+    .catch(e=>console.warn('push-cancel:',e));
+}
+
 function scheduleServer(key){
   cancelWatchdog(key);
+  cancelScheduled(key);      // на случай перезапуска поверх старого цикла
   scheduleReminder(key);
   const end=getEndDate(key);
   const msg=t(key==='wash'?'washMsg':key==='dry'?'dryMsg':'dishMsg');
@@ -3635,7 +3663,7 @@ function scheduleServer(key){
   if(mode === 'tg' || mode === 'both'){
     fetch('/api/schedule',{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({endTime:end.toISOString(),message:msg,...devIds()})})
-      .then(r=>r.json()).then(d=>d.success&&console.log('QStash ✓',d.messageId))
+      .then(r=>r.json()).then(d=>{ if(d.success){ console.log('QStash ✓',d.messageId); rememberMsg(key,d.messageId); } })
       .catch(e=>console.warn(e));
   }
   // Web Push (через /api/push-send с задержкой)
@@ -3648,6 +3676,7 @@ function scheduleServer(key){
     if(delayMs > 0 && delayMs < 6*60*60*1000){ // не более 6 часов
       fetch('/api/push-schedule',{method:'POST',headers:{'Content-Type':'application/json'},
         body:JSON.stringify({endTime:end.toISOString(),title:'WashTime',body:msg,...devIds()})})
+        .then(r=>r.json()).then(d=>rememberMsg(key,d&&d.messageId))
         .catch(e=>console.warn('Push schedule:',e));
     }
   }
@@ -3667,7 +3696,8 @@ function scheduleReminder(key){
   const when=new Date(getEndDate(key).getTime()+delayMin*60000);
   if(mode==='tg'||mode==='both'){
     fetch('/api/schedule',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({endTime:when.toISOString(),message:msg,...devIds()})}).catch(e=>console.warn(e));
+      body:JSON.stringify({endTime:when.toISOString(),message:msg,...devIds()})})
+      .then(r=>r.json()).then(d=>rememberMsg(key,d&&d.messageId)).catch(e=>console.warn(e));
   }
   if((mode==='push'||mode==='both') && VAPID_PUBLIC_KEY && pushSubscription){
     const delayMs=when.getTime()-Date.now();
@@ -3675,6 +3705,7 @@ function scheduleReminder(key){
       fetch('/api/push-schedule',{method:'POST',
         headers:{'Content-Type':'application/json'},
         body:JSON.stringify({endTime:when.toISOString(),title:'WashTime',body:msg,...devIds()})})
+        .then(r=>r.json()).then(d=>rememberMsg(key,d&&d.messageId))
         .catch(e=>console.warn('Reminder schedule:',e));
     }
   }
