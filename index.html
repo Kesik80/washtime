@@ -1558,7 +1558,7 @@ function getM(key){
 ═══════════════════════════ */
 /* Метка сборки. Установленная PWA любит держать старую страницу в кэше,
    и по внешнему виду не понять, какая версия запущена. */
-const APP_BUILD='v3.9 · 16.08 19:00';
+const APP_BUILD='v4.0 · 16.08 19:30';
 (function(){
   const el=document.getElementById('appBuild');
   if(el) el.textContent=APP_BUILD;
@@ -1667,6 +1667,7 @@ function renderPModal(){
       if(e.target.classList.contains('pdel'))return;
       S.activeProfile=p.id;saveS();
       renderProfileBar();buildSlides();renderStats();renderHist();
+      renderPModal(); loadProfileIntoForm();   // форма показывает выбранный профиль
     };
     const del=d.querySelector('.pdel');
     if(del)del.onclick=()=>{
@@ -1678,7 +1679,7 @@ function renderPModal(){
     el.appendChild(d);
   });
 }
-document.getElementById('profileBtn').onclick=()=>{renderPModal();resetAvatarPicker();document.getElementById('pModal').classList.add('open')};
+document.getElementById('profileBtn').onclick=()=>{renderPModal();loadProfileIntoForm();document.getElementById('pModal').classList.add('open')};
 document.getElementById('pClose').onclick=()=>document.getElementById('pModal').classList.remove('open');
 
 function openLightbox(src){
@@ -1846,26 +1847,22 @@ document.getElementById('pAvatarClear').onclick=()=>{
   resetAvatarPicker();
   document.getElementById('pAvatarInput').value='';
 };
+// Кнопка ✓ была в разметке, но обработчика не имела: изменить существующий
+// профиль было невозможно, оставалось только создавать новый.
+document.getElementById('pSaveBtn').onclick=saveActiveProfile;
+
 document.getElementById('pAddBtn').onclick=()=>{
-  const inp=document.getElementById('pNewName');
-  let name=inp.value.trim();
-  // если имя не введено — генерируем из эмодзи или "Профиль N"
-  if(!name){
-    if(selectedAvatar.type==='emoji' && selectedAvatar.val){
-      name=selectedAvatar.val;
-    } else {
-      name=t('profileN')+' '+(S.profiles.length+1);
-    }
-  }
+  // Форма теперь показывает активный профиль, поэтому новый создаём пустым,
+  // делаем активным и открываем в форме — дальше его правят и жмут ✓.
   const id='p'+Date.now();
-  S.profiles.push({id,name,
-    emoji: selectedAvatar.type==='emoji'?selectedAvatar.val:null,
-    avatar: selectedAvatar.type==='img'?selectedAvatar.val:null,
-    avatarSvg: selectedAvatar.type==='svg'?selectedAvatar.val:null
-  });
-  S.machines[id]=mkMachines();inp.value='';
-  resetAvatarPicker();
-  saveS();renderPModal();renderProfileBar();
+  S.profiles.push({id, name:t('profileN')+' '+(S.profiles.length+1),
+                   emoji:null, avatar:null, avatarSvg:null, gender:null});
+  S.machines[id]=mkMachines();
+  S.activeProfile=id;
+  saveS();
+  renderPModal(); renderProfileBar(); buildSlides(); renderStats(); renderHist();
+  loadProfileIntoForm();
+  document.getElementById('pNewName')?.focus();
 };
 
 /* ═══════════════════════════
