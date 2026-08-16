@@ -2,6 +2,7 @@
 // Отправляет Web Push уведомление устройству (вызывается QStash по таймеру)
 
 import webpush from 'web-push';
+import { isValidId } from './_verify.js';
 
 const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY;
 const VAPID_PUBLIC_KEY  = process.env.VAPID_PUBLIC_KEY;
@@ -17,8 +18,8 @@ export default async function handler(req, res) {
     return res.status(403).end();
   }
 
-  const { title, body, deviceId } = req.body;
-  if (!deviceId) return res.status(400).json({ error: 'Missing deviceId' });
+  const { title, body, deviceId } = req.body || {};
+  if (!isValidId(deviceId)) return res.status(400).json({ error: 'Bad deviceId' });
 
   const dbUrl = process.env.FIREBASE_DB_URL;
   const apiKey = process.env.FIREBASE_API_KEY;

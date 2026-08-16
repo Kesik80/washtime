@@ -26,10 +26,16 @@ async function exists(path) {
   }
 }
 
+// Идентификатор подставляется прямо в путь Firebase, поэтому в нём
+// не должно быть ни слэшей, ни точек: иначе `../` уводит запись в чужую ветку.
+export function isValidId(id) {
+  return typeof id === 'string'
+    && id.length >= 6 && id.length <= 64
+    && /^[A-Za-z0-9_-]+$/.test(id);
+}
+
 export async function verifyDevice(deviceId, familyId) {
-  if (!deviceId || typeof deviceId !== 'string') return false;
-  if (deviceId.length < 6 || deviceId.length > 64) return false;
-  if (!/^[A-Za-z0-9_-]+$/.test(deviceId)) return false;
+  if (!isValidId(deviceId)) return false;
 
   if (await exists(`pushSubscriptions/${deviceId}`)) return true;
 
