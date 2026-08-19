@@ -1,37 +1,37 @@
-/* WashTime — Service Worker v5
-   Поддерживает:
-   - кэширование статики: приложение открывается офлайн
-   - postMessage (NOTIFY) — локальные уведомления из браузера
-   - push event — Web Push уведомления с сервера (работает даже с закрытым браузером)
+/* YEVA — Service Worker v1
 
-   ВАЖНО про версию: при каждом изменении статики поднимай CACHE — старый кэш
-   удаляется в activate, иначе пользователь останется на прошлой версии.
+   Стратегия намеренно разная для разного добра:
+
+   HTML и JS      — сеть, откат в кэш. Ты правишь игру каждый день,
+                    и кэш-первым ребёнок играл бы во вчерашнюю версию.
+   mp3 и картинки — кэш, откат в сеть. Имя файла = содержимое,
+                    katze.mp3 никогда не меняется, тянуть её повторно незачем.
+   /api/          — только сеть, не кэшируется вообще.
+
+   ВАЖНО: поднимай CACHE при изменении списка CORE, иначе старый кэш
+   останется жить. Обычные правки html/js подхватываются сами.
 */
 
-const CACHE = 'washtime-v5';
+const CACHE = 'yeva-v1';
 
-// Файлы, без которых приложение не откроется
 const CORE = [
   '/',
   '/index.html',
-  '/lang.js',
+  '/bubbles.html',
+  '/words.js',
   '/console.js',
+  '/install.js',
   '/icons/manifest.json',
   '/icons/icon-192.png',
-  '/icons/icon-512.png',
-  '/svg/man.svg',
-  '/svg/woman.svg'
+  '/icons/icon-512.png'
 ];
 
-// ──────────────────────────────────────────
-// 0. Установка и очистка старых кэшей
-// ──────────────────────────────────────────
 self.addEventListener('install', e => {
   e.waitUntil(
     caches.open(CACHE)
-      // addAll падает целиком, если хоть один файл недоступен, поэтому кладём по одному
+      // по одному: addAll падает целиком, если хоть один файл недоступен
       .then(c => Promise.all(CORE.map(u => c.add(u).catch(err => {
-        console.warn('[sw] не удалось закэшировать', u, err);
+        console.warn('[sw] не закэшировал', u, err);
       }))))
       .then(() => self.skipWaiting())
   );
@@ -45,99 +45,38 @@ self.addEventListener('activate', e => {
   );
 });
 
-// ──────────────────────────────────────────
-// 1. Стратегия выдачи
-//    API и внешние сервисы — только сеть, их кэшировать нельзя:
-//    ответы одноразовые, а погода и подписки должны быть свежими.
-//    Статика — сеть с откатом в кэш: онлайн всегда актуальная версия,
-//    офлайн открывается последняя сохранённая.
-// ──────────────────────────────────────────
+const isAsset = url => /\.(mp3|m4a|ogg|png|jpg|jpeg|svg|ico|woff2?)$/i.test(url.pathname);
+
 self.addEventListener('fetch', e => {
   const req = e.request;
   if (req.method !== 'GET') return;
 
   const url = new URL(req.url);
-  if (url.origin !== self.location.origin) return;   // open-meteo, nominatim, firebase
-  if (url.pathname.startsWith('/api/')) return;
+  if (url.origin !== self.location.origin) return;   // шрифты Google, cdnjs
+  if (url.pathname.startsWith('/api/')) return;      // озвучка и коммиты — только сеть
 
-  e.respondWith(
-    fetch(req)
-      .then(res => {
-        // Кладём в кэш только удачные ответы, иначе можно закэшировать 404
-        if (res && res.status === 200 && res.type === 'basic') {
-          const copy = res.clone();
-          caches.open(CACHE).then(c => c.put(req, copy)).catch(() => {});
+  // Звуки и картинки: сначала кэш
+  if (isAsset(url)) {
+    e.respondWith(
+      caches.match(req).then(hit => hit || fetch(req).then(r => {
+        if (r.ok) {
+          const copy = r.clone();
+          caches.open(CACHE).then(c => c.put(req, copy));
         }
-        return res;
-      })
-      .catch(() =>
-        caches.match(req).then(hit => {
-          if (hit) return hit;
-          // Навигационный запрос без сети — отдаём стартовую страницу
-          if (req.mode === 'navigate') return caches.match('/index.html');
-          return new Response('', { status: 504, statusText: 'offline' });
-        })
-      )
-  );
-});
-
-// ──────────────────────────────────────────
-// 2. Локальные уведомления (браузер открыт)
-// ──────────────────────────────────────────
-self.addEventListener('message', e => {
-  if (!e.data) return;
-  if (e.data.type === 'SKIP_WAITING') { self.skipWaiting(); return; }
-  if (e.data.type === 'NOTIFY') {
-    const { title, body, tag } = e.data;
-    e.waitUntil(
-      self.registration.showNotification(title, {
-        body,
-        icon: '/icons/icon-192.png',
-        badge: '/icons/icon-192.png',
-        vibrate: [500, 200, 500, 200, 500],
-        requireInteraction: true,
-        tag: tag || 'washtime',
-        renotify: true,
-        silent: false
-      })
+        return r;
+      }).catch(() => hit))
     );
+    return;
   }
-});
 
-// ──────────────────────────────────────────
-// 3. Web Push — с сервера, работает с закрытым браузером
-// ──────────────────────────────────────────
-self.addEventListener('push', e => {
-  let data = { title: 'WashTime', body: '✅ Готово!' };
-  try { data = e.data ? e.data.json() : data; }
-  catch(err) { data.body = e.data ? e.data.text() : '✅'; }
-
-  e.waitUntil(
-    self.registration.showNotification(data.title || 'WashTime', {
-      body: data.body || '✅',
-      icon: '/icons/icon-192.png',
-      badge: '/icons/icon-192.png',
-      vibrate: [500, 200, 500, 200, 500],
-      requireInteraction: true,
-      tag: data.tag || 'washtime-finish',
-      renotify: true,
-      silent: false,
-      data: { url: '/' }
-    })
-  );
-});
-
-// ──────────────────────────────────────────
-// 4. Тап по уведомлению — открыть приложение
-// ──────────────────────────────────────────
-self.addEventListener('notificationclick', e => {
-  e.notification.close();
-  const url = (e.notification.data && e.notification.data.url) || '/';
-  e.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
-      const match = list.find(c => c.url.includes(self.location.origin));
-      if (match) return match.focus();
-      return clients.openWindow(url);
-    })
+  // Всё остальное: сначала сеть, офлайн — из кэша
+  e.respondWith(
+    fetch(req).then(r => {
+      if (r.ok) {
+        const copy = r.clone();
+        caches.open(CACHE).then(c => c.put(req, copy));
+      }
+      return r;
+    }).catch(() => caches.match(req).then(hit => hit || caches.match('/index.html')))
   );
 });
