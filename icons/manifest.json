@@ -1,32 +1,23 @@
 {
-  "name": "YEVA — Spiele auf Deutsch",
-  "short_name": "YEVA",
-  "description": "Игры для Евы",
-  "id": "/",
+  "name": "WashTime",
+  "short_name": "WashTime",
   "start_url": "/",
-  "scope": "/",
   "display": "fullscreen",
   "display_override": ["fullscreen", "standalone"],
-  "background_color": "#5CBFE6",
-  "theme_color": "#5CBFE6",
+  "orientation": "portrait",
+  "background_color": "#0a0a0f",
+  "theme_color": "#0a0a0f",
   "icons": [
     {
       "src": "/icons/icon-192.png",
       "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any"
+      "type": "image/png"
     },
     {
       "src": "/icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "/icons/icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "maskable"
+      "purpose": "any maskable"
     }
   ]
 }
