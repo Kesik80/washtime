@@ -7,6 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="WashTime">
 <meta id="themeColorMeta" name="theme-color" content="#0a0a0f">
+<meta id="colorSchemeMeta" name="color-scheme" content="dark light">
 <link rel="manifest" href="/icons/manifest.json">
 <link rel="apple-touch-icon" href="/icons/icon-192.png">
 <title>WashTime</title>
@@ -35,7 +36,8 @@ html{background:var(--bg);color-scheme:dark light}
 body{
   font-family:'DM Sans',sans-serif;
   background:var(--bg); color:var(--text);
-  padding-top:env(safe-area-inset-top);
+  /* верхний safe-area учитывает .header — второй отступ здесь давал на iPhone
+     двойную пустую полосу под Dynamic Island */
   display:flex; flex-direction:column;
   transition:background .3s,color .3s;
 }
@@ -107,7 +109,7 @@ body{
 .card-slide{
   flex-shrink:0;width:100%;height:100%;
   overflow-y:auto;scrollbar-width:none;
-  padding:4px 20px calc(max(var(--safe-bot), 18px) + 20px);
+  padding:4px 20px calc(var(--safe-bot) + 20px);
 }
 .card-slide::-webkit-scrollbar{display:none}
 
@@ -200,7 +202,7 @@ body{
 .psheet-ov.open{opacity:1}
 .psheet{
   width:100%;max-height:78vh;background:var(--bg3);
-  border-radius:22px 22px 0 0;padding:10px 16px calc(max(var(--safe-bot), 18px) + 16px);
+  border-radius:22px 22px 0 0;padding:10px 16px calc(var(--safe-bot) + 16px);
   transform:translateY(100%);transition:transform .22s cubic-bezier(.25,.46,.45,.94);
   display:flex;flex-direction:column;
 }
@@ -341,7 +343,7 @@ body{
 }
 
 /* ── STATS PAGE ── */
-.stats-page{padding:4px 20px calc(max(var(--safe-bot), 18px) + 20px)}
+.stats-page{padding:4px 20px calc(var(--safe-bot) + 20px)}
 .section-title{
   font-size:12px;font-weight:600;color:var(--text3);
   text-transform:uppercase;letter-spacing:.6px;margin:20px 0 12px;
@@ -386,7 +388,7 @@ body{
 .bnav{
   flex-shrink:0;
   display:flex;justify-content:space-around;
-  padding:10px 24px calc(max(var(--safe-bot), 18px) + 10px);
+  padding:10px 24px calc(var(--safe-bot) + 10px);
   background:var(--bg);border-top:1px solid var(--border);
 }
 .nbtn{
@@ -1564,21 +1566,23 @@ function getM(key){
 ═══════════════════════════ */
 /* Метка сборки. Установленная PWA любит держать старую страницу в кэше,
    и по внешнему виду не понять, какая версия запущена. */
-const APP_BUILD='v4.1 · 16.08 21:30';
+const APP_BUILD='v4.3 · 18.10 13:25';
 (function(){
   const el=document.getElementById('appBuild');
   if(el) el.textContent=APP_BUILD;
   console.log('WashTime', APP_BUILD);
 })();
 
+/* Цвет системных панелей (как в Fahrzeit): theme-color красит строку состояния
+   и панель навигации установленного приложения, color-scheme подсказывает
+   системе, светлые или тёмные у них значки. Меняется вместе с темой. */
 function updateThemeColor(){
   const dark = document.documentElement.getAttribute('data-theme') === 'dark';
   const color = dark ? '#0a0a0f' : '#f0f0f7';
-  let meta = document.getElementById('themeColorMeta');
+  const meta = document.getElementById('themeColorMeta');
   if(meta) meta.content = color;
-  // Для Windows Phone
-  let ms = document.querySelector('meta[name="msapplication-TileColor"]');
-  if(ms) ms.content = color;
+  const cs = document.getElementById('colorSchemeMeta');
+  if(cs) cs.content = dark ? 'dark light' : 'light dark';
 }
 
 function applyTheme(t){
@@ -1586,6 +1590,8 @@ function applyTheme(t){
     const dk=window.matchMedia('(prefers-color-scheme:dark)').matches;
     document.documentElement.setAttribute('data-theme',dk?'dark':'light');
   } else document.documentElement.setAttribute('data-theme',t);
+  // раньше при автоматической смене системной темы цвет панелей не обновлялся
+  updateThemeColor();
 }
 applyTheme(S.theme);
 window.matchMedia('(prefers-color-scheme:dark)').addEventListener('change',()=>{
@@ -3300,9 +3306,10 @@ function appConfirm({icon='⚠️', title='', text='', okLabel='OK', cancelLabel
    Программно открыть настройки браузера/Android нельзя — API такого нет,
    поэтому показываем пошаговую подсказку под текущий режим запуска. */
 function showPushGuide(){
-  const standalone = window.matchMedia('(display-mode: standalone)').matches
-                     || window.navigator.standalone === true;
-  const steps = (standalone ? t('pushHowPwa') : t('pushHowBrowser'))
+  const standalone = isStandalone();
+  const key = IS_IOS ? (standalone ? 'pushHowIosApp' : 'pushHowIos')
+                     : (standalone ? 'pushHowPwa' : 'pushHowBrowser');
+  const steps = t(key)
                   .split('\n').map(l=>`<div style="margin:6px 0">${l}</div>`).join('');
   appConfirm({
     icon:'🔔',
@@ -3586,9 +3593,17 @@ async function regSW(){
     if(swReg.installing)await new Promise(r=>swReg.installing.addEventListener('statechange',function(){if(this.state==='activated')r()}));
   }catch(e){console.warn('SW:',e);}
 }
-async function reqPerm(){
-  if(!('Notification'in window))return;
-  if(Notification.permission==='default')await Notification.requestPermission();
+/* Платформа. На iPhone Web Push работает только в приложении, добавленном
+   на экран «Домой», а разрешение можно запросить только по нажатию. */
+const IS_IOS = /iphone|ipad|ipod/i.test(navigator.userAgent)
+  || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+function isStandalone(){
+  return window.matchMedia('(display-mode: standalone)').matches
+      || window.matchMedia('(display-mode: fullscreen)').matches
+      || window.navigator.standalone === true;
+}
+function pushPossible(){
+  return ('Notification' in window) && ('PushManager' in window) && ('serviceWorker' in navigator);
 }
 async function showPush(title,body,tag){
   if(Notification.permission!=='granted')return;
@@ -3651,11 +3666,10 @@ async function subscribePush(){
 function getNotifMode(){ return localStorage.getItem('washNotifMode')||'push'; }
 
 function setNotifMode(mode){
-  localStorage.setItem('washNotifMode', mode);
+  try{ localStorage.setItem('washNotifMode', mode); }catch(e){}
   updateNotifUI();
-  if(mode === 'push' || mode === 'both'){
-    initPush();
-  }
+  // вызывается из onclick — это жест, здесь запрашивать разрешение можно
+  if(mode === 'push' || mode === 'both') requestPush();
 }
 
 function updateNotifUI(){
@@ -3669,11 +3683,23 @@ function updateNotifUI(){
   if(mode === 'tg'){
     st.textContent = ''; return;
   }
-  if(!('PushManager' in window)){
+  st.onclick = null; st.style.cursor = '';
+  // iPhone в Safari: push появится только после установки на экран «Домой»
+  if(IS_IOS && !isStandalone()){
+    st.style.color = 'var(--accent-wash)';
+    st.innerHTML = t('pushNeedInstall')
+      + `<div style="margin-top:4px;text-decoration:underline">${t('pushHowTap')}</div>`;
+    st.style.cursor = 'pointer';
+    st.onclick = showPushGuide;
+    return;
+  }
+  if(!pushPossible()){
     st.textContent = t('pushUnsupported');
     return;
   }
-  Notification.requestPermission().then(function(perm){
+  // Раньше здесь вызывался requestPermission() — без жеста. iOS на такой
+  // вызов сразу отвечает отказом, и статус навсегда становился «заблокировано».
+  (function(perm){
     if(perm === 'granted'){
       st.style.color = '#34c98a';
       st.textContent = t('pushAllowed');
@@ -3686,28 +3712,41 @@ function updateNotifUI(){
       st.style.cursor = 'pointer';
       st.onclick = showPushGuide;
     } else {
-      st.style.color = 'var(--text3)';
-      st.textContent = t('pushAsk');
+      st.style.color = 'var(--accent-wash)';
+      st.innerHTML = `<span style="text-decoration:underline">${t('pushTapEnable')}</span>`;
+      st.style.cursor = 'pointer';
+      st.onclick = requestPush;     // тап по статусу — жест, можно спрашивать
     }
-  });
+  })(Notification.permission);
 }
 
+async function loadVapid(){
+  if(VAPID_PUBLIC_KEY) return true;
+  try{
+    const r = await fetch('/api/vapid-config');
+    const d = await r.json();
+    VAPID_PUBLIC_KEY = d.publicKey || '';
+  } catch(e){ console.warn('vapid-config fetch failed:', e); }
+  return !!VAPID_PUBLIC_KEY;
+}
+
+// При запуске: ничего не спрашиваем, только обновляем подписку, если разрешение уже есть
 async function initPush(){
-  if(!('PushManager' in window)) return;
-  // Загрузить публичный VAPID ключ с сервера
-  if(!VAPID_PUBLIC_KEY){
-    try{
-      const r = await fetch('/api/vapid-config');
-      const d = await r.json();
-      VAPID_PUBLIC_KEY = d.publicKey || '';
-    } catch(e){ console.warn('vapid-config fetch failed:', e); return; }
-  }
-  if(!VAPID_PUBLIC_KEY) return;
+  if(!pushPossible() || Notification.permission !== 'granted') return;
+  if(await loadVapid()) await subscribePush();
+}
+
+// По нажатию: спрашиваем разрешение и подписываемся
+async function requestPush(){
+  if(IS_IOS && !isStandalone()){ showPushGuide(); return; }
+  if(!pushPossible()) return;
+  // requestPermission должен быть первым await — иначе iOS теряет жест
   const perm = await Notification.requestPermission();
-  if(perm === 'granted'){
+  if(perm === 'granted' && await loadVapid()){
+    if(!swReg) await regSW();
     await subscribePush();
-    updateNotifUI();
   }
+  updateNotifUI();
 }
 
 /* ═══════════════════════════
@@ -3852,7 +3891,6 @@ regSW().then(function(){
   if(mode === 'push' || mode === 'both') initPush();
 });
 updateThemeColor();
-reqPerm();
 updateClock();
 setInterval(updateAll,1000);
 
@@ -3967,7 +4005,9 @@ window.addEventListener('popstate', function(){
     document.body.appendChild(probe);
     var safe = probe.getBoundingClientRect().height;
     probe.remove();
-    LIFT = Math.max(0, 30 - safe);
+    // подъём нужен только во весь экран, где значок упирался в край
+    const fs = window.matchMedia('(display-mode: fullscreen)').matches;
+    LIFT = fs ? Math.max(0, 30 - safe) : 0;
   }
   function lift(el){
     var want = LIFT ? '0px -' + LIFT + 'px' : '';

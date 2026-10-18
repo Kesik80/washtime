@@ -1,9 +1,13 @@
 {
   "name": "WashTime",
   "short_name": "WashTime",
+  "id": "/",
   "start_url": "/",
-  "display": "fullscreen",
-  "display_override": ["fullscreen", "standalone"],
+  "scope": "/",
+  "display": "standalone",
+  "display_override": [
+    "standalone"
+  ],
   "orientation": "portrait",
   "background_color": "#0a0a0f",
   "theme_color": "#0a0a0f",
