@@ -1334,6 +1334,7 @@ function fbPushMachine(key){
     hasFinished: m.hasFinished||false,
     startH: m.startH||0,
     startM: m.startM||0,
+    startTs: m.startTs||null,
     h: m.h||0,
     m: m.m||0,
     progId: m.progId||null,
@@ -1374,6 +1375,9 @@ function fbWatchMachine(key){
     m.hasFinished = data.hasFinished;
     m.startH = data.startH;
     m.startM = data.startM;
+    // старые версии startTs не присылают — тогда берём ближайшую дату
+    m.startTs = data.startTs || (data.isRunning ? pastDate(data.startH, data.startM).getTime() : null);
+    m.startManual = false;
     m.h = data.h;
     m.m = data.m;
     if(data.progId!==undefined) m.progId = data.progId;
@@ -1386,13 +1390,15 @@ function fbWatchMachine(key){
 
     // Управление watchdog
     if(m.isRunning && !wasRunning){
-      scheduleWatchdog(key); scheduleServer(key);
+      // запустили на другом устройстве: себе ставим только push,
+      // Telegram (он общий на семью) планирует тот, кто запустил
+      scheduleServer(key, true);
       if(fromOther){
         const names = {wash:t('washName'),dry:t('dryName'),dish:t('dishName')};
         showToast(t('msgStarted', (data.byEmoji||'')+ ' '+(data.byName||''), names[key]));
       }
     } else if(!m.isRunning && wasRunning){
-      cancelWatchdog(key);
+      cancelScheduled(key);          // остановили на другом устройстве — свои push отменяем
       if(fromOther){
         const names = {wash:t('washName'),dry:t('dryName'),dish:t('dishName')};
         const who = m.stoppedBy || (data.byEmoji||'👤')+' '+(data.byName||'?');
@@ -1566,7 +1572,7 @@ function getM(key){
 ═══════════════════════════ */
 /* Метка сборки. Установленная PWA любит держать старую страницу в кэше,
    и по внешнему виду не понять, какая версия запущена. */
-const APP_BUILD='v4.3 · 18.10 13:25';
+const APP_BUILD='v4.4 · 14.11 10:00';
 (function(){
   const el=document.getElementById('appBuild');
   if(el) el.textContent=APP_BUILD;
@@ -2103,11 +2109,58 @@ function setRing(key,pct){
   const off=Math.round((RING_C-(RING_C*Math.max(0,Math.min(1,pct))))*10)/10;
   if(el._off!==off){ el._off=off; el.style.strokeDashoffset=off; }
 }
+/* Время старта хранилось только как часы:минуты и всегда прикладывалось
+   к СЕГОДНЯШНЕЙ дате. Если в машине осталось старое время (например, 18:10
+   со вчера) и цикл запускали утром, окончание оказывалось вечером —
+   таймер «не останавливался». Теперь при запуске запоминается точный
+   момент startTs, а часы:минуты нужны только для показа и выбора. */
+
+// Ближайшая к «сейчас» дата для заданных часов:минут (в пределах ±12 ч):
+// 00:10 и выбранные 23:30 — это вчера, а не завтра.
+function nearestDate(h, mi){
+  const now=new Date();
+  const d=new Date(now.getFullYear(),now.getMonth(),now.getDate(),h||0,mi||0,0,0);
+  const diff=d.getTime()-now.getTime(), H12=12*3600000;
+  if(diff> H12) d.setDate(d.getDate()-1);
+  if(diff<-H12) d.setDate(d.getDate()+1);
+  return d;
+}
+// Для уже запущенной машины без точного момента (данные от старой версии):
+// старт не может быть в будущем — значит, это было вчера.
+function pastDate(h, mi){
+  const d=nearestDate(h, mi);
+  if(d.getTime()>Date.now()+60000) d.setDate(d.getDate()-1);
+  return d;
+}
+function getStartDate(m){
+  if(m.isRunning) return m.startTs ? new Date(m.startTs) : pastDate(m.startH, m.startM);
+  return nearestDate(m.startH, m.startM);
+}
 function getEndDate(key){
   const m=getM(key);
-  const now=new Date();
-  const s=new Date(now.getFullYear(),now.getMonth(),now.getDate(),m.startH,m.startM,0,0);
-  return new Date(s.getTime()+(m.h*60+m.m)*60000);
+  return new Date(getStartDate(m).getTime()+(m.h*60+m.m)*60000);
+}
+
+/* Пока машина не запущена и время старта не выставлено вручную,
+   оно идёт вместе с часами — открыл приложение, и там уже «сейчас». */
+function syncIdleStart(m){
+  if(!m || m.isRunning || m.startManual) return false;
+  const d=new Date();
+  if(m.startH===d.getHours() && m.startM===d.getMinutes()) return false;
+  m.startH=d.getHours(); m.startM=d.getMinutes();
+  return true;
+}
+function syncAllIdleStarts(){
+  let changed=false;
+  Object.values(S.machines||{}).forEach(pm=>{
+    KEYS.forEach(k=>{ if(syncIdleStart(pm&&pm[k])) changed=true; });
+  });
+  if(changed) saveS();
+  visKeys().forEach(k=>{
+    const m=getM(k), si=document.getElementById(`si-${k}`);
+    if(si && !m.isRunning) setText(si, `${String(m.startH).padStart(2,'0')}:${String(m.startM).padStart(2,'0')}`);
+  });
+  return changed;
 }
 
 /* ═══════════════════════════
@@ -2131,7 +2184,16 @@ function updateClock(){
   const txt=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
   if(el.textContent!==txt) el.textContent=txt;   // лишний раз DOM не трогаем
 }
-function updateAll(){ updateClock(); visKeys().forEach(k=>{updateCard(k);updateTemp(k);}); }
+let _lastSyncMin=-1;
+function updateAll(){
+  updateClock();
+  const mi=new Date().getMinutes();
+  if(mi!==_lastSyncMin){ _lastSyncMin=mi; syncAllIdleStarts(); }
+  visKeys().forEach(k=>{updateCard(k);updateTemp(k);});
+}
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='visible'){ syncAllIdleStarts(); updateAll(); }
+});
 function updateCard(key){
   const m=getM(key);
   // «сейчас» прячем только на время работы машины. Раньше кнопка не рендерилась
@@ -2197,8 +2259,8 @@ function doStop(key){
   const profile=S.profiles.find(p=>p.id===pid)||{};
   m.stoppedBy = (profile.emoji||'👤')+' '+(profile.name||'?');
   m.stoppedAt = `${String(new Date().getHours()).padStart(2,'0')}:${String(new Date().getMinutes()).padStart(2,'0')}`;
-  m.isRunning=false; saveS(); fbPushMachine(key); playStop();
-  cancelWatchdog(key); cancelScheduled(key); setRing(key,0);
+  m.isRunning=false; m.startManual=false; saveS(); fbPushMachine(key); playStop();
+  cancelScheduled(key); setRing(key,0);
   // Перестроить карточку полностью
   const cardEl = document.getElementById(`card-${key}`);
   const slide = cardEl ? cardEl.closest('.card-slide') : null;
@@ -2215,16 +2277,19 @@ function handleSS(key){
     m.launchedByProfile=pid;
     m.launchedBy=(profile.emoji||'👤')+' '+(profile.name||'?');
     m.stoppedBy=null; m.stoppedAt=null;
-    // Использовать заданное время старта, если оно не совпадает с текущим моментом
-    // (т.е. пользователь его выставил вручную)
-    const now=new Date();
-    const nowH=now.getHours(), nowM=now.getMinutes();
-    const manualSet = (m.startH !== undefined && m.startM !== undefined &&
-      !(m.startH===nowH && m.startM===nowM));
-    if(!manualSet){ m.startH=nowH; m.startM=nowM; }
-    // startH/startM уже заданы пикером — не перезаписываем
+    // Раньше «ручным» считалось любое время, не равное текущей минуте, —
+    // поэтому оставшееся от прошлого цикла время подхватывалось как выбранное.
+    // Теперь ручным считается только то, что выставили в барабане.
+    if(m.startManual){
+      m.startTs=nearestDate(m.startH, m.startM).getTime();
+    } else {
+      const now=new Date();
+      m.startH=now.getHours(); m.startM=now.getMinutes();
+      m.startTs=now.getTime();
+    }
+    m.startManual=false;
     saveS(); fbPushMachine(key); playTick();
-    scheduleServer(key); scheduleWatchdog(key);
+    scheduleServer(key);
     // Перестроить карточку полностью
     const cardEl2 = document.getElementById(`card-${key}`);
     const slide2 = cardEl2 ? cardEl2.closest('.card-slide') : null;
@@ -2312,7 +2377,7 @@ function addRipple(btn,e){
 function fireFinal(key, withSignal){
   const m=getM(key);
   if(m.hasFinished)return;
-  m.hasFinished=true; m.isRunning=false; saveS();
+  m.hasFinished=true; m.isRunning=false; m.startManual=false; saveS();
   fbPushMachine(key); // сохранить финиш в Firebase
   const msg=t(key==='wash'?'washMsg':key==='dry'?'dryMsg':'dishMsg');
   // Сигнал только если включён
@@ -2325,10 +2390,8 @@ function fireFinal(key, withSignal){
   if(_mode === 'push' || _mode === 'both'){
     showPush('✅ WashTime', msg, `lai-${key}`);
   }
-  // Telegram — только если режим tg или both
-  if(_mode === 'tg' || _mode === 'both'){
-    sendTg(msg);
-  }
+  // Telegram сюда не отправляем: его уже запланировал сервер через QStash.
+  // Раньше при открытом приложении приходило по два-три одинаковых сообщения.
   document.getElementById(`card-${key}`)?.classList.remove('running');
   document.getElementById(`sb-${key}`).textContent=t('btnStart');
   document.getElementById(`sb-${key}`).className='start-btn go';
@@ -3267,6 +3330,7 @@ function setStartNow(key){
   if(mk.isRunning) return;          // у запущенной машины старт не меняем
   const d=new Date();
   mk.startH=d.getHours(); mk.startM=d.getMinutes();
+  mk.startManual=false;              // снова идёт вместе с часами
   saveS();
   const si=document.getElementById(`si-${key}`);
   if(si) si.textContent=`${String(mk.startH).padStart(2,'0')}:${String(mk.startM).padStart(2,'0')}`;
@@ -3565,6 +3629,7 @@ function openTimeDrum(key, mode, opts) {
       mk2.h = h; mk2.m = m;
     } else {
       mk2.startH = h; mk2.startM = m;
+      mk2.startManual = true;        // выбрано вручную — с часами больше не двигаем
     }
     saveS();
     // Перестроить слайд целиком
@@ -3752,7 +3817,6 @@ async function requestPush(){
 /* ═══════════════════════════
    QSTASH / TELEGRAM
 ═══════════════════════════ */
-const wdogs={};
 // Идентификаторы устройства и семьи вместо секрета в заголовке:
 // сервер проверяет их по базе, а в исходнике страницы они не встречаются.
 function devIds(){
@@ -3784,15 +3848,14 @@ function cancelScheduled(key){
     .catch(e=>console.warn('push-cancel:',e));
 }
 
-function scheduleServer(key){
-  cancelWatchdog(key);
+function scheduleServer(key, remote){
   cancelScheduled(key);      // на случай перезапуска поверх старого цикла
-  scheduleReminder(key);
+  scheduleReminder(key, remote);
   const end=getEndDate(key);
   const msg=t(key==='wash'?'washMsg':key==='dry'?'dryMsg':'dishMsg');
   const mode = getNotifMode();
-  // Telegram (через QStash)
-  if(mode === 'tg' || mode === 'both'){
+  // Telegram (через QStash) — только с устройства, где нажали «Запустить»
+  if(!remote && (mode === 'tg' || mode === 'both')){
     fetch('/api/schedule',{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({endTime:end.toISOString(),message:msg,...devIds()})})
       .then(r=>r.json()).then(d=>{ if(d.success){ console.log('QStash ✓',d.messageId); rememberMsg(key,d.messageId); } })
@@ -3818,7 +3881,7 @@ function scheduleServer(key){
 function remindCfg(){
   return (S.settings&&S.settings.remind)||{on:false,h:1,m:0};
 }
-function scheduleReminder(key){
+function scheduleReminder(key, remote){
   const r=remindCfg();
   if(!r.on || r[key]===false) return;
   const delayMin=(r.h||0)*60+(r.m||0);
@@ -3826,7 +3889,7 @@ function scheduleReminder(key){
   const mode=getNotifMode();
   const msg=t(key==='wash'?'remindWash':key==='dry'?'remindDry':'remindDish');
   const when=new Date(getEndDate(key).getTime()+delayMin*60000);
-  if(mode==='tg'||mode==='both'){
+  if(!remote && (mode==='tg'||mode==='both')){
     fetch('/api/schedule',{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({endTime:when.toISOString(),message:msg,...devIds()})})
       .then(r=>r.json()).then(d=>rememberMsg(key,d&&d.messageId)).catch(e=>console.warn(e));
@@ -3842,26 +3905,6 @@ function scheduleReminder(key){
     }
   }
   console.log('Напоминание запланировано на', when.toLocaleTimeString());
-}
-
-function scheduleWatchdog(key){
-  const end=getEndDate(key);
-  const msg=t(key==='wash'?'washMsg':key==='dry'?'dryMsg':'dishMsg');
-  wdogs[key]=setInterval(async()=>{
-    if(!getM(key).isRunning){cancelWatchdog(key);return;}
-    if(end.getTime()-Date.now()<=0){
-      cancelWatchdog(key);
-      try{await fetch('/api/notify',{method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({message:msg,...devIds()})});}catch(e){}
-    }
-  },5000);
-}
-function cancelWatchdog(key){if(wdogs[key]){clearInterval(wdogs[key]);delete wdogs[key];}}
-async function sendTg(msg){
-  try{await fetch('/api/notify',{method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({message:msg,...devIds()})});}catch(e){}
 }
 
 /* ═══════════════════════════
@@ -3882,6 +3925,7 @@ function updateMelodyUI(){
   });
 }
 
+syncAllIdleStarts();
 renderProfileBar();
 buildSlides();
 applyI18n();
