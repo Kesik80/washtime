@@ -1572,7 +1572,7 @@ function getM(key){
 ═══════════════════════════ */
 /* Метка сборки. Установленная PWA любит держать старую страницу в кэше,
    и по внешнему виду не понять, какая версия запущена. */
-const APP_BUILD='v4.4 · 14.11 10:00';
+const APP_BUILD='v4.5 · 14.11 17:10';
 (function(){
   const el=document.getElementById('appBuild');
   if(el) el.textContent=APP_BUILD;
@@ -2150,6 +2150,17 @@ function syncIdleStart(m){
   m.startH=d.getHours(); m.startM=d.getMinutes();
   return true;
 }
+/* Вручную выставленное время живёт только пока приложение открыто.
+   После перезапуска или долгого перерыва оно снова идёт с часами —
+   иначе забытое «на час раньше» подхватывалось при следующей стирке. */
+function dropIdleManual(){
+  Object.values(S.machines||{}).forEach(pm=>{
+    KEYS.forEach(k=>{ const m=pm&&pm[k]; if(m && !m.isRunning) m.startManual=false; });
+  });
+}
+const MANUAL_TTL = 10*60*1000;   // свернул больше чем на 10 минут — ручное время сбрасывается
+let _hiddenAt = 0;
+
 function syncAllIdleStarts(){
   let changed=false;
   Object.values(S.machines||{}).forEach(pm=>{
@@ -2192,7 +2203,10 @@ function updateAll(){
   visKeys().forEach(k=>{updateCard(k);updateTemp(k);});
 }
 document.addEventListener('visibilitychange',()=>{
-  if(document.visibilityState==='visible'){ syncAllIdleStarts(); updateAll(); }
+  if(document.visibilityState==='hidden'){ _hiddenAt=Date.now(); return; }
+  if(_hiddenAt && Date.now()-_hiddenAt > MANUAL_TTL) dropIdleManual();
+  _hiddenAt=0;
+  syncAllIdleStarts(); updateAll();
 });
 function updateCard(key){
   const m=getM(key);
@@ -3925,6 +3939,7 @@ function updateMelodyUI(){
   });
 }
 
+dropIdleManual();      // при запуске приложения время старта всегда «сейчас»
 syncAllIdleStarts();
 renderProfileBar();
 buildSlides();
